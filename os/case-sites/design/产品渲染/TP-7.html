@@ -1,0 +1,692 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<title>TP-7</title>
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<script src="deck-stage.js"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Azeret+Mono:wght@300;400;500&family=Space+Grotesk:wght@300;400;500;700&family=Noto+Sans+SC:wght@300;400;500;700&family=Noto+Serif+SC:wght@300;400;500;700&display=swap" rel="stylesheet">
+<style>
+  html, body {
+    margin: 0;
+    padding: 0;
+    background: #000;
+    font-family: 'Space Grotesk', 'Noto Sans SC', -apple-system, BlinkMacSystemFont, Helvetica, Arial, sans-serif;
+    color: #fff;
+  }
+
+  /* ─── Type scale ─────────────────────────────────────────────── */
+  :root {
+    --ink: #f5f1ea;
+    --ink-soft: rgba(245,241,234,0.62);
+    --ink-faint: rgba(245,241,234,0.32);
+    --amber: #ff6a28;
+    --amber-soft: #ffb789;
+  }
+
+  .slide {
+    background: #0a0a0a;
+    color: #f5f5f5;
+    overflow: hidden;
+    position: relative;
+  }
+
+  /* ─── Subtle scanline / grid texture ─────────────────────────── */
+  .grid-bg {
+    position: absolute;
+    inset: 0;
+    background-image:
+      linear-gradient(rgba(255,255,255,0.025) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(255,255,255,0.025) 1px, transparent 1px);
+    background-size: 80px 80px;
+    mask-image: radial-gradient(ellipse 90% 70% at 50% 50%, #000 40%, transparent 95%);
+    -webkit-mask-image: radial-gradient(ellipse 90% 70% at 50% 50%, #000 40%, transparent 95%);
+    pointer-events: none;
+  }
+
+  /* ─── Radial glow ─────────────────────────────────────────────── */
+  .glow {
+    position: absolute;
+    inset: 0;
+    background:
+      radial-gradient(ellipse 60% 50% at 50% 55%, rgba(255,110,40,0.14), transparent 70%),
+      radial-gradient(ellipse 40% 35% at 50% 50%, rgba(255,180,90,0.08), transparent 75%);
+    pointer-events: none;
+  }
+
+  /* ─── Huge TP-7 wordmark ──────────────────────────────────────── */
+  .wordmark {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    pointer-events: none;
+    user-select: none;
+    z-index: 1;
+  }
+  .wordmark .text {
+    font-family: 'Space Grotesk', sans-serif;
+    font-weight: 700;
+    font-size: 1100px;
+    line-height: 0.82;
+    letter-spacing: -0.06em;
+    color: transparent;
+    background: linear-gradient(180deg,
+      rgba(255,255,255,0.10) 0%,
+      rgba(255,255,255,0.04) 55%,
+      rgba(255,255,255,0.00) 100%);
+    -webkit-background-clip: text;
+            background-clip: text;
+    -webkit-text-stroke: 1.5px rgba(255,255,255,0.18);
+    white-space: nowrap;
+    transform: translateY(-10px);
+    filter: drop-shadow(0 0 60px rgba(255, 120, 40, 0.06));
+  }
+  .wordmark .text.echo {
+    position: absolute;
+    -webkit-text-stroke: 1px rgba(255,120,40,0.08);
+    background: none;
+    filter: blur(8px);
+  }
+
+  .hero-title {
+    position: absolute;
+    top: 124px;
+    left: 0;
+    right: 0;
+    padding: 0 64px;
+    display: flex;
+    align-items: flex-start;
+    justify-content: center;
+    pointer-events: none;
+    user-select: none;
+    z-index: 2;
+  }
+  .hero-title .line {
+    font-family: 'Space Grotesk', 'Noto Sans SC', sans-serif;
+    font-weight: 700;
+    font-size: 196px;
+    line-height: 1;
+    color: var(--ink);
+    white-space: nowrap;
+    transform: translateY(-6px);
+    display: flex;
+    align-items: baseline;
+  }
+  .hero-title .model {
+    font-weight: 700;
+    font-size: 270px;
+    letter-spacing: -0.02em;
+    color: var(--amber-soft);
+    -webkit-text-stroke: 2px var(--amber-soft);
+  }
+  .hero-title .cn {
+    font-weight: 700;
+    letter-spacing: 0;
+    color: rgba(245,241,234,0.92);
+  }
+
+  /* ─── Corner chrome — monospace labels ────────────────────────── */
+  .chrome {
+    position: absolute;
+    inset: 0;
+    font-family: 'Azeret Mono', ui-monospace, "SF Mono", Menlo, monospace;
+    font-size: 16px;
+    font-weight: 400;
+    letter-spacing: 0.08em;
+    color: rgba(255,255,255,0.55);
+    text-transform: uppercase;
+    pointer-events: none;
+  }
+  .chrome .tl, .chrome .tr, .chrome .bl, .chrome .br {
+    position: absolute;
+    display: flex;
+    gap: 10px;
+    align-items: baseline;
+  }
+  .chrome .tl { top: 56px; left: 64px; }
+  .chrome .tr { top: 56px; right: 64px; }
+  .chrome .bl { bottom: 56px; left: 64px; }
+  .chrome .br { bottom: 56px; right: 64px; }
+
+  .chrome .dot {
+    display: inline-block;
+    width: 8px; height: 8px;
+    border-radius: 50%;
+    background: #ff6a28;
+    box-shadow: 0 0 12px rgba(255,106,40,0.7);
+    transform: translateY(-2px);
+  }
+  .chrome .k { color: rgba(255,255,255,0.35); }
+  .chrome .v { color: rgba(255,255,255,0.82); }
+
+  /* corner tick marks */
+  .tick {
+    position: absolute;
+    width: 22px;
+    height: 22px;
+    border-color: rgba(255,255,255,0.35);
+    border-style: solid;
+    border-width: 0;
+  }
+  .tick.tl-corner { top: 36px; left: 36px; border-top-width: 1px; border-left-width: 1px; }
+  .tick.tr-corner { top: 36px; right: 36px; border-top-width: 1px; border-right-width: 1px; }
+  .tick.bl-corner { bottom: 36px; left: 36px; border-bottom-width: 1px; border-left-width: 1px; }
+  .tick.br-corner { bottom: 36px; right: 36px; border-bottom-width: 1px; border-right-width: 1px; }
+
+  /* ─── Spline container (foreground) ───────────────────────────── */
+  .spline-wrap {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 5;
+  }
+  .spline-wrap iframe {
+    width: 1920px;
+    height: 1080px;
+    border: 0;
+    background: transparent;
+    /* drop a soft warm shadow behind the product */
+    filter: drop-shadow(0 60px 120px rgba(255,90,20,0.18));
+  }
+
+  /* ─── Left column: Chinese typography composition ─────────────── */
+  .cn-col {
+    position: absolute;
+    left: 120px;
+    top: 160px;
+    bottom: 160px;
+    width: 720px;
+    z-index: 8;
+    pointer-events: none;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+  }
+
+  .cn-top {
+    font-family: 'Azeret Mono', ui-monospace, monospace;
+    font-size: 17px;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    color: var(--ink-soft);
+    display: flex;
+    align-items: center;
+    gap: 18px;
+  }
+  .cn-top .idx {
+    color: var(--amber-soft);
+    border: 1px solid rgba(255,183,137,0.4);
+    padding: 4px 10px;
+    border-radius: 2px;
+    font-size: 15px;
+  }
+  .cn-top .bar {
+    flex: 1;
+    height: 1px;
+    background: linear-gradient(90deg, rgba(245,241,234,0.32), rgba(245,241,234,0));
+    max-width: 200px;
+  }
+
+  .cn-display {
+    margin-top: 64px;
+  }
+  .cn-eyebrow {
+    font-family: 'Noto Sans SC', sans-serif;
+    font-weight: 300;
+    font-size: 26px;
+    letter-spacing: 0.6em;
+    color: var(--ink-soft);
+    margin-bottom: 38px;
+  }
+  .cn-title {
+    font-family: 'Noto Serif SC', serif;
+    font-weight: 500;
+    font-size: 178px;
+    line-height: 0.95;
+    letter-spacing: 0.02em;
+    color: var(--ink);
+    margin: 0;
+  }
+  .cn-title .accent {
+    color: var(--amber-soft);
+    font-weight: 400;
+  }
+  .cn-title .dot-sep {
+    display: inline-block;
+    width: 14px;
+    height: 14px;
+    background: var(--amber);
+    border-radius: 50%;
+    transform: translateY(-44px);
+    margin: 0 24px;
+    box-shadow: 0 0 24px rgba(255,106,40,0.6);
+  }
+  .cn-subtitle {
+    margin-top: 28px;
+    font-family: 'Space Grotesk', sans-serif;
+    font-weight: 300;
+    font-size: 28px;
+    letter-spacing: 0.32em;
+    text-transform: uppercase;
+    color: var(--ink-faint);
+  }
+
+  .cn-body {
+    max-width: 480px;
+    margin-top: 52px;
+    font-family: 'Noto Sans SC', sans-serif;
+    font-weight: 300;
+    font-size: 22px;
+    line-height: 2;
+    color: var(--ink-soft);
+    letter-spacing: 0.04em;
+  }
+  .cn-body .strong { color: var(--ink); font-weight: 400; }
+
+  /* spec grid at bottom of left column */
+  .cn-specs {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 32px 28px;
+    padding-top: 32px;
+    border-top: 1px solid rgba(245,241,234,0.12);
+    max-width: 560px;
+  }
+  .cn-spec .k {
+    font-family: 'Azeret Mono', monospace;
+    font-size: 12px;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--ink-faint);
+    margin-bottom: 8px;
+  }
+  .cn-spec .v {
+    font-family: 'Noto Sans SC', sans-serif;
+    font-size: 22px;
+    font-weight: 400;
+    color: var(--ink);
+    letter-spacing: 0.04em;
+  }
+  .cn-spec .v .unit {
+    font-family: 'Azeret Mono', monospace;
+    font-size: 13px;
+    color: var(--ink-soft);
+    margin-left: 4px;
+    letter-spacing: 0.1em;
+  }
+
+  /* ─── Right vertical Chinese strip ─────────────────────────────── */
+  .cn-vstrip {
+    position: absolute;
+    right: 92px;
+    top: 50%;
+    transform: translateY(-50%);
+    writing-mode: vertical-rl;
+    font-family: 'Noto Serif SC', serif;
+    font-weight: 400;
+    font-size: 28px;
+    letter-spacing: 0.6em;
+    color: rgba(245,241,234,0.42);
+    z-index: 8;
+    pointer-events: none;
+    line-height: 1.3;
+  }
+  .cn-vstrip .mark {
+    color: var(--amber-soft);
+    font-family: 'Azeret Mono', monospace;
+    font-size: 14px;
+    letter-spacing: 0.2em;
+    display: block;
+    margin-bottom: 24px;
+    writing-mode: horizontal-tb;
+    transform: rotate(0);
+  }
+
+  /* ─── Stamp seal (top-right of left column area) ───────────────── */
+  .seal {
+    position: absolute;
+    left: 850px;
+    top: 160px;
+    width: 132px;
+    height: 132px;
+    border: 1.5px solid rgba(255,106,40,0.55);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-direction: column;
+    color: var(--amber-soft);
+    font-family: 'Noto Serif SC', serif;
+    z-index: 7;
+    background: radial-gradient(circle, rgba(255,106,40,0.06), transparent 70%);
+  }
+  .seal .big {
+    font-size: 44px;
+    font-weight: 500;
+    letter-spacing: 0.08em;
+    line-height: 1;
+  }
+  .seal .sm {
+    font-family: 'Azeret Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 0.18em;
+    margin-top: 10px;
+    color: rgba(255,183,137,0.7);
+  }
+
+  /* ─── Footer meta strip ───────────────────────────────────────── */
+  .footer-strip {
+    position: absolute;
+    left: 50%;
+    bottom: 40px;
+    transform: translateX(-50%);
+    display: flex;
+    align-items: center;
+    gap: 18px;
+    padding: 10px 18px;
+    background: rgba(255,255,255,0.04);
+    border: 1px solid rgba(255,255,255,0.08);
+    border-radius: 999px;
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    font-family: 'Azeret Mono', ui-monospace, monospace;
+    font-size: 13px;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: rgba(255,255,255,0.72);
+    z-index: 10;
+    pointer-events: none;
+  }
+  .footer-strip .pill {
+    padding: 4px 10px;
+    border-radius: 999px;
+    background: rgba(255,106,40,0.14);
+    color: #ffb789;
+    font-size: 11px;
+    letter-spacing: 0.18em;
+  }
+  .footer-strip .sep { color: rgba(255,255,255,0.25); }
+
+  /* ─── Bottom Chinese caption ──────────────────────────────────── */
+  .cn-caption {
+    position: absolute;
+    left: 120px;
+    bottom: 56px;
+    z-index: 10;
+    font-family: 'Azeret Mono', monospace;
+    font-size: 13px;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    color: var(--ink-faint);
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    pointer-events: none;
+  }
+  .cn-caption .zh {
+    font-family: 'Noto Sans SC', sans-serif;
+    letter-spacing: 0.3em;
+    text-transform: none;
+    color: var(--ink-soft);
+    font-size: 14px;
+  }
+  .cn-caption .pipe { color: rgba(245,241,234,0.2); }
+
+  /* ─── Lede paragraph ────────────────────────── */
+  .lede {
+    position: absolute;
+    left: 120px;
+    bottom: 120px;
+    max-width: 366px;
+    z-index: 8;
+    pointer-events: none;
+    font-family: 'Space Grotesk', 'Noto Sans SC', sans-serif;
+    font-weight: 300;
+    font-size: 14px;
+    line-height: 1.95;
+    letter-spacing: 0.03em;
+    color: var(--ink-soft);
+    text-wrap: pretty;
+  }
+  .lede .strong { color: var(--ink); font-weight: 500; }
+  .lede .gap { display: block; height: 13px; }
+  .lede .meta {
+    margin-top: 18px;
+    font-family: 'Azeret Mono', ui-monospace, monospace;
+    font-size: 11px;
+    letter-spacing: 0.13em;
+    line-height: 1.9;
+    color: var(--ink-faint);
+    text-transform: uppercase;
+  }
+  .lede .meta b { color: var(--amber-soft); font-weight: 400; }
+
+  /* ─── Spec panel (right) ───────────────────────────── */
+  .spec-panel {
+    position: absolute;
+    right: 120px;
+    bottom: 120px;
+    width: 312px;
+    z-index: 8;
+    pointer-events: none;
+    text-align: right;
+  }
+  .spec-panel .spec-head {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 12px;
+    margin-bottom: 20px;
+    font-family: 'Azeret Mono', ui-monospace, monospace;
+    font-size: 12px;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    color: var(--amber-soft);
+  }
+  .spec-panel .spec-head .ln {
+    flex: 1;
+    height: 1px;
+    max-width: 90px;
+    background: linear-gradient(90deg, rgba(255,183,137,0), rgba(255,183,137,0.5));
+  }
+  .spec-row {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 16px;
+    padding: 12px 0;
+    border-top: 1px solid rgba(245,241,234,0.13);
+  }
+  .spec-row:last-child { border-bottom: 1px solid rgba(245,241,234,0.13); }
+  .spec-row .k {
+    font-family: 'Noto Sans SC', sans-serif;
+    font-size: 13px;
+    font-weight: 300;
+    letter-spacing: 0.12em;
+    color: var(--ink-faint);
+    white-space: nowrap;
+  }
+  .spec-row .v {
+    font-family: 'Space Grotesk', 'Noto Sans SC', sans-serif;
+    font-size: 19px;
+    font-weight: 400;
+    letter-spacing: 0.01em;
+    color: var(--ink);
+  }
+  .spec-row .v .u {
+    font-family: 'Azeret Mono', ui-monospace, monospace;
+    font-size: 12px;
+    color: var(--ink-soft);
+    margin-left: 4px;
+    letter-spacing: 0.08em;
+  }
+  .spec-panel .spec-foot {
+    margin-top: 18px;
+    font-family: 'Azeret Mono', ui-monospace, monospace;
+    font-size: 11px;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--ink-faint);
+  }
+  .spec-panel .spec-foot b { color: var(--amber-soft); font-weight: 400; }
+
+  /* ─── Reveal animation (all overlay UI) ─────────────────── */
+  .reveal {
+    opacity: 0;
+    transform: translateY(26px);
+    transition: opacity 1.4s cubic-bezier(.2,.75,.2,1),
+                transform 1.4s cubic-bezier(.2,.75,.2,1);
+  }
+  .reveal.in { opacity: 1; transform: none; }
+
+  .hero-title {
+    opacity: 0;
+    transform: scale(1.05);
+    transition: opacity 1.8s ease,
+                transform 1.8s cubic-bezier(.2,.75,.2,1);
+  }
+  .hero-title.in { opacity: 1; transform: none; }
+
+</style>
+</head>
+<body>
+
+<deck-stage width="1920" height="1080">
+
+  <section data-label="TP-7" class="slide">
+
+    <!-- Background layers -->
+    <div class="grid-bg"></div>
+    <div class="glow"></div>
+
+    <div class="wordmark">
+      <div class="text echo">TP-7</div>
+      <div class="text">TP-7</div>
+    </div>
+
+    <div class="hero-title">
+      <div class="line"><span class="model">TP-7</span><span class="cn">无线收音机</span></div>
+    </div>
+
+    <!-- Corner ticks -->
+    <span class="tick tl-corner"></span>
+    <span class="tick tr-corner"></span>
+    <span class="tick bl-corner"></span>
+    <span class="tick br-corner"></span>
+
+    <!-- Chrome labels -->
+    <div class="chrome">
+      <div class="tl">
+        <span class="dot"></span>
+        <span class="k">REC</span>
+        <span class="v">●  2026.04.21</span>
+        <span class="k" style="margin-left:14px;">录制中</span>
+      </div>
+      <div class="tr">
+        <span class="k">型号</span>
+        <span class="v">TP-7&nbsp;/&nbsp;FIELD</span>
+      </div>
+      <div class="bl">
+        <span class="k">渲染</span>
+        <span class="v">REALTIME · WEBGL</span>
+      </div>
+      <div class="br">
+        <span class="k">视角</span>
+        <span class="v">ORBIT 000°</span>
+      </div>
+    </div>
+
+    <!-- Lede paragraph -->
+    <div class="lede reveal">
+      <span class="strong">一台口袋大小的录音机。</span><br/>
+      把日常的声音留在掌心 —— 街角掠过的风、一段未完的对话、深夜独自的呼吸，与一首尚未命名的旋律。随身、随时，伸手即录，让转瞬即逝的声响成为可以反复回放的记忆。
+      <span class="gap"></span>
+      铝合金一体机身，单手可握；2.8 英寸触控屏配实体推杆，盲操也精准。内置三振膜高保真麦克风阵列，支持外接话筒与多轨叠录；从清晨的鸟鸣到深夜的灵感，整日续航足以陪你走完每一段路。
+      <span class="gap"></span>
+      录完即传 —— USB-C 直连、无线同步到手机与桌面，剪辑、命名、归档一气呈成。从灵感闪现到成品输出，只需要这一台。
+      <span class="meta">采样 <b>96kHz / 24bit</b> &nbsp;·&nbsp; 续航 <b>7h</b> &nbsp;·&nbsp; 重量 <b>82g</b></span>
+    </div>
+
+    <!-- Spec panel (right) -->
+    <div class="spec-panel reveal">
+      <div class="spec-head"><span class="ln"></span>技术规格 / SPEC</div>
+      <div class="spec-row"><span class="k">采样精度</span><span class="v">96<span class="u">kHz / 24bit</span></span></div>
+      <div class="spec-row"><span class="k">麦克风</span><span class="v">三振膜阵列</span></div>
+      <div class="spec-row"><span class="k">存储</span><span class="v">128<span class="u">GB</span></span></div>
+      <div class="spec-row"><span class="k">接口</span><span class="v">USB-C<span class="u">/ 3.5mm</span></span></div>
+      <div class="spec-row"><span class="k">机身</span><span class="v">阳极氧化铝</span></div>
+      <div class="spec-row"><span class="k">尺寸</span><span class="v">76·77·15<span class="u">mm</span></span></div>
+      <div class="spec-foot">SN&nbsp;2604·21 &nbsp;·&nbsp; 限定档案 <b>No.04</b></div>
+    </div>
+
+
+    <!-- Foreground: Spline embed -->
+    <div class="spline-wrap">
+      <iframe
+        src="https://my.spline.design/tp7-tU31WsYCusSvVFnXJwW9XuG7/"
+        frameborder="0"
+        allow="autoplay; fullscreen; xr-spatial-tracking"
+        loading="eager">
+      </iframe>
+    </div>
+
+    <!-- Footer meta -->
+    <div class="footer-strip">
+      <span class="pill">实时 3D</span>
+      <span>便携 · 现场录音器</span>
+      <span class="sep">│</span>
+      <span>拖动旋转</span>
+    </div>
+
+  </section>
+
+</deck-stage>
+
+<script>
+  (function () {
+    // Fit the hero title to fill the canvas width (no inter-segment gap).
+    function fitTitle() {
+      var line = document.querySelector('.hero-title .line');
+      if (!line) return;
+      var avail = 1920 - 64 * 2;
+      line.style.fontSize = '200px';
+      for (var i = 0; i < 5; i++) {
+        var w = line.offsetWidth;
+        if (!w) break;
+        var cur = parseFloat(line.style.fontSize);
+        line.style.fontSize = (cur * avail / w).toFixed(2) + 'px';
+      }
+    }
+    if (document.fonts && document.fonts.ready) document.fonts.ready.then(fitTitle);
+    window.addEventListener('load', fitTitle);
+    window.addEventListener('resize', fitTitle);
+
+    // Only the newly-added typography (title + lede) waits for the
+    // Spline model to finish (~6s); the original chrome shows immediately.
+    var steps = [
+      { sel: '.hero-title', delay: 0 },
+      { sel: '.lede',       delay: 450 },
+      { sel: '.spec-panel', delay: 700 }
+    ];
+    function reveal() {
+      setTimeout(function () {
+        steps.forEach(function (s) {
+          document.querySelectorAll(s.sel).forEach(function (n) {
+            setTimeout(function () { n.classList.add('in'); }, s.delay);
+          });
+        });
+      }, 6000);
+    }
+    if (document.readyState === 'complete') reveal();
+    else window.addEventListener('load', reveal);
+  })();
+</script>
+
+</body>
+</html>

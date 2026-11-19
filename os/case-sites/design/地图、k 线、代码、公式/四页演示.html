@@ -1,0 +1,1222 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8" />
+<title>四页演示 · 地图 / K线 / 代码 / 公式</title>
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+
+<!-- MapLibre GL (open-source fork of Mapbox GL JS, same API, no token required) -->
+<link href="https://unpkg.com/maplibre-gl@4.7.1/dist/maplibre-gl.css" rel="stylesheet" />
+<script src="https://unpkg.com/maplibre-gl@4.7.1/dist/maplibre-gl.js"></script>
+
+<!-- ECharts for K-line -->
+<script src="https://cdn.jsdelivr.net/npm/echarts@5.5.1/dist/echarts.min.js"></script>
+
+<!-- Prism.js for code highlight -->
+<link href="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/themes/prism-tomorrow.min.css" rel="stylesheet" />
+<script src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/components/prism-core.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/components/prism-clike.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/components/prism-javascript.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/prismjs@1.29.0/components/prism-rust.min.js"></script>
+
+<!-- KaTeX for math -->
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css">
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js"></script>
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/contrib/auto-render.min.js"
+  onload="renderMathInElement(document.body,{delimiters:[{left:'$$',right:'$$',display:true},{left:'$',right:'$',display:false}]});"></script>
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;700&family=Noto+Sans+SC:wght@300;400;500;700;900&family=Noto+Serif+SC:wght@400;700;900&display=swap" rel="stylesheet">
+
+<style>
+  :root {
+    --type-title: 88px;
+    --type-subtitle: 44px;
+    --type-body: 28px;
+    --type-small: 22px;
+    --type-tiny: 18px;
+    --pad-x: 96px;
+    --pad-y: 80px;
+    --gap-title: 40px;
+    --gap-item: 24px;
+
+    --ink: #0d0d0e;
+    --paper: #f5f5f2;
+    --accent-green: #18d36a;
+  }
+
+  html, body { margin: 0; padding: 0; background: #000; color: var(--ink);
+    font-family: 'Inter', 'Noto Sans SC', -apple-system, sans-serif;
+    -webkit-font-smoothing: antialiased; }
+
+  deck-stage:not(:defined){ visibility: hidden; }
+
+  /* Common slide */
+  section { font-family: 'Inter','Noto Sans SC',sans-serif; }
+
+  /* ===== Slide 1 — Map ===== */
+  .s1 {
+    background: var(--paper);
+    color: var(--ink);
+    display: grid;
+    grid-template-columns: 560px 1fr;
+    grid-template-rows: 100%;
+  }
+  .s1-left {
+    padding: var(--pad-y) 56px var(--pad-y) var(--pad-x);
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+  }
+  .s1-eyebrow {
+    display: flex; align-items: center; gap: 14px;
+    font-size: 24px;
+    font-weight: 500;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: #555;
+  }
+  .s1-eyebrow .dot {
+    width: 14px; height: 14px; background: var(--accent-green);
+    display: inline-block;
+  }
+  .s1-title {
+    font-family: 'Noto Sans SC','Inter',sans-serif;
+    font-size: 116px;
+    font-weight: 900;
+    line-height: 1.0;
+    letter-spacing: -0.02em;
+    margin: 0;
+    color: var(--ink);
+  }
+  .s1-title .accent { color: var(--accent-green); }
+  .s1-body {
+    font-size: var(--type-body);
+    line-height: 1.5;
+    color: #2a2a2a;
+    max-width: 440px;
+    margin: 0;
+  }
+  .s1-meta {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 24px 28px;
+    font-size: 24px;
+    color: #444;
+  }
+  .s1-meta strong {
+    display: block;
+    font-size: 44px;
+    font-weight: 800;
+    color: var(--ink);
+    letter-spacing: -0.01em;
+    line-height: 1;
+    margin-bottom: 8px;
+    font-family: 'Inter', sans-serif;
+  }
+  .s1-pill {
+    display: inline-block;
+    padding: 14px 22px;
+    background: var(--accent-green);
+    color: var(--ink);
+    font-weight: 700;
+    font-size: 24px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+  }
+  .s1-right {
+    position: relative;
+    overflow: hidden;
+    border-left: 1px solid #d8d8d2;
+  }
+  #map {
+    position:absolute; inset:0;
+    width: 100%; height: 100%;
+    cursor: grab;
+  }
+  #map:active { cursor: grabbing; }
+
+  .s1-mapchrome {
+    position: absolute; left: 32px; top: 32px;
+    background: rgba(255,255,255,0.92);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    padding: 18px 24px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 24px;
+    color: #1a1a1a;
+    line-height: 1.6;
+    border-left: 4px solid var(--accent-green);
+    z-index: 5;
+  }
+  .s1-mapchrome span { color: var(--accent-green); }
+  .s1-corner {
+    position: absolute; right: 32px; bottom: 80px;
+    z-index: 5;
+    background: var(--ink); color: var(--paper);
+    padding: 14px 20px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 20px;
+    letter-spacing: 0.1em;
+  }
+
+  /* ===== Slide 2 — K-line ===== */
+  .s2 {
+    background: #0a0c10;
+    color: #e5e7eb;
+    display: grid;
+    grid-template-rows: auto 1fr auto;
+    padding: 56px 64px;
+    box-sizing: border-box;
+    gap: 24px;
+  }
+  .s2-top { display:flex; justify-content:space-between; align-items: flex-end; }
+  .s2-id {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: var(--type-tiny);
+    color: #6b7280;
+    letter-spacing: 0.15em;
+  }
+  .s2-head h2 {
+    font-family: 'Noto Sans SC', sans-serif;
+    font-size: 48px;
+    font-weight: 800;
+    margin: 0;
+    color: #fafafa;
+    letter-spacing: -0.01em;
+  }
+  .s2-head .code {
+    color: #ef4444;
+    font-family: 'JetBrains Mono', monospace;
+    font-weight: 500;
+    margin-right: 16px;
+  }
+  .s2-status {
+    text-align: right;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: var(--type-small);
+    color: #9ca3af;
+  }
+  .s2-status .live {
+    display: inline-flex; align-items: center; gap: 10px;
+    color: #22d3ee;
+  }
+  .s2-status .live::before {
+    content: '';
+    width: 10px; height: 10px; border-radius: 999px;
+    background: #22d3ee;
+    box-shadow: 0 0 12px #22d3ee;
+    animation: pulse 1.6s ease-in-out infinite;
+  }
+  @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.35} }
+  .s2-chart-wrap {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 56px;
+    min-height: 0;
+  }
+  #kchart {
+    width: 100%; height: 100%;
+    background: transparent;
+  }
+  .s2-chart-card {
+    background: #131820;
+    border: 1px solid #2a3340;
+    border-radius: 12px;
+    padding: 28px 24px 20px 24px;
+    box-sizing: border-box;
+    box-shadow: 0 1px 0 rgba(255,255,255,0.03) inset, 0 12px 32px rgba(0,0,0,0.35);
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
+  }
+  .s2-chart-card-head {
+    display: flex; justify-content: space-between; align-items: center;
+    padding-bottom: 14px;
+    margin-bottom: 12px;
+    border-bottom: 1px dashed #2a3340;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 16px;
+    color: #6b7280;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+  }
+  .s2-chart-card-head .tags {
+    display: flex; gap: 14px;
+  }
+  .s2-chart-card-head .tag {
+    display: inline-flex; align-items: center; gap: 6px;
+    color: #9ca3af;
+  }
+  .s2-chart-card-head .tag::before {
+    content: '';
+    width: 8px; height: 8px;
+  }
+  .s2-chart-card-head .tag.ma5::before  { background: #22d3ee; }
+  .s2-chart-card-head .tag.ma10::before { background: #fbbf24; }
+  .s2-chart-card-head .tag.ma20::before { background: #f160d6; }
+  .s2-chart-card-body {
+    flex: 1;
+    min-height: 0;
+    position: relative;
+  }
+
+  /* Editorial right column */
+  .s2-edit {
+    display: flex; flex-direction: column;
+    justify-content: space-between;
+    padding: 4px 0 8px 0;
+  }
+  .s2-edit-quote {
+    display: flex; flex-direction: column;
+    gap: 4px;
+  }
+  .s2-edit-priceword {
+    font-family: 'Noto Sans SC', sans-serif;
+    font-size: 14px;
+    color: #6b7280;
+    letter-spacing: 0.25em;
+    text-transform: uppercase;
+  }
+  .s2-edit-price {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 140px;
+    font-weight: 700;
+    line-height: 1;
+    letter-spacing: -0.04em;
+    color: #ef4444;
+  }
+  .s2-edit-cny {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 22px;
+    color: #6b7280;
+    letter-spacing: 0.2em;
+  }
+  .s2-edit-change {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 36px;
+    color: #ef4444;
+    font-weight: 500;
+    margin-top: 16px;
+    display: flex;
+    align-items: baseline;
+    gap: 24px;
+  }
+  .s2-edit-change .pct {
+    font-size: 30px;
+    padding: 6px 14px;
+    background: rgba(239,68,68,0.16);
+    color: #ef4444;
+  }
+  .s2-edit-rule {
+    border-top: 1px solid #1f2630;
+    margin: 28px 0;
+  }
+  .s2-edit-pull {
+    font-family: 'Noto Serif SC', serif;
+    font-size: 32px;
+    line-height: 1.45;
+    color: #fafafa;
+    font-weight: 400;
+    max-width: 480px;
+  }
+  .s2-edit-pull em {
+    font-style: normal;
+    color: #ef4444;
+    font-family: 'Noto Serif SC', serif;
+    font-weight: 700;
+  }
+  .s2-edit-byline {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 14px;
+    color: #6b7280;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    margin-top: 18px;
+  }
+  .s2-edit-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 24px;
+    margin-top: 0;
+  }
+  .s2-edit-grid .cell {
+    display: flex; flex-direction: column; gap: 6px;
+    border-top: 1px solid #1f2630;
+    padding-top: 14px;
+  }
+  .s2-edit-grid .lbl {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 13px;
+    color: #6b7280;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+  }
+  .s2-edit-grid .val {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 30px;
+    font-weight: 600;
+    color: #fafafa;
+    line-height: 1;
+    letter-spacing: -0.01em;
+  }
+  .s2-edit-grid .val.up   { color: #ef4444; }
+  .s2-edit-grid .val.down { color: #22c55e; }
+
+  .s2-foot {
+    display: flex; justify-content: space-between;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: var(--type-tiny);
+    color: #6b7280;
+    letter-spacing: 0.1em;
+  }
+  .up { color: #ef4444 !important; }
+  .down { color: #22c55e !important; }
+  .s2-foot {
+    display: flex; justify-content: space-between;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: var(--type-tiny);
+    color: #6b7280;
+    letter-spacing: 0.1em;
+  }
+
+  /* ===== Slide 3 — Code ===== */
+  .s3 {
+    background: #FFD400;
+    display: grid;
+    grid-template-columns: 1fr 1.4fr;
+    grid-template-rows: 1fr;
+    padding: 64px;
+    box-sizing: border-box;
+    gap: 40px;
+    color: #0a0a0a;
+    overflow: hidden;
+  }
+  .s3-left {
+    display: flex; flex-direction: column;
+    justify-content: space-between;
+    padding: 24px 16px;
+  }
+  .s3-deco {
+    display: grid;
+    grid-template-columns: repeat(4, 60px);
+    grid-template-rows: repeat(4, 60px);
+    gap: 8px;
+  }
+  .s3-deco div { background: #0a0a0a; }
+  .s3-deco div.r { background: #ff4438; }
+  .s3-deco div.p { background: #f160d6; }
+  .s3-deco div.b { background: #2196f3; }
+  .s3-deco div.empty { background: transparent; }
+  .s3-title {
+    font-family: 'Noto Sans SC', sans-serif;
+    font-size: 84px;
+    font-weight: 900;
+    color: #0a0a0a;
+    line-height: 1.0;
+    letter-spacing: -0.02em;
+    margin: 0;
+  }
+  .s3-body {
+    font-size: var(--type-body);
+    line-height: 1.55;
+    color: #0a0a0a;
+    max-width: 520px;
+    margin: 0;
+  }
+  .s3-tag {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: var(--type-tiny);
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: #0a0a0a;
+  }
+  .s3-right {
+    background: #0a0a0a;
+    border: 4px solid #0a0a0a;
+    box-shadow: 16px 16px 0 #0a0a0a;
+    overflow: hidden;
+    display: flex; flex-direction: column;
+    min-height: 0;
+  }
+  .s3-tabbar {
+    display: flex; align-items: center;
+    background: #161616;
+    padding: 12px 18px;
+    border-bottom: 1px solid #2a2a2a;
+    gap: 12px;
+  }
+  .s3-tabbar .dot { width: 14px; height: 14px; border-radius: 50%; }
+  .s3-tabbar .red { background: #ff4438; }
+  .s3-tabbar .yel { background: #FFD400; }
+  .s3-tabbar .grn { background: #18d36a; }
+  .s3-tabbar .file {
+    margin-left: 16px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 18px;
+    color: #c4c4c4;
+  }
+  .s3-code-wrap {
+    flex: 1;
+    overflow: hidden;
+    padding: 20px 0 24px 0;
+    min-height: 0;
+  }
+  pre[class*="language-"] {
+    margin: 0 !important;
+    background: transparent !important;
+    font-family: 'JetBrains Mono', monospace !important;
+    font-size: 20px !important;
+    line-height: 1.55 !important;
+    padding: 0 28px !important;
+    white-space: pre !important;
+    min-height: 100%;
+  }
+  code[class*="language-"] { font-family: 'JetBrains Mono', monospace !important; }
+  .s3-caret {
+    display: inline-block;
+    width: 10px;
+    height: 1.05em;
+    vertical-align: text-bottom;
+    background: #18d36a;
+    margin-left: 2px;
+    animation: s3-blink 0.9s steps(2, start) infinite;
+  }
+  @keyframes s3-blink { to { visibility: hidden; } }
+
+  /* ===== Slide 4 — Math (classroom / blackboard) ===== */
+  .s4 {
+    background: #1a3a32;
+    background-image:
+      radial-gradient(ellipse at 30% 20%, rgba(255,255,255,0.04), transparent 60%),
+      radial-gradient(ellipse at 70% 80%, rgba(255,255,255,0.03), transparent 55%);
+    color: #f0eee0;
+    display: grid;
+    grid-template-columns: 1fr;
+    grid-template-rows: auto 1fr auto;
+    padding: 64px 96px 72px 96px;
+    box-sizing: border-box;
+    gap: 36px;
+    font-family: 'Noto Serif SC', serif;
+    position: relative;
+    overflow: hidden;
+  }
+  .s4 *::-webkit-scrollbar { display: none; }
+  .s4 * { scrollbar-width: none; -ms-overflow-style: none; }
+  .s4::before {
+    /* faint chalk dust texture */
+    content: '';
+    position: absolute; inset: 0;
+    background-image:
+      radial-gradient(rgba(255,255,255,0.018) 1px, transparent 1px);
+    background-size: 4px 4px;
+    pointer-events: none;
+  }
+  .s4-head {
+    display: flex; justify-content: space-between; align-items: flex-end;
+    border-bottom: 2px solid rgba(240,238,224,0.3);
+    padding-bottom: 18px;
+    position: relative;
+  }
+  .s4-head .left {
+    font-family: 'Noto Sans SC', sans-serif;
+  }
+  .s4-lesson {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 16px;
+    color: #f7d56c;
+    letter-spacing: 0.25em;
+    text-transform: uppercase;
+    margin-bottom: 12px;
+  }
+  .s4-title {
+    font-family: 'Noto Serif SC', serif;
+    font-size: 64px;
+    font-weight: 900;
+    color: #f0eee0;
+    line-height: 1.0;
+    letter-spacing: 0.02em;
+    margin: 0;
+  }
+  .s4-title .chalk {
+    color: #f7d56c;
+    text-decoration: underline;
+    text-decoration-color: #f57c6e;
+    text-decoration-thickness: 4px;
+    text-underline-offset: 12px;
+    text-decoration-style: wavy;
+  }
+  .s4-meta {
+    text-align: right;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 16px;
+    color: rgba(240,238,224,0.65);
+    letter-spacing: 0.12em;
+    line-height: 1.7;
+  }
+  .s4-meta .key { color: #f7d56c; }
+
+  .s4-body {
+    display: grid;
+    grid-template-columns: 1.05fr 1fr;
+    gap: 64px;
+    align-content: start;
+    position: relative;
+    z-index: 1;
+  }
+  .s4-col h3 {
+    font-family: 'Noto Serif SC', serif;
+    font-size: 30px;
+    font-weight: 700;
+    color: #f0eee0;
+    margin: 0 0 18px 0;
+    display: flex; align-items: baseline; gap: 16px;
+  }
+  .s4-col h3 .num {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 24px;
+    color: #f57c6e;
+    font-weight: 700;
+    letter-spacing: 0.05em;
+  }
+  .s4-col p {
+    font-family: 'Noto Sans SC', sans-serif;
+    font-size: 22px;
+    line-height: 1.7;
+    color: rgba(240,238,224,0.92);
+    margin: 0 0 14px 0;
+    font-weight: 300;
+  }
+  .s4-col .marg {
+    font-family: 'Noto Serif SC', serif;
+    font-style: italic;
+    color: #f7d56c;
+    font-size: 20px;
+    line-height: 1.55;
+    padding-left: 18px;
+    border-left: 2px solid #f57c6e;
+    margin: 18px 0 0 0;
+    font-weight: 400;
+  }
+  .s4-eq {
+    margin: 22px 0 28px 0;
+    overflow: hidden;
+  }
+  .s4-eq .katex {
+    color: #f0eee0 !important;
+    font-size: 22px !important;
+  }
+  .s4-eq .katex-display {
+    margin: 0 !important;
+    text-align: left !important;
+    overflow-x: hidden !important;
+  }
+  .s4-eq.big .katex { font-size: 30px !important; }
+  .s4-eq .katex .mord,
+  .s4-eq .katex .mbin,
+  .s4-eq .katex .mrel,
+  .s4-eq .katex .mopen,
+  .s4-eq .katex .mclose,
+  .s4-eq .katex .mop {
+    color: #f0eee0;
+  }
+  .s4-eq-label {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 14px;
+    color: #f57c6e;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    margin-bottom: 4px;
+  }
+
+  .s4-foot {
+    border-top: 1px dashed rgba(240,238,224,0.25);
+    padding-top: 16px;
+    display: flex; justify-content: space-between;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 14px;
+    color: rgba(240,238,224,0.55);
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    position: relative;
+    z-index: 1;
+  }
+  .s4-foot .hw {
+    font-family: 'Noto Serif SC', serif;
+    font-style: italic;
+    text-transform: none;
+    letter-spacing: 0.02em;
+    color: #f7d56c;
+    font-size: 18px;
+  }
+
+  /* Footer indices */
+  .pageno {
+    position: absolute;
+    right: 36px; bottom: 28px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 16px;
+    letter-spacing: 0.2em;
+    z-index: 6;
+    color: inherit;
+    opacity: 0.7;
+  }
+</style>
+</head>
+<body>
+
+<deck-stage width="1920" height="1080">
+
+  <!-- ============ Slide 1 — Map ============ -->
+  <section class="s1" data-label="上海·陆家嘴" data-screen-label="01 Map">
+    <div class="s1-left">
+      <div>
+        <div class="s1-eyebrow"><span class="dot"></span><span>01 — City Field Guide</span></div>
+        <h1 class="s1-title" style="margin-top:36px;">上海<br/><span class="accent">陆家嘴</span></h1>
+      </div>
+      <p class="s1-body">黄浦江拐了一个弯，把一片滩涂留给了世界。三十年后，那里长出了中国最高的几栋楼。这是它今天的样子。</p>
+      <div class="s1-meta">
+        <div><strong>632 m</strong>上海中心高度</div>
+        <div><strong>1.7 km²</strong>核心区面积</div>
+        <div><strong>1993</strong>开发元年</div>
+        <div><strong>31.24° N</strong>北纬</div>
+      </div>
+      <div>
+        <span class="s1-pill">实地走读中</span>
+      </div>
+    </div>
+
+    <div class="s1-right">
+      <div id="map"></div>
+      <div class="s1-mapchrome">
+        ◎ 上海中心 &nbsp;<span>● 632 m</span><br/>
+        ◎ 环球金融中心 &nbsp;<span>● 492 m</span><br/>
+        ◎ 金茂大厦 &nbsp;<span>● 421 m</span><br/>
+        ◎ 东方明珠 &nbsp;<span>● 468 m</span>
+      </div>
+      <div class="s1-corner">LAT 31.2397 &nbsp; LNG 121.4998</div>
+    </div>
+    <div class="pageno" style="color:#555">01 / 04</div>
+  </section>
+
+  <!-- ============ Slide 2 — K-line ============ -->
+  <section class="s2" data-label="A股实时行情" data-screen-label="02 KLine">
+    <div class="s2-top">
+      <div class="s2-head">
+        <div class="s2-id">02 / MARKET WATCH · 上海证券交易所</div>
+        <h2 style="margin-top:12px;"><span class="code">600519</span>贵州茅台</h2>
+      </div>
+      <div class="s2-status">
+        <div class="live">实时数据流</div>
+        <div style="margin-top:8px;color:#6b7280;" id="nowTime">14:58:32</div>
+        <div style="margin-top:6px;color:#6b7280;">tick interval · 1500 ms</div>
+      </div>
+    </div>
+
+    <div class="s2-chart-wrap">
+      <div class="s2-chart-card" style="background-color: rgb(36, 36, 36)">
+        <div class="s2-chart-card-head">
+          <span>K · 日线</span>
+          <span class="tags">
+            <span class="tag ma5">MA5</span>
+            <span class="tag ma10">MA10</span>
+            <span class="tag ma20">MA20</span>
+          </span>
+        </div>
+        <div class="s2-chart-card-body">
+          <div id="kchart"></div>
+        </div>
+      </div>
+
+      <div class="s2-edit">
+        <div class="s2-edit-quote">
+          <div class="s2-edit-priceword">Last Price</div>
+          <div class="s2-edit-price" id="lastPrice">1,728.40</div>
+          <div class="s2-edit-cny">CNY · 人民币</div>
+          <div class="s2-edit-change" id="lastChange">
+            <span class="abs">+24.60</span>
+            <span class="pct">+1.44%</span>
+          </div>
+        </div>
+
+        <div class="s2-edit-rule"></div>
+
+        <div class="s2-edit-pull">
+          一杯酒里<br/>装下了一个<em>绿名单</em>。
+        </div>
+        <div class="s2-edit-byline">市场记 · 2025 Q1 / VOL.07</div>
+
+        <div class="s2-edit-rule"></div>
+
+        <div class="s2-edit-grid">
+          <div class="cell">
+            <div class="lbl">振幅</div>
+            <div class="val up">2.69%</div>
+          </div>
+          <div class="cell">
+            <div class="lbl">量比</div>
+            <div class="val" id="volRatio">1.34</div>
+          </div>
+          <div class="cell">
+            <div class="lbl">换手</div>
+            <div class="val">0.27%</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="s2-foot">
+      <span>SH · 600519 · CNY</span>
+      <span>OPEN · 09:30 — 15:00 (UTC+8)</span>
+      <span>02 / 04</span>
+    </div>
+  </section>
+
+  <!-- ============ Slide 3 — Code ============ -->
+  <section class="s3" data-label="算法的优雅" data-screen-label="03 Code">
+    <div class="s3-left">
+      <div class="s3-tag">03 — Algorithm · 算法笔记</div>
+
+      <div>
+        <h2 class="s3-title">写一段，<br/>会自己<br/>解释的<br/>代码。</h2>
+        <p class="s3-body" style="margin-top:36px;">优雅不是少写一行，而是让下一个看到它的人，会心一笑。这里是一个 Node.js 的内存 LRU 缓存。</p>
+      </div>
+
+      <div class="s3-deco" aria-hidden="true">
+        <div class="r"></div><div></div><div class="b"></div><div class="empty"></div>
+        <div></div><div class="p"></div><div></div><div class="r"></div>
+        <div class="b"></div><div></div><div></div><div class="p"></div>
+        <div class="empty"></div><div class="r"></div><div class="b"></div><div></div>
+      </div>
+    </div>
+
+    <div class="s3-right">
+      <div class="s3-tabbar">
+        <span class="dot red"></span><span class="dot yel"></span><span class="dot grn"></span>
+        <span class="file">lru-cache.js &nbsp;·&nbsp; Node.js</span>
+      </div>
+      <div class="s3-code-wrap">
+<pre class="language-javascript"><code class="language-javascript">'use strict';
+
+const { EventEmitter } = require('events');
+
+/**
+ * 一个简单的内存 LRU 缓存。
+ * 利用 Map 的插入顺序来追踪“最近使用”。
+ */
+class LruCache extends EventEmitter {
+  constructor(capacity = 100) {
+    super();
+    this.capacity = capacity;
+    this.store = new Map();
+  }
+
+  get size() {
+    return this.store.size;
+  }
+
+  get(key) {
+    if (!this.store.has(key)) {
+      this.emit('miss', key);
+      return undefined;
+    }
+    // 命中后把它移到“最新”的位置。
+    const value = this.store.get(key);
+    this.store.delete(key);
+    this.store.set(key, value);
+    this.emit('hit', key);
+    return value;
+  }
+
+  set(key, value) {
+    if (this.store.has(key)) {
+      this.store.delete(key);
+    } else if (this.store.size >= this.capacity) {
+      // Map 的第一个 key 就是最久没用的。
+      const oldest = this.store.keys().next().value;
+      this.store.delete(oldest);
+      this.emit('evict', oldest);
+    }
+    this.store.set(key, value);
+    return this;
+  }
+
+  has(key) {
+    return this.store.has(key);
+  }
+
+  clear() {
+    this.store.clear();
+    this.emit('clear');
+  }
+}
+
+module.exports = LruCache;</code></pre>
+      </div>
+    </div>
+    <div class="pageno" style="color:#0a0a0a">03 / 04</div>
+  </section>
+
+  <!-- ============ Slide 4 — Math (classroom lecture) ============ -->
+  <section class="s4" data-label="数学之美" data-screen-label="04 Math">
+    <div class="s4-head">
+      <div class="left">
+        <div class="s4-lesson">第四讲 · Lecture 04 · 90 min</div>
+        <h2 class="s4-title">从弯曲的时空说起：<br/>广义相对论<span class="chalk">入门</span></h2>
+      </div>
+      <div class="s4-meta">
+        课程 · PHYS&nbsp;<span class="key">541</span><br/>
+        教师 · 陈 · 春季学期<br/>
+        参考 · MTW § 8.4 / Wald § 4.3
+      </div>
+    </div>
+
+    <div class="s4-body">
+      <div class="s4-col">
+        <h3><span class="num">①</span>先看一下这个方程</h3>
+        <p>同学们，上课我们谈了黎曼几何。今天主角来了——爱因斯坦场方程。他说：物质告诉时空如何弯曲，时空告诉物质如何运动。</p>
+        <div class="s4-eq big">
+          <div class="s4-eq-label">—— 爱因斯坦场方程</div>
+          $$ R_{\mu\nu} - \tfrac{1}{2} g_{\mu\nu} R + \Lambda g_{\mu\nu} \;=\; \frac{8\pi G}{c^{4}} \, T_{\mu\nu} $$
+        </div>
+        <p class="marg">记住：左边是几何，右边是物质。等号把宇宙缝在了一起。</p>
+
+        <h3 style="margin-top:34px;"><span class="num">②</span>那 R 是什么？</h3>
+        <p>拆开看：里奇张量 R<sub>μν</sub> 是由克里斯托特菲符号 Γ 逐层求导得来的。写出来如下——看起来复杂，但每一项都在描述同一件事：坐标变换带来的“偏差”。</p>
+        <div class="s4-eq">
+          $$ R_{\mu\nu} \;=\; \partial_{\alpha} \Gamma^{\alpha}_{\mu\nu} - \partial_{\nu} \Gamma^{\alpha}_{\mu\alpha} + \Gamma^{\alpha}_{\alpha\beta}\Gamma^{\beta}_{\mu\nu} - \Gamma^{\alpha}_{\nu\beta}\Gamma^{\beta}_{\mu\alpha} $$
+        </div>
+      </div>
+
+      <div class="s4-col">
+        <h3><span class="num">③</span>从作用量重新推一遇</h3>
+        <p>这个方程不是猜出来的。如果我们写下 Einstein–Hilbert 作用量，并对 g<sup>μν</sup> 取变分，它会自动掉出来。</p>
+        <div class="s4-eq">
+          <div class="s4-eq-label">—— Einstein–Hilbert 作用量</div>
+          $$ S \;=\; \frac{c^{4}}{16\pi G} \!\int \! \left( R - 2\Lambda \right) \sqrt{-g}\, \mathrm{d}^{4}x \;+\; \int \! \mathcal{L}_{\text{M}} \sqrt{-g}\, \mathrm{d}^{4}x $$
+        </div>
+        <p class="marg">课后思考：为什么一定要乘 √(-g) ？</p>
+
+        <h3 style="margin-top:34px;"><span class="num">④</span>一个具体的解</h3>
+        <p>把场方程应用到“球对称、静态、真空”这样最简单的场景上，可以解出史瓦西希度规——黑洞就住在它里。</p>
+        <div class="s4-eq">
+          <div class="s4-eq-label">—— Schwarzschild 度规</div>
+          $$ \mathrm{d}s^{2} = -\!\left(1 - \tfrac{2GM}{c^{2}r}\right)\! c^{2}\mathrm{d}t^{2} + \left(1 - \tfrac{2GM}{c^{2}r}\right)^{\!-1}\!\mathrm{d}r^{2} + r^{2}\!\mathrm{d}\Omega^{2} $$
+        </div>
+      </div>
+    </div>
+
+    <div class="s4-foot">
+      <span>§ 4.3 · GENERAL RELATIVITY</span>
+      <span class="hw">作业：验证 r = 2GM/c² 是事件视界 · 下周一交</span>
+      <span>04 / 04</span>
+    </div>
+  </section>
+
+</deck-stage>
+
+<script src="deck-stage.js"></script>
+
+<script>
+// ===== Slide 1: MapLibre GL — Shanghai Lujiazui (light theme) =====
+(function initMap(){
+  if (!window.maplibregl) { console.warn('maplibre not loaded'); return; }
+  const map = new maplibregl.Map({
+    container: 'map',
+    style: {
+      version: 8,
+      sources: {
+        carto: {
+          type: 'raster',
+          tiles: [
+            'https://a.basemaps.cartocdn.com/light_all/{z}/{x}/{y}@2x.png',
+            'https://b.basemaps.cartocdn.com/light_all/{z}/{x}/{y}@2x.png',
+            'https://c.basemaps.cartocdn.com/light_all/{z}/{x}/{y}@2x.png'
+          ],
+          tileSize: 256,
+          attribution: '© OpenStreetMap contributors © CARTO'
+        }
+      },
+      layers: [
+        { id: 'bg', type: 'background', paint: { 'background-color': '#f5f5f2' }},
+        { id: 'carto', type: 'raster', source: 'carto' }
+      ]
+    },
+    center: [121.4998, 31.2397],
+    zoom: 14.8,
+    bearing: 0,
+    pitch: 0,
+    minZoom: 11,
+    maxZoom: 18,
+    attributionControl: false,
+    dragPan: true,
+    dragRotate: false,
+    scrollZoom: true,
+    boxZoom: false,
+    pitchWithRotate: false,
+    touchZoomRotate: true,
+    doubleClickZoom: true,
+    keyboard: false,
+    interactive: true
+  });
+
+  map.on('load', () => {
+    const sites = [
+      { name:'上海中心',       lng: 121.5057, lat: 31.2336, h:'632 m' },
+      { name:'环球金融中心',   lng: 121.5037, lat: 31.2353, h:'492 m' },
+      { name:'金茂大厦',       lng: 121.5002, lat: 31.2356, h:'421 m' },
+      { name:'东方明珠',       lng: 121.4944, lat: 31.2397, h:'468 m' },
+      { name:'国金中心 IFC',   lng: 121.5057, lat: 31.2410, h:'259 m' },
+      { name:'外滩',           lng: 121.4858, lat: 31.2402, h:'1844' }
+    ];
+    const tour = {
+      type:'Feature',
+      geometry:{ type:'LineString', coordinates: [
+        [121.4858,31.2402],[121.4944,31.2397],
+        [121.5002,31.2356],[121.5037,31.2353],
+        [121.5057,31.2336],[121.5057,31.2410]
+      ]}
+    };
+    map.addSource('tour',{type:'geojson', data:tour});
+    map.addLayer({
+      id:'tour-glow', type:'line', source:'tour',
+      layout:{'line-cap':'round','line-join':'round'},
+      paint:{ 'line-color':'#18d36a','line-width':14,'line-opacity':0.22,'line-blur':6 }
+    });
+    map.addLayer({
+      id:'tour-line', type:'line', source:'tour',
+      layout:{'line-cap':'round','line-join':'round'},
+      paint:{ 'line-color':'#18d36a','line-width':3,'line-opacity':0.95,'line-dasharray':[2,1.6] }
+    });
+
+    const pointFC = { type:'FeatureCollection', features: sites.map(s=>({
+      type:'Feature', properties:{name:s.name,h:s.h},
+      geometry:{type:'Point', coordinates:[s.lng,s.lat]}
+    }))};
+    map.addSource('sites',{type:'geojson', data:pointFC});
+    map.addLayer({
+      id:'sites-halo', type:'circle', source:'sites',
+      paint:{ 'circle-radius':22,'circle-color':'#18d36a','circle-opacity':0.18 }
+    });
+    map.addLayer({
+      id:'sites-mid', type:'circle', source:'sites',
+      paint:{ 'circle-radius':10,'circle-color':'#18d36a','circle-opacity':0.55 }
+    });
+    map.addLayer({
+      id:'sites-dot', type:'circle', source:'sites',
+      paint:{ 'circle-radius':5,'circle-color':'#0d0d0e','circle-stroke-color':'#ffffff','circle-stroke-width':2 }
+    });
+
+    let t = 0;
+    function pulse(){
+      t += 0.04;
+      const r = 16 + Math.sin(t)*8;
+      const o = 0.10 + (Math.sin(t)+1)/2 * 0.18;
+      map.setPaintProperty('sites-halo','circle-radius', r);
+      map.setPaintProperty('sites-halo','circle-opacity', o);
+      requestAnimationFrame(pulse);
+    }
+    pulse();
+  });
+})();
+
+// ===== Slide 2: ECharts K-line =====
+(function initKline(){
+  if (!window.echarts) { console.warn('echarts not loaded'); return; }
+  const el = document.getElementById('kchart');
+  const chart = echarts.init(el, null, { renderer:'canvas' });
+
+  // Build initial OHLC series – simulated A-share style
+  const N = 90;
+  const data = [];
+  let last = 1680;
+  const start = new Date('2025-01-02T09:30:00');
+  for (let i=0;i<N;i++){
+    const open = last;
+    const drift = (Math.random()-0.48) * 18;
+    const close = Math.max(50, open + drift);
+    const high  = Math.max(open, close) + Math.random()*10;
+    const low   = Math.min(open, close) - Math.random()*10;
+    const vol   = Math.round(8000 + Math.random()*22000);
+    const d = new Date(start.getTime() + i*24*3600*1000);
+    const lbl = `${d.getMonth()+1}/${d.getDate()}`;
+    data.push({ lbl, open: +open.toFixed(2), close: +close.toFixed(2),
+                low: +low.toFixed(2), high: +high.toFixed(2), vol });
+    last = close;
+  }
+  function snapshot(){
+    const lbls = data.map(d=>d.lbl);
+    const oc   = data.map(d=>[d.open, d.close, d.low, d.high]);
+    const vols = data.map((d,i)=>({
+      value: d.vol,
+      itemStyle: { color: d.close>=d.open ? '#ef4444' : '#22c55e' }
+    }));
+    // MA5
+    const ma = (n)=>data.map((_,i)=>{
+      if(i<n-1) return '-';
+      let s=0; for(let k=0;k<n;k++) s += data[i-k].close;
+      return +(s/n).toFixed(2);
+    });
+    return {lbls, oc, vols, ma5: ma(5), ma10: ma(10), ma20: ma(20)};
+  }
+
+  function render(){
+    const s = snapshot();
+    chart.setOption({
+      backgroundColor: 'transparent',
+      animation: false,
+      grid: [
+        { left: 56, right: 16, top: 12, height: '60%' },
+        { left: 56, right: 16, top: '76%', height: '20%' }
+      ],
+      legend: { show: false,
+        top: 12, left: 64,
+        textStyle: { color:'#9ca3af', fontSize: 14, fontFamily:'JetBrains Mono' },
+        data: ['日K','MA5','MA10','MA20']
+      },
+      xAxis: [
+        { type:'category', data: s.lbls, gridIndex: 0,
+          axisLine:{lineStyle:{color:'#1f2630'}},
+          axisLabel:{color:'#6b7280', fontFamily:'JetBrains Mono'},
+          splitLine:{show:false}, scale:true, boundaryGap:true },
+        { type:'category', data: s.lbls, gridIndex: 1,
+          axisLine:{lineStyle:{color:'#1f2630'}},
+          axisLabel:{color:'#6b7280', fontFamily:'JetBrains Mono'},
+          splitLine:{show:false}, scale:true, boundaryGap:true }
+      ],
+      yAxis: [
+        { gridIndex: 0, scale: true, position:'right',
+          axisLine:{show:false},
+          splitLine:{lineStyle:{color:'#1a2029'}},
+          axisLabel:{color:'#9ca3af', fontFamily:'JetBrains Mono'} },
+        { gridIndex: 1, scale: true, position:'right',
+          axisLine:{show:false},
+          splitLine:{lineStyle:{color:'#1a2029'}},
+          axisLabel:{color:'#9ca3af', fontFamily:'JetBrains Mono'} }
+      ],
+      dataZoom: [
+        { type:'inside', xAxisIndex:[0,1], start: 55, end: 100 }
+      ],
+      tooltip: {
+        trigger:'axis', axisPointer:{ type:'cross' },
+        backgroundColor:'#0d1117', borderColor:'#1f2630',
+        textStyle:{color:'#fafafa', fontFamily:'JetBrains Mono'}
+      },
+      series: [
+        { name:'日K', type:'candlestick', xAxisIndex:0, yAxisIndex:0,
+          data: s.oc,
+          itemStyle:{
+            color:'#ef4444', color0:'#22c55e',
+            borderColor:'#ef4444', borderColor0:'#22c55e'
+          }
+        },
+        { name:'MA5',  type:'line', xAxisIndex:0, yAxisIndex:0, data:s.ma5,
+          showSymbol:false, smooth:true,
+          lineStyle:{color:'#22d3ee', width:1.5}},
+        { name:'MA10', type:'line', xAxisIndex:0, yAxisIndex:0, data:s.ma10,
+          showSymbol:false, smooth:true,
+          lineStyle:{color:'#fbbf24', width:1.5}},
+        { name:'MA20', type:'line', xAxisIndex:0, yAxisIndex:0, data:s.ma20,
+          showSymbol:false, smooth:true,
+          lineStyle:{color:'#f160d6', width:1.5}},
+        { name:'量', type:'bar', xAxisIndex:1, yAxisIndex:1, data:s.vols, barWidth:'60%' }
+      ]
+    }, true);
+  }
+
+  render();
+  window.addEventListener('resize', ()=>chart.resize());
+  setTimeout(()=>chart.resize(), 60);
+  setTimeout(()=>chart.resize(), 300);
+
+  // Live tick
+  setInterval(()=>{
+    const last = data[data.length-1];
+    const drift = (Math.random()-0.49) * 6;
+    const newClose = +Math.max(50, last.close + drift).toFixed(2);
+    last.close = newClose;
+    last.high = +Math.max(last.high, newClose).toFixed(2);
+    last.low  = +Math.min(last.low,  newClose).toFixed(2);
+    last.vol += Math.round(50 + Math.random()*400);
+    render();
+
+    // update editorial readouts
+    const ref = 1703.80;
+    const ch = newClose - ref;
+    const pct = (ch / ref * 100);
+    const sign = ch>=0 ? '+' : '';
+    const color = ch>=0 ? '#ef4444' : '#22c55e';
+    const bgcolor = ch>=0 ? 'rgba(239,68,68,0.16)' : 'rgba(34,197,94,0.16)';
+    const priceEl = document.getElementById('lastPrice');
+    const chEl = document.getElementById('lastChange');
+    priceEl.textContent = newClose.toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2});
+    priceEl.style.color = color;
+    const abs = chEl.querySelector('.abs');
+    const pctEl = chEl.querySelector('.pct');
+    abs.textContent = `${sign}${ch.toFixed(2)}`;
+    abs.style.color = color;
+    pctEl.textContent = `${sign}${pct.toFixed(2)}%`;
+    pctEl.style.color = color;
+    pctEl.style.background = bgcolor;
+  }, 1500);
+
+  // clock
+  setInterval(()=>{
+    const d = new Date();
+    const pad = n => String(n).padStart(2,'0');
+    document.getElementById('nowTime').textContent =
+      `${pad(d.getHours())}:${pad(d.getMinutes())}:${pad(d.getSeconds())}`;
+  }, 1000);
+})();
+
+// ===== Slide 3: typewriter loop for code =====
+window.addEventListener('load', ()=>{
+  const codeEl = document.querySelector('.s3-right code.language-javascript');
+  if (!codeEl || !window.Prism) return;
+
+  // Prism has already auto-highlighted the node by now; textContent gives
+  // back the clean source (entities decoded, no token markup).
+  const fullSrc = codeEl.textContent;
+
+  // Per-keystroke timing (ms). Slow down a little on newlines for a natural rhythm.
+  const baseDelay = 18;
+  const newlinePause = 90;
+  const punctPause = 55;
+  const holdAtEndMs = 2200;
+  const holdAtStartMs = 350;
+
+  let i = 0;
+  let timer = null;
+
+  function render(){
+    const slice = fullSrc.slice(0, i);
+    const html = Prism.highlight(slice, Prism.languages.javascript, 'javascript');
+    codeEl.innerHTML = html + '<span class="s3-caret"></span>';
+  }
+
+  function step(){
+    if (i >= fullSrc.length){
+      render();
+      timer = setTimeout(()=>{ i = 0; render(); timer = setTimeout(step, holdAtStartMs); }, holdAtEndMs);
+      return;
+    }
+    const ch = fullSrc[i];
+    i++;
+    render();
+    let d = baseDelay + Math.random()*22;
+    if (ch === '\n') d = newlinePause;
+    else if (ch === ';' || ch === '{' || ch === '}' || ch === ',') d = punctPause;
+    timer = setTimeout(step, d);
+  }
+
+  render();
+  timer = setTimeout(step, 500);
+});
+</script>
+
+</body>
+</html>
+
+<style id="__om-edit-overrides">
+</style>

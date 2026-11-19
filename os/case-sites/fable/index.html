@@ -1,0 +1,262 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Claude Fable 实测作品入口</title>
+  <style>
+    :root {
+      color-scheme: light;
+      --bg: #f5f3ee;
+      --panel: #ffffff;
+      --text: #171717;
+      --muted: #68645f;
+      --line: #ded9cf;
+      --accent: #0f766e;
+      --accent-strong: #0b4f4a;
+      --shadow: 0 18px 45px rgba(29, 25, 18, 0.11);
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif;
+      background:
+        linear-gradient(135deg, rgba(15, 118, 110, 0.13), transparent 34%),
+        linear-gradient(315deg, rgba(190, 80, 52, 0.12), transparent 30%),
+        var(--bg);
+      color: var(--text);
+    }
+
+    main {
+      width: min(1120px, calc(100% - 36px));
+      margin: 0 auto;
+      padding: 56px 0 72px;
+    }
+
+    header {
+      display: flex;
+      align-items: flex-end;
+      justify-content: space-between;
+      gap: 24px;
+      margin-bottom: 28px;
+      border-bottom: 1px solid var(--line);
+      padding-bottom: 24px;
+    }
+
+    h1 {
+      margin: 0 0 10px;
+      font-size: clamp(34px, 5vw, 64px);
+      line-height: 1.02;
+      letter-spacing: 0;
+    }
+
+    .intro {
+      margin: 0;
+      max-width: 680px;
+      color: var(--muted);
+      font-size: 17px;
+      line-height: 1.7;
+    }
+
+    .count {
+      flex: 0 0 auto;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      padding: 12px 16px;
+      background: rgba(255, 255, 255, 0.62);
+      color: var(--accent-strong);
+      font-weight: 700;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+      gap: 16px;
+    }
+
+    .card {
+      display: flex;
+      min-height: 188px;
+      flex-direction: column;
+      justify-content: space-between;
+      gap: 20px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      padding: 22px;
+      background: rgba(255, 255, 255, 0.88);
+      box-shadow: var(--shadow);
+      text-decoration: none;
+      color: inherit;
+      transition: transform 160ms ease, border-color 160ms ease, box-shadow 160ms ease;
+    }
+
+    .card:hover,
+    .card:focus-visible {
+      transform: translateY(-3px);
+      border-color: rgba(15, 118, 110, 0.42);
+      box-shadow: 0 22px 52px rgba(29, 25, 18, 0.16);
+      outline: none;
+    }
+
+    .eyebrow {
+      color: var(--accent);
+      font-size: 13px;
+      font-weight: 700;
+    }
+
+    h2 {
+      margin: 8px 0 0;
+      font-size: 22px;
+      line-height: 1.25;
+      letter-spacing: 0;
+    }
+
+    .path {
+      color: var(--muted);
+      font-size: 14px;
+      line-height: 1.5;
+      overflow-wrap: anywhere;
+    }
+
+    .open {
+      align-self: flex-start;
+      border-bottom: 2px solid rgba(15, 118, 110, 0.32);
+      color: var(--accent-strong);
+      font-weight: 700;
+    }
+
+    @media (max-width: 680px) {
+      main {
+        width: min(100% - 24px, 1120px);
+        padding-top: 32px;
+      }
+
+      header {
+        display: block;
+      }
+
+      .count {
+        display: inline-block;
+        margin-top: 18px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <main>
+    <header>
+      <div>
+        <h1>Claude Fable 实测作品入口</h1>
+        <p class="intro">这个页面汇总当前文件夹里的所有 HTML 作品，点击任一项目即可进入对应页面。</p>
+      </div>
+      <div class="count">11 个页面</div>
+    </header>
+
+    <section class="grid" aria-label="HTML 页面导航">
+      <a class="card" href="大师-海底1万米/index.html">
+        <div>
+          <span class="eyebrow">模拟器</span>
+          <h2>深潜 10,000 米</h2>
+        </div>
+        <div class="path">大师-海底1万米/index.html</div>
+        <span class="open">打开页面</span>
+      </a>
+
+      <a class="card" href="大师-2D互动游戏/index.html">
+        <div>
+          <span class="eyebrow">互动游戏</span>
+          <h2>相位跃迁 PHASE RUNNER</h2>
+        </div>
+        <div class="path">大师-2D互动游戏/index.html</div>
+        <span class="open">打开页面</span>
+      </a>
+
+      <a class="card" href="大师-打碟机/index.html">
+        <div>
+          <span class="eyebrow">音乐互动</span>
+          <h2>DJ Loop Battle</h2>
+        </div>
+        <div class="path">大师-打碟机/index.html</div>
+        <span class="open">打开页面</span>
+      </a>
+
+      <a class="card" href="文奎-游戏-纪念碑谷/index.html">
+        <div>
+          <span class="eyebrow">互动游戏</span>
+          <h2>纪念碑谷 · 第一章 花园</h2>
+        </div>
+        <div class="path">文奎-游戏-纪念碑谷/index.html</div>
+        <span class="open">打开页面</span>
+      </a>
+
+      <a class="card" href="文奎-真实天气模拟/index.html">
+        <div>
+          <span class="eyebrow">WebGL 模拟</span>
+          <h2>ATMOS 天气光影模拟</h2>
+        </div>
+        <div class="path">文奎-真实天气模拟/index.html</div>
+        <span class="open">打开页面</span>
+      </a>
+
+      <a class="card" href="文奎-网站 1/index.html">
+        <div>
+          <span class="eyebrow">网站复刻</span>
+          <h2>Hubtown Limited</h2>
+        </div>
+        <div class="path">文奎-网站 1/index.html</div>
+        <span class="open">打开页面</span>
+      </a>
+
+      <a class="card" href="文奎-网站 2/index.html">
+        <div>
+          <span class="eyebrow">WebGL 网站</span>
+          <h2>BAKU is...</h2>
+        </div>
+        <div class="path">文奎-网站 2/index.html</div>
+        <span class="open">打开页面</span>
+      </a>
+
+      <a class="card" href="文奎-网站3/index.html">
+        <div>
+          <span class="eyebrow">视觉页面</span>
+          <h2>無中生有 · EX NIHILO</h2>
+        </div>
+        <div class="path">文奎-网站3/index.html</div>
+        <span class="open">打开页面</span>
+      </a>
+
+      <a class="card" href="汤帅-全球航班可视化/全球航班吞吐量互动可视化-3D地球.html">
+        <div>
+          <span class="eyebrow">数据可视化</span>
+          <h2>全球航班吞吐量互动可视化</h2>
+        </div>
+        <div class="path">汤帅-全球航班可视化/全球航班吞吐量互动可视化-3D地球.html</div>
+        <span class="open">打开页面</span>
+      </a>
+
+      <a class="card" href="汤帅-赤壁之战模拟器/赤壁之战-3D战役模拟（第一轮-复杂提示词）.html">
+        <div>
+          <span class="eyebrow">历史模拟</span>
+          <h2>赤壁之战 3D 战役模拟 · 第一轮</h2>
+        </div>
+        <div class="path">汤帅-赤壁之战模拟器/赤壁之战-3D战役模拟（第一轮-复杂提示词）.html</div>
+        <span class="open">打开页面</span>
+      </a>
+
+      <a class="card" href="汤帅-赤壁之战模拟器/赤壁之战-3D战役模拟（第二轮-简单提示词）.html">
+        <div>
+          <span class="eyebrow">历史模拟</span>
+          <h2>赤壁之战 3D 战役模拟 · 第二轮</h2>
+        </div>
+        <div class="path">汤帅-赤壁之战模拟器/赤壁之战-3D战役模拟（第二轮-简单提示词）.html</div>
+        <span class="open">打开页面</span>
+      </a>
+    </section>
+  </main>
+</body>
+</html>

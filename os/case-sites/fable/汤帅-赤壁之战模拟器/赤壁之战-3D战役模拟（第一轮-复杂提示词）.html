@@ -1,0 +1,1445 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>赤壁之战模拟 · 建安十三年</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@600;900&family=Noto+Sans+SC:wght@300;400;500;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --paper:#e8e0d0; --paper-dim:#b8ad97;
+    --cao:#e04a3a; --wu:#3ad6e0; --gold:#d9a648;
+    --panel:rgba(10,13,16,.78); --hair:rgba(232,224,208,.16);
+  }
+  *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+  html,body{height:100%;background:#000;overflow:hidden;font-family:'Noto Sans SC',system-ui,sans-serif}
+  #stage{position:relative;aspect-ratio:16/9;width:100vw;max-height:100vh;max-height:100dvh;
+    margin:auto;top:50%;transform:translateY(-50%);background:#05070a;overflow:hidden;user-select:none}
+  @media (min-aspect-ratio:16/9){ #stage{height:100vh;height:100dvh;width:auto;max-width:100vw} }
+  canvas#scene{position:absolute;inset:0;width:100%;height:100%;display:block}
+  .vignette{position:absolute;inset:0;pointer-events:none;z-index:3;
+    background:radial-gradient(95% 110% at 50% 45%, transparent 58%, rgba(0,0,0,.5) 100%),
+      linear-gradient(to bottom, rgba(0,0,0,.42) 0%, transparent 14%, transparent 82%, rgba(0,0,0,.55) 100%)}
+  .grain{position:absolute;inset:0;pointer-events:none;z-index:4;opacity:.07;mix-blend-mode:overlay}
+
+  header{position:absolute;top:0;left:0;z-index:10;padding:14px 18px;pointer-events:none}
+  .eyebrow{font-size:9px;letter-spacing:.42em;color:var(--gold);font-weight:500;margin-bottom:3px}
+  h1{font-family:'Noto Serif SC',serif;font-weight:900;font-size:24px;letter-spacing:.14em;color:var(--paper);
+    text-shadow:0 2px 14px rgba(0,0,0,.9);line-height:1.1}
+  .date-line{font-size:10px;letter-spacing:.24em;color:var(--paper-dim);margin-top:3px}
+  .legend{display:flex;gap:7px;margin-top:9px}
+  .leg-item{display:flex;align-items:center;gap:6px;font-size:9.5px;letter-spacing:.14em;color:var(--paper-dim);
+    background:rgba(0,0,0,.36);padding:3px 8px;border-radius:2px;border-left:2px solid transparent}
+  .leg-item.cao{border-left-color:var(--cao)} .leg-item.wu{border-left-color:var(--wu)}
+  .leg-swatch{width:12px;height:3px;border-radius:1px}
+
+  .ctl{position:absolute;top:12px;right:14px;z-index:10;display:flex;flex-direction:column;gap:7px;align-items:flex-end}
+  .ctl-group{display:flex;align-items:center;gap:7px}
+  .ctl-cap{font-size:9px;letter-spacing:.3em;color:var(--paper-dim)}
+  .seg{display:flex;border:1px solid var(--hair);border-radius:2px;overflow:hidden;background:rgba(8,11,14,.66);backdrop-filter:blur(4px)}
+  .seg button{appearance:none;border:0;background:transparent;color:var(--paper-dim);
+    font-family:inherit;font-size:10.5px;letter-spacing:.1em;padding:6px 11px;cursor:pointer;transition:all .2s;
+    border-right:1px solid var(--hair)}
+  .seg button:last-child{border-right:0}
+  .seg button.on{background:rgba(217,166,72,.16);color:var(--gold)}
+  .seg button:focus-visible{outline:2px solid var(--gold);outline-offset:-2px}
+
+  .weather{display:flex;align-items:center;gap:9px;border:1px solid var(--hair);border-radius:2px;
+    background:rgba(8,11,14,.7);backdrop-filter:blur(4px);padding:6px 11px;min-width:196px;transition:border-color .4s}
+  .weather.alert{border-color:rgba(217,166,72,.55)}
+  .weather.danger{border-color:rgba(224,74,58,.6)}
+  .w-icon{width:26px;height:26px;color:var(--paper-dim);flex:0 0 26px;transition:color .4s}
+  .weather.alert .w-icon{color:var(--gold)}
+  .weather.danger .w-icon{color:var(--cao)}
+  .w-icon svg{width:100%;height:100%}
+  .w-text{flex:1}
+  .w-main{font-size:11px;color:var(--paper);letter-spacing:.08em;line-height:1.3}
+  .w-sub{font-size:9px;color:var(--paper-dim);letter-spacing:.14em;margin-top:1px}
+  .w-wind{width:24px;height:24px;border:1px solid var(--hair);border-radius:50%;display:flex;align-items:center;justify-content:center;flex:0 0 24px}
+  .w-wind svg{width:13px;height:13px;color:var(--wu);transition:transform 1.2s cubic-bezier(.4,0,.2,1)}
+  @keyframes wpulse{0%{transform:scale(1)}40%{transform:scale(1.12)}100%{transform:scale(1)}}
+  .weather.pulse .w-icon{animation:wpulse .7s}
+
+  .ui-bottom{position:absolute;left:0;right:0;bottom:0;z-index:10;padding:0 14px 12px;display:flex;align-items:flex-end;gap:12px}
+  .narration{flex:0 0 348px;border:1px solid var(--hair);border-left:3px solid var(--gold);background:var(--panel);
+    backdrop-filter:blur(8px);padding:10px 13px 11px;border-radius:2px;min-height:96px}
+  .narr-head{display:flex;align-items:baseline;gap:8px;margin-bottom:4px}
+  .narr-phase{font-family:'Noto Serif SC',serif;font-weight:900;font-size:15px;color:var(--gold);letter-spacing:.18em}
+  .narr-sub{font-size:8.5px;letter-spacing:.24em;color:var(--paper-dim)}
+  .narr-text{font-size:11.5px;line-height:1.8;color:var(--paper);font-weight:300;letter-spacing:.03em;opacity:0;transition:opacity .6s}
+  .narr-text.show{opacity:.95}
+
+  .ctrl-col{flex:1;display:flex;flex-direction:column;gap:8px;min-width:0}
+  .phases{display:flex;gap:5px}
+  .phase-btn{flex:1;appearance:none;border:1px solid var(--hair);background:rgba(8,11,14,.66);
+    color:var(--paper-dim);font-family:inherit;font-size:11px;letter-spacing:.08em;
+    padding:7px 2px 6px;border-radius:2px;cursor:pointer;transition:all .25s;backdrop-filter:blur(4px)}
+  .phase-btn .pn{display:block;font-size:8px;letter-spacing:.3em;color:rgba(217,166,72,.55);margin-bottom:2px;font-weight:500}
+  .phase-btn.active{color:var(--paper);border-color:rgba(217,166,72,.65);background:rgba(30,24,12,.8)}
+  .phase-btn.active .pn{color:var(--gold)}
+  .phase-btn:focus-visible{outline:2px solid var(--gold);outline-offset:1px}
+
+  .timeline-row{display:flex;align-items:center;gap:10px}
+  .play-btn{width:36px;height:36px;flex:0 0 36px;border-radius:50%;border:1px solid rgba(217,166,72,.5);
+    background:rgba(10,13,16,.8);color:var(--gold);cursor:pointer;display:flex;align-items:center;justify-content:center;
+    transition:all .2s;backdrop-filter:blur(4px)}
+  .play-btn:hover{background:rgba(40,32,16,.9)}
+  .play-btn:focus-visible{outline:2px solid var(--gold);outline-offset:2px}
+  .play-btn svg{width:13px;height:13px;fill:currentColor}
+  .timeline{flex:1;display:flex;gap:4px;height:18px;align-items:center;cursor:pointer}
+  .tseg{flex:1;height:3px;background:rgba(232,224,208,.14);border-radius:2px;position:relative;overflow:hidden;transition:height .2s}
+  .timeline:hover .tseg{height:5px}
+  .tseg .fill{position:absolute;inset:0;background:linear-gradient(90deg,var(--gold),#f0c66a);transform-origin:left;transform:scaleX(0)}
+  .clock{font-size:10px;letter-spacing:.14em;color:var(--paper-dim);font-variant-numeric:tabular-nums;min-width:56px;text-align:right}
+
+  /* ================= DUEL (武将单挑) ================= */
+  .duel{position:absolute;inset:0;z-index:30;display:flex;flex-direction:column;align-items:center;justify-content:center;
+    background:radial-gradient(80% 80% at 50% 45%, rgba(8,10,14,.45), rgba(2,3,5,.78));backdrop-filter:blur(3px);
+    opacity:0;pointer-events:none;transition:opacity .45s}
+  .duel.show{opacity:1;pointer-events:auto}
+  .duel-head{text-align:center;margin-bottom:18px;transform:translateY(-12px)}
+  .duel-kicker{font-size:10px;letter-spacing:.5em;color:var(--gold);margin-bottom:6px}
+  .duel-title{font-family:'Noto Serif SC',serif;font-weight:900;font-size:30px;letter-spacing:.3em;color:var(--paper);
+    text-shadow:0 0 24px rgba(217,166,72,.35)}
+  .duel-loc{font-size:11px;letter-spacing:.3em;color:var(--paper-dim);margin-top:6px}
+  .duel-loc::before,.duel-loc::after{content:'—';margin:0 8px;color:rgba(217,166,72,.5)}
+  .duel-arena{display:flex;align-items:center;gap:34px}
+  .duel-vs{font-family:'Noto Serif SC',serif;font-weight:900;font-size:40px;color:var(--gold);
+    text-shadow:0 0 18px rgba(217,166,72,.6);opacity:0;transform:scale(2.4);transition:all .35s cubic-bezier(.2,1.6,.4,1)}
+  .duel.show .duel-vs{opacity:1;transform:scale(1)}
+
+  .gcard{position:relative;width:198px;border-radius:6px;padding:12px 14px 13px;
+    background:linear-gradient(168deg,rgba(26,30,38,.97),rgba(12,14,19,.97));
+    border:1px solid rgba(232,224,208,.2);
+    box-shadow:0 18px 50px rgba(0,0,0,.6), inset 0 0 0 1px rgba(0,0,0,.5);
+    transition:transform .4s, filter .5s, opacity .5s}
+  .gcard.wu{border-top:3px solid var(--wu)}
+  .gcard.cao{border-top:3px solid var(--cao)}
+  .gcard.enter-l{animation:slideL .55s cubic-bezier(.2,1.3,.4,1) both}
+  .gcard.enter-r{animation:slideR .55s cubic-bezier(.2,1.3,.4,1) both}
+  @keyframes slideL{from{transform:translateX(-72vw) rotate(-7deg)}to{transform:none}}
+  @keyframes slideR{from{transform:translateX(72vw) rotate(7deg)}to{transform:none}}
+  .gcard.lunge-l{animation:lungeL .5s ease}
+  .gcard.lunge-r{animation:lungeR .5s ease}
+  @keyframes lungeL{30%{transform:translateX(46px) rotate(2deg)}}
+  @keyframes lungeR{30%{transform:translateX(-46px) rotate(-2deg)}}
+  .gcard.shake{animation:shake .45s ease}
+  @keyframes shake{20%{transform:translateX(-7px) rotate(-1.4deg)}45%{transform:translateX(6px) rotate(1deg)}70%{transform:translateX(-3px)}}
+  .gcard.defeated{filter:grayscale(.95) brightness(.55);transform:translateY(26px) rotate(3.5deg);opacity:.75}
+  .gcard.victor{box-shadow:0 18px 50px rgba(0,0,0,.6), 0 0 34px rgba(217,166,72,.4)}
+
+  .g-hp{position:relative;height:13px;border:1px solid rgba(232,224,208,.25);border-radius:2px;background:rgba(0,0,0,.55);
+    margin-bottom:9px;overflow:hidden}
+  .g-hpfill{position:absolute;inset:0;transform-origin:left;transition:transform .45s ease}
+  .gcard.wu .g-hpfill{background:linear-gradient(90deg,#1d7a85,var(--wu))}
+  .gcard.cao .g-hpfill{background:linear-gradient(90deg,#8a2f24,var(--cao))}
+  .g-hpnum{position:absolute;right:4px;top:0;font-size:9px;line-height:13px;color:#fff;letter-spacing:.05em;
+    text-shadow:0 1px 2px rgba(0,0,0,.9);font-variant-numeric:tabular-nums}
+  .g-hplabel{position:absolute;left:4px;top:0;font-size:8px;line-height:13px;color:rgba(255,255,255,.75);letter-spacing:.2em}
+
+  .g-portrait{height:74px;display:flex;align-items:center;justify-content:center;margin-bottom:8px;
+    background:radial-gradient(60% 80% at 50% 40%, rgba(232,224,208,.07), transparent 70%);
+    border:1px solid rgba(232,224,208,.12);border-radius:4px;position:relative;overflow:hidden}
+  .g-portrait span{font-family:'Noto Serif SC',serif;font-weight:900;font-size:46px;color:var(--paper);
+    text-shadow:0 3px 14px rgba(0,0,0,.8)}
+  .gcard.wu .g-portrait span{color:#bfeef2}
+  .gcard.cao .g-portrait span{color:#f0b3aa}
+  .g-portrait::after{content:'';position:absolute;inset:8px;border:1px solid rgba(217,166,72,.25);border-radius:50%}
+  .g-name{font-family:'Noto Serif SC',serif;font-weight:900;font-size:19px;letter-spacing:.2em;color:var(--paper);text-align:center}
+  .g-title{font-size:9px;letter-spacing:.18em;color:var(--paper-dim);text-align:center;margin:3px 0 9px}
+  .g-stats{display:flex;flex-direction:column;gap:5px;margin-bottom:9px}
+  .g-stat{display:flex;align-items:center;gap:7px;font-size:9.5px;color:var(--paper-dim);letter-spacing:.1em}
+  .g-stat b{color:var(--paper);font-weight:500;min-width:18px;text-align:right;font-variant-numeric:tabular-nums}
+  .g-bar{flex:1;height:3px;background:rgba(232,224,208,.12);border-radius:2px;overflow:hidden}
+  .g-barfill{height:100%;border-radius:2px;background:linear-gradient(90deg,#8a7440,var(--gold))}
+  .g-skill{font-size:9.5px;letter-spacing:.12em;color:var(--gold);border-top:1px dashed rgba(232,224,208,.16);padding-top:7px;text-align:center}
+  .g-buff{margin-top:5px;text-align:center;font-size:8.5px;letter-spacing:.1em;padding:2.5px 6px;border-radius:2px;display:block}
+  .g-buff.up{color:#7ce7b0;background:rgba(60,180,120,.12);border:1px solid rgba(60,180,120,.3)}
+  .g-buff.down{color:#f0a08e;background:rgba(200,80,55,.12);border:1px solid rgba(200,80,55,.35)}
+
+  .dmg-pop{position:absolute;left:50%;top:34%;transform:translateX(-50%);font-family:'Noto Serif SC',serif;
+    font-weight:900;font-size:26px;color:#ff7752;text-shadow:0 2px 10px rgba(0,0,0,.9);pointer-events:none;
+    animation:dmgUp 1s ease-out forwards;z-index:5}
+  .dmg-pop.crit{font-size:34px;color:#ffcf4a}
+  @keyframes dmgUp{0%{opacity:0;transform:translate(-50%,12px) scale(.6)}18%{opacity:1;transform:translate(-50%,0) scale(1.15)}
+    30%{transform:translate(-50%,-4px) scale(1)}100%{opacity:0;transform:translate(-50%,-42px) scale(.95)}}
+
+  .skill-flash{position:absolute;left:50%;top:-30px;transform:translateX(-50%);white-space:nowrap;
+    font-family:'Noto Serif SC',serif;font-weight:900;font-size:14px;letter-spacing:.24em;color:#ffd98a;
+    background:rgba(20,14,4,.85);border:1px solid rgba(217,166,72,.55);padding:4px 12px;border-radius:2px;
+    animation:skillIn 1.15s ease forwards;pointer-events:none;z-index:6}
+  @keyframes skillIn{0%{opacity:0;transform:translate(-50%,8px) scale(.8)}15%{opacity:1;transform:translate(-50%,0) scale(1.06)}
+    25%{transform:translate(-50%,0) scale(1)}80%{opacity:1}100%{opacity:0;transform:translate(-50%,-8px)}}
+
+  .stamp{position:absolute;right:-14px;top:-16px;width:64px;height:64px;display:flex;align-items:center;justify-content:center;
+    font-family:'Noto Serif SC',serif;font-weight:900;font-size:34px;color:#ffd06a;
+    border:3px double rgba(255,190,90,.85);border-radius:6px;transform:rotate(-14deg) scale(0);
+    background:rgba(120,30,18,.78);box-shadow:0 6px 22px rgba(0,0,0,.6);
+    animation:stampIn .45s cubic-bezier(.2,1.8,.4,1) .15s forwards;z-index:7}
+  @keyframes stampIn{to{transform:rotate(-14deg) scale(1)}}
+
+  .duel-log{margin-top:20px;min-height:34px;font-size:12px;letter-spacing:.1em;color:var(--paper);
+    background:rgba(8,10,14,.7);border:1px solid var(--hair);border-left:3px solid var(--gold);
+    padding:8px 16px;border-radius:2px;max-width:520px;text-align:center;line-height:1.7}
+  .duel-log em{color:var(--gold);font-style:normal}
+  .duel-skip{position:absolute;right:18px;bottom:16px;appearance:none;border:1px solid var(--hair);
+    background:rgba(8,11,14,.7);color:var(--paper-dim);font-family:inherit;font-size:11px;letter-spacing:.2em;
+    padding:7px 14px;border-radius:2px;cursor:pointer;transition:all .2s}
+  .duel-skip:hover{color:var(--paper);border-color:rgba(217,166,72,.5)}
+
+  @media (max-width:760px){
+    .narration{flex-basis:46%} h1{font-size:18px}
+    .ctl-cap{display:none} .weather{min-width:0} .w-sub{display:none}
+    .gcard{width:150px;padding:9px 10px 10px}
+    .g-portrait{height:54px}.g-portrait span{font-size:34px}
+    .duel-title{font-size:22px}.duel-arena{gap:16px}.duel-vs{font-size:28px}
+  }
+  @media (prefers-reduced-motion:reduce){ .weather.pulse .w-icon{animation:none} }
+</style>
+</head>
+<body>
+<div id="stage">
+  <canvas id="scene"></canvas>
+  <canvas class="grain" id="grain"></canvas>
+  <div class="vignette"></div>
+
+  <header>
+    <div class="eyebrow">三国战场复原 · 第一集</div>
+    <h1>赤壁之战模拟</h1>
+    <div class="date-line">建安十三年 · 公元208年 · 长江</div>
+    <div class="legend">
+      <div class="leg-item cao"><span class="leg-swatch" style="background:var(--cao)"></span>曹操水军</div>
+      <div class="leg-item wu"><span class="leg-swatch" style="background:var(--wu)"></span>孙刘联军</div>
+    </div>
+  </header>
+
+  <div class="ctl">
+    <div class="ctl-group">
+      <span class="ctl-cap">地图</span>
+      <div class="seg" id="mapSeg">
+        <button data-v="standard" class="on">标准</button>
+        <button data-v="real">实景</button>
+        <button data-v="scroll">古卷</button>
+      </div>
+    </div>
+    <div class="ctl-group">
+      <span class="ctl-cap">视角</span>
+      <div class="seg" id="viewSeg">
+        <button data-v="god" class="on">上帝视角</button>
+        <button data-v="cao">曹军</button>
+        <button data-v="wu">联军</button>
+      </div>
+    </div>
+    <div class="weather" id="weather">
+      <div class="w-icon" id="wIcon"></div>
+      <div class="w-text">
+        <div class="w-main" id="wMain"></div>
+        <div class="w-sub" id="wSub"></div>
+      </div>
+      <div class="w-wind"><svg id="wArrow" viewBox="0 0 24 24"><path d="M12 3l5.2 9.5h-3.1V21h-4.2v-8.5H6.8z" fill="currentColor"/></svg></div>
+    </div>
+  </div>
+
+  <div class="ui-bottom">
+    <div class="narration">
+      <div class="narr-head">
+        <div class="narr-phase" id="narrPhase">布阵</div>
+        <div class="narr-sub" id="narrSub">PHASE 01</div>
+      </div>
+      <div class="narr-text show" id="narrText"></div>
+    </div>
+    <div class="ctrl-col">
+      <div class="phases" id="phases" role="tablist" aria-label="战役阶段"></div>
+      <div class="timeline-row">
+        <button class="play-btn" id="playBtn" aria-label="播放 / 暂停">
+          <svg id="iconPause" viewBox="0 0 16 16"><rect x="2" y="1" width="4" height="14" rx="1"/><rect x="10" y="1" width="4" height="14" rx="1"/></svg>
+          <svg id="iconPlay" viewBox="0 0 16 16" style="display:none"><path d="M3 1.5v13a1 1 0 0 0 1.54.84l10-6.5a1 1 0 0 0 0-1.68l-10-6.5A1 1 0 0 0 3 1.5z"/></svg>
+        </button>
+        <div class="timeline" id="timeline"></div>
+        <div class="clock" id="clock">00:00</div>
+      </div>
+    </div>
+  <div class="duel" id="duel" aria-hidden="true">
+    <div class="duel-head">
+      <div class="duel-kicker">两军接战 · 阵前斗将</div>
+      <div class="duel-title">武将单挑</div>
+      <div class="duel-loc" id="duelLoc">赤壁水道</div>
+    </div>
+    <div class="duel-arena">
+      <div class="gcard wu" id="cardA"></div>
+      <div class="duel-vs">VS</div>
+      <div class="gcard cao" id="cardB"></div>
+    </div>
+    <div class="duel-log" id="duelLog">两将策马而出，阵前对峙——</div>
+    <button class="duel-skip" id="duelSkip">跳过 ›</button>
+  </div>
+</div>
+
+<script>
+(() => {
+'use strict';
+/* =====================================================================
+   赤壁之战 — true-perspective 3D tactical simulation (16:9)
+   orbit camera · heightfield terrain · directional + fire lighting ·
+   sky / horizon / aerial perspective · 3 map themes · 3 views
+===================================================================== */
+
+/* ---------- utils ---------- */
+const TAU=Math.PI*2;
+const clamp=(v,a,b)=>v<a?a:v>b?b:v;
+const lerp=(a,b,t)=>a+(b-a)*t;
+const lerpAng=(a,b,t)=>{let d=(b-a)%TAU; if(d>Math.PI)d-=TAU; if(d<-Math.PI)d+=TAU; return a+d*t;};
+const easeIO=t=>t<.5?2*t*t:1-Math.pow(-2*t+2,2)/2;
+const easeIn=t=>t*t*t;
+const mix3=(a,b,t)=>[lerp(a[0],b[0],t),lerp(a[1],b[1],t),lerp(a[2],b[2],t)];
+function mulberry32(a){return function(){a|=0;a=a+0x6D2B79F5|0;let t=Math.imul(a^a>>>15,1|a);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296}}
+
+/* ---------- canvas ---------- */
+const stage=document.getElementById('stage');
+const cv=document.getElementById('scene');
+const ctx=cv.getContext('2d');
+let W=960,H=540,DPR=1;
+function resize(){
+  const r=stage.getBoundingClientRect();
+  DPR=Math.min(window.devicePixelRatio||1,1.8);
+  W=r.width;H=r.height;
+  cv.width=Math.round(W*DPR);cv.height=Math.round(H*DPR);
+  ctx.setTransform(DPR,0,0,DPR,0,0);
+}
+window.addEventListener('resize',resize);resize();
+
+(function grain(){
+  const g=document.getElementById('grain'),gc=g.getContext('2d');
+  g.width=320;g.height=180;
+  const id=gc.createImageData(320,180);
+  for(let i=0;i<id.data.length;i+=4){const v=Math.random()*255|0;id.data[i]=id.data[i+1]=id.data[i+2]=v;id.data[i+3]=255}
+  gc.putImageData(id,0,0);
+  g.style.width='100%';g.style.height='100%';
+})();
+
+/* =====================================================================
+   TRUE PERSPECTIVE ORBIT CAMERA
+   world: x east, y south(+)/north(-), z up
+===================================================================== */
+const cam={tx:0,ty:0,yaw:0,pitch:1.0,dist:1550};
+let camPos={x:0,y:0,z:0}, R={x:1,y:0,z:0}, U={x:0,y:0,z:1}, F={x:0,y:-1,z:0};
+let FOCALPX=620, CXs=480, CYs=270;
+const NEAR=55;
+
+function updateCamBasis(){
+  const cp=Math.cos(cam.pitch), sp=Math.sin(cam.pitch);
+  const sy=Math.sin(cam.yaw), cy=Math.cos(cam.yaw);
+  camPos={x:cam.tx+sy*cp*cam.dist, y:cam.ty+cy*cp*cam.dist, z:sp*cam.dist+30};
+  F={x:-sy*cp, y:-cy*cp, z:-sp};                 // forward (toward target)
+  R={x:cy, y:-sy, z:0};                           // right
+  U={x:sy*sp, y:cy*sp, z:-cp};                    // raw, flip below
+  U={x:-U.x, y:-U.y, z:-U.z};                     // camera-up (z>0)
+  FOCALPX=H*1.15; CXs=W/2; CYs=H*.5;
+}
+/* project -> {x,y,cz,s,ok}  s = pixels per world-unit at that depth */
+function project(wx,wy,wz){
+  const vx=wx-camPos.x, vy=wy-camPos.y, vz=wz-camPos.z;
+  const cz=vx*F.x+vy*F.y+vz*F.z;
+  if(cz<NEAR) return {x:0,y:0,cz,s:0,ok:false};
+  const k=FOCALPX/cz;
+  return {
+    x:CXs+(vx*R.x+vy*R.y+vz*R.z)*k,
+    y:CYs-(vx*U.x+vy*U.y+vz*U.z)*k,
+    cz, s:k, ok:true
+  };
+}
+/* aerial perspective: 1 = fully visible */
+let FOGD=2700;
+const vis = cz => clamp(1.25-cz/(FOGD*1.9),.08,1);
+
+/* ---------- views & phases ---------- */
+const VIEWS={
+  god:{yawOff:0,       pitch:1.00, distMul:1,   tyOff:0},
+  cao:{yawOff:Math.PI, pitch:.30,  distMul:.85, tyOff:-20},
+  wu: {yawOff:0,       pitch:.30,  distMul:.85, tyOff:-20},
+};
+let viewMode='god';
+
+const PHASES=[
+  {key:'布阵',en:'PHASE 01 — DEPLOYMENT',dur:13, cam:{x:0,y:-20,dist:1600,yaw:0},
+   narr:'建安十三年冬，曹操统北方既定之众二十余万，旌旗蔽空，水军沿长江北岸大举展开。孙权、刘备合纵结盟，周瑜督三万精锐于南岸列阵，楼船斗舰，隔江对峙，战云密布。'},
+  {key:'连环船阵',en:'PHASE 02 — CHAINED FLEET',dur:11, cam:{x:-30,y:-150,dist:1080,yaw:-.16},
+   narr:'曹军多为北方士卒，不习水战，舟船颠簸，士卒呕眩。曹操遂令以铁索连舟、上铺木板，千艘战船连成巨阵，行走如履平地——船阵固若磐石，却也埋下致命的隐患。'},
+  {key:'东风起',en:'PHASE 03 — THE EAST WIND',dur:11, cam:{x:90,y:40,dist:1300,yaw:.14},
+   narr:'隆冬时节，江面骤起东南大风，雾散云走，风向直指北岸曹营。周瑜与黄盖定苦肉之计，黄盖遣使诈降。风助火势，天赐良机——火攻之计，悄然启动。'},
+  {key:'火攻开始',en:'PHASE 04 — FIRE ATTACK',dur:14, cam:{x:-20,y:-40,dist:1000,yaw:-.12},
+   narr:'黄盖率蒙冲斗舰数十艘，满载薪草、灌以膏油，乘东南风直冲曹军船阵。中江举帆，同时发火。铁索连环之下，烈焰瞬息蔓延，烟炎张天，江面尽赤。'},
+  {key:'曹军溃败',en:'PHASE 05 — ROUT OF CAO CAO',dur:14, cam:{x:10,y:-60,dist:1650,yaw:.10},
+   narr:'大火延及北岸营寨，曹军人马烧溺死者甚众。曹操率残部弃船登岸，经华容道仓皇北撤。联军水陆并进，乘胜追击。赤壁一炬，遂定三分天下之势。'},
+];
+const TOTAL=PHASES.reduce((a,p)=>a+p.dur,0);
+
+/* ---------- weather ---------- */
+const ICONS={
+  cloud:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><path d="M7 17.5h9.2a3.8 3.8 0 0 0 .6-7.56A5.4 5.4 0 0 0 6.2 9.2 3.6 3.6 0 0 0 7 17.5z"/></svg>',
+  fog:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><path d="M7.5 12h8.6a3.2 3.2 0 0 0 .5-6.36A4.6 4.6 0 0 0 7 6.9 3 3 0 0 0 7.5 12z"/><path d="M5 15.5h13M7 18.5h10"/></svg>',
+  wind:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><path d="M3 8.5h10.5a2.6 2.6 0 1 0-2.6-2.6M3 12.5h14.5a2.6 2.6 0 1 1-2.6 2.6M3 16.5h7.5"/></svg>',
+  flame:'<svg viewBox="0 0 24 24"><path d="M12.2 2.6c.9 3.2-3.4 4.6-3.4 8.6a3.7 3.7 0 0 0 7.4.2c0-1.8-.9-2.9-.9-2.9s2.5 1.2 2.5 4.4a5.8 5.8 0 1 1-11.6 0c0-5.6 4.9-6.7 6-10.3z" fill="currentColor"/></svg>',
+  smoke:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><path d="M9 21c-2.2-2 2.2-3.2 0-5.2s2.2-3.2 0-5.2 2.2-3.2 0-5.2"/><path d="M15 21c-2.2-2 2.2-3.2 0-5.2s2.2-3.2 0-5.2 2.2-3.2 0-5.2" opacity=".55"/></svg>'
+};
+const WEATHER=[
+  {icon:'cloud',main:'阴云 · 江雾渐起',sub:'VISIBILITY MODERATE',wind:'西北风 二级',deg:135,mood:''},
+  {icon:'fog',main:'大雾 · 视野不良',sub:'HEAVY RIVER FOG',wind:'西北风 一级',deg:135,mood:''},
+  {icon:'wind',main:'东南风骤起',sub:'WIND SHIFT — SE GALE',wind:'东南风 六级',deg:-45,mood:'alert'},
+  {icon:'flame',main:'烈火 · 东南风助燃',sub:'FIRESTORM CONDITIONS',wind:'东南风 六级',deg:-45,mood:'danger'},
+  {icon:'smoke',main:'浓烟蔽江',sub:'SMOKE OVER THE RIVER',wind:'东南风 四级',deg:-45,mood:'danger'},
+];
+
+/* =====================================================================
+   TERRAIN HEIGHTFIELD
+===================================================================== */
+const GX0=-2500,GX1=2500,GY0=-1750,GY1=1750,NXq=50,NYq=36;
+const SXq=(GX1-GX0)/NXq, SYq=(GY1-GY0)/NYq;
+const waterHalf=x=>300+Math.sin(x*.0125)*16+Math.sin(x*.031)*7;
+function tNoise(x,y){
+  return (Math.sin(x*.011+Math.sin(y*.0013*10)*2)+Math.sin(y*.0145+x*.0042)+Math.sin((x+y)*.0068))/3;
+}
+function cliffMask(x,y){
+  if(y<300)return 0;
+  return Math.exp(-Math.pow((x+460)/190,2))*Math.exp(-Math.pow((y-380)/120,2));
+}
+function terrainH(x,y){
+  const wh=waterHalf(x);
+  const d=Math.abs(y)-wh;
+  if(d<=0)return 0;
+  let h=Math.pow(clamp(d/210,0,1),1.4)*62;
+  const n=tNoise(x,y)*.5+.5;
+  h+=n*100*clamp(d/270,0,1);
+  const fy=Math.abs(y);
+  if(fy>1020)h+=Math.pow((fy-1020)/700,2)*460*(0.65+0.35*n);
+  h+=cliffMask(x,y)*155;
+  return h;
+}
+/* vertex grid */
+const NVX=NXq+1,NVY=NYq+1;
+const vH=new Float32Array(NVX*NVY);
+const vXw=new Float32Array(NVX*NVY), vYw=new Float32Array(NVX*NVY);
+for(let j=0;j<NVY;j++)for(let i=0;i<NVX;i++){
+  const x=GX0+i*SXq, y=GY0+j*SYq, id=j*NVX+i;
+  vXw[id]=x;vYw[id]=y;vH[id]=terrainH(x,y);
+}
+/* quads */
+const quads=[];
+const LIGHT={x:-.34,y:-.42,z:.84};
+(function(){const l=Math.hypot(LIGHT.x,LIGHT.y,LIGHT.z);LIGHT.x/=l;LIGHT.y/=l;LIGHT.z/=l;})();
+for(let j=0;j<NYq;j++)for(let i=0;i<NXq;i++){
+  const a=j*NVX+i,b=a+1,c=a+NVX+1,d=a+NVX;
+  const cx=(vXw[a]+vXw[b])*.5, cy=(vYw[a]+vYw[d])*.5;
+  const water=Math.abs(cy)<waterHalf(cx)&&vH[a]+vH[b]+vH[c]+vH[d]<2;
+  // normal from height gradient
+  const dhx=((vH[b]+vH[c])-(vH[a]+vH[d]))/(2*SXq);
+  const dhy=((vH[d]+vH[c])-(vH[a]+vH[b]))/(2*SYq);
+  let nx=-dhx,ny=-dhy,nz=1;
+  const nl=Math.hypot(nx,ny,nz);nx/=nl;ny/=nl;nz/=nl;
+  const lam=clamp(.45+.62*(nx*LIGHT.x+ny*LIGHT.y+nz*LIGHT.z),.3,1.12);
+  quads.push({a,b,c,d,cx,cy,water,lam,
+    hAvg:(vH[a]+vH[b]+vH[c]+vH[d])/4,
+    n:tNoise(cx*1.7,cy*1.7)*.5+.5,
+    cliff:cliffMask(cx,cy),
+    wDist:Math.hypot(cx-(-10),cy-(-14))   // dist to impact, set properly below
+  });
+}
+const IMPACT={x:-10,y:-24};   // updated after fleet build
+
+/* ---------- themes ---------- */
+function hx(h){const n=parseInt(h.slice(1),16);return[(n>>16)&255,(n>>8)&255,n&255]}
+const THEMES={
+  standard:{
+    skyTop:hx('#03050b'), skyHor:hx('#1a2734'), haze:hx('#152230'),
+    ramp:[[0,hx('#161b22')],[36,hx('#11161e')],[100,hx('#171d29')],[260,hx('#1d2532')],[560,hx('#28324a')]],
+    water:hx('#0d2331'), waterDeep:hx('#081823'),
+    cliffCol:hx('#46241a'),
+    shoreN:'rgba(150,170,190,.20)',shoreS:'rgba(190,165,120,.22)',
+    streak:'rgba(150,190,210,',streakA:.05,
+    tree:[22,30,26], tent:'#1d1b18', tentFlag:'rgba(224,74,58,.4)',
+    solC:'rgba(230,120,90,',solW:'rgba(120,220,230,',
+    blkC:'rgba(224,74,58,',blkW:'rgba(58,214,224,',
+    moon:true, fogA:1, fogD:2700
+  },
+  real:{
+    skyTop:hx('#050b14'), skyHor:hx('#2a3c4a'), haze:hx('#233544'),
+    ramp:[[0,hx('#4a4530')],[30,hx('#2c3a20')],[95,hx('#22301a')],[250,hx('#33352c')],[560,hx('#474b48')]],
+    water:hx('#16475f'), waterDeep:hx('#0e3349'),
+    cliffCol:hx('#5e3220'),
+    shoreN:'rgba(226,210,164,.4)',shoreS:'rgba(226,210,164,.4)',
+    streak:'rgba(180,220,238,',streakA:.07,
+    tree:[26,48,30], tent:'#262017', tentFlag:'rgba(224,74,58,.45)',
+    solC:'rgba(230,120,90,',solW:'rgba(120,220,230,',
+    blkC:'rgba(224,74,58,',blkW:'rgba(58,214,224,',
+    moon:true, fogA:1, fogD:2500
+  },
+  scroll:{
+    skyTop:hx('#b3a27a'), skyHor:hx('#cbbb96'), haze:hx('#c6b58e'),
+    ramp:[[0,hx('#cbba92')],[36,hx('#c3b289')],[100,hx('#b6a47b')],[260,hx('#a08c64')],[560,hx('#85714c')]],
+    water:hx('#9cb2ac'), waterDeep:hx('#8aa39d'),
+    cliffCol:hx('#8a5238'),
+    shoreN:'rgba(70,60,45,.6)',shoreS:'rgba(70,60,45,.6)',
+    streak:'rgba(60,70,75,',streakA:.12,
+    tree:[80,80,60], tent:'#5a4f3c', tentFlag:'rgba(150,60,45,.6)',
+    solC:'rgba(140,50,40,',solW:'rgba(35,95,115,',
+    blkC:'rgba(160,55,42,',blkW:'rgba(35,110,125,',
+    moon:false, fogA:.45, fogD:4200
+  }
+};
+let mapMode='standard';
+function rampCol(ramp,h){
+  for(let i=1;i<ramp.length;i++){
+    if(h<=ramp[i][0]){
+      const t=(h-ramp[i-1][0])/(ramp[i][0]-ramp[i-1][0]);
+      return mix3(ramp[i-1][1],ramp[i][1],clamp(t,0,1));
+    }
+  }
+  return ramp[ramp.length-1][1];
+}
+/* precompute per-theme quad base colors */
+for(const key in THEMES){
+  const TH=THEMES[key], cols=new Float32Array(quads.length*3);
+  quads.forEach((q,qi)=>{
+    let c;
+    if(q.water){
+      const depth=1-clamp(Math.abs(q.cy)/300,0,1)*.55;
+      c=mix3(TH.water,TH.waterDeep,depth).map(v=>v*(0.93+q.n*.14));
+    } else {
+      c=rampCol(TH.ramp,q.hAvg).map(v=>v*q.lam*(0.9+q.n*.2));
+      if(q.cliff>.12)c=mix3(c,TH.cliffCol,clamp(q.cliff*1.1,0,.85));
+    }
+    cols[qi*3]=c[0];cols[qi*3+1]=c[1];cols[qi*3+2]=c[2];
+  });
+  TH.cols=cols;
+}
+
+/* =====================================================================
+   FLEETS
+===================================================================== */
+let rng=mulberry32(20080);
+const caoShips=[],wuShips=[],fireShips=[],chains=[];
+const CAO_COLS=13,CAO_ROWS=7,CAO_DX=58,CAO_DY=38;
+const caoGridX=c=>(c-(CAO_COLS-1)/2)*CAO_DX-10;
+const caoGridY=r=>-252+r*CAO_DY;
+IMPACT.x=-10;IMPACT.y=caoGridY(CAO_ROWS-1);
+quads.forEach(q=>q.wDist=Math.hypot(q.cx-IMPACT.x,q.cy-IMPACT.y));
+
+(function buildFleets(){
+  let maxD=0;
+  for(let r=0;r<CAO_ROWS;r++)for(let c=0;c<CAO_COLS;c++){
+    const gx=caoGridX(c),gy=caoGridY(r);
+    const d=Math.hypot(gx-IMPACT.x,gy-IMPACT.y);maxD=Math.max(maxD,d);
+    caoShips.push({gx,gy,r,c,x:gx,y:gy,z:0,a:Math.PI/2,
+      sx:gx+(rng()-.5)*420,sy:-340-rng()*120,
+      burn:0,dist:d,alpha:1,sink:0,jit:rng()*TAU,bob:.6+rng()*.7,
+      tower:(r*CAO_COLS+c)%9===0,
+      retA:-2.2-rng()*0.9,retS:.55+rng()*.9,sinkP:rng()});
+  }
+  caoShips.forEach(s=>s.delay=s.dist/maxD);
+  for(let r=0;r<CAO_ROWS;r++)for(let c=0;c<CAO_COLS;c++){
+    const i=r*CAO_COLS+c;
+    if(c<CAO_COLS-1)chains.push({a:i,b:i+1,ord:c/CAO_COLS});
+    if(r<CAO_ROWS-1&&(c%2===0))chains.push({a:i,b:i+CAO_COLS,ord:(c+.5)/CAO_COLS});
+  }
+  for(let i=0;i<46;i++){
+    const row=i<26?0:1,n=row===0?26:20,k=row===0?i:i-26;
+    const t=(k/(n-1)-.5);
+    const x=t*760+(row?30:0),y=178+row*52-Math.cos(t*2.4)*26;
+    wuShips.push({x0:x,y0:y,x,y,z:0,a:-Math.PI/2,jit:rng()*TAU,bob:.6+rng()*.7,alpha:1,adv:.7+rng()*.6,
+      tower:i%11===0});
+  }
+  for(let i=0;i<8;i++){
+    const sx=-150+i*34+(rng()-.5)*10;
+    fireShips.push({sx,sy:132+(rng()-.5)*14,tx:IMPACT.x+(i-3.5)*46,ty:IMPACT.y+6,
+      x:sx,y:132,lit:false,gone:0,jit:rng()*TAU});
+  }
+})();
+
+/* terrain props */
+const decoR=mulberry32(7);
+const tents=[],treesN=[],treesS=[],soldiersN=[],soldiersS=[];
+for(let i=0;i<70;i++)tents.push({x:-560+decoR()*1060,y:-560+decoR()*180,s:7+decoR()*5,fire:decoR()});
+for(let i=0;i<150;i++)soldiersN.push({x:-520+decoR()*1000,y:-370+decoR()*55,p:decoR()});
+for(let i=0;i<130;i++)soldiersS.push({x:-430+decoR()*900,y:318+decoR()*60,p:decoR()});
+for(let i=0;i<60;i++)treesN.push({x:-2100+decoR()*4200,y:-1450+decoR()*820,s:12+decoR()*16});
+for(let i=0;i<78;i++)treesS.push({x:-2100+decoR()*4200,y:470+decoR()*900,s:12+decoR()*18});
+const blocksN=[{x:-380,y:-470,w:200,h:70},{x:-90,y:-455,w:240,h:78},{x:230,y:-470,w:190,h:66},{x:-220,y:-590,w:300,h:60}];
+const blocksS=[{x:-260,y:368,w:180,h:58},{x:60,y:380,w:220,h:62},{x:330,y:372,w:150,h:52}];
+
+/* ---------- particles ---------- */
+const fog=[],smoke=[],fire=[],embers=[],windP=[];
+const fogR=mulberry32(99);
+for(let i=0;i<36;i++)fog.push({
+  x:-2000+fogR()*4000,y:-340+fogR()*700,z:16+fogR()*36,
+  r:130+fogR()*240,a:.05+fogR()*.07,vx:(fogR()-.5)*6,vy:(fogR()-.5)*4,ph:fogR()*TAU});
+function sprite(stops){
+  const c=document.createElement('canvas');c.width=c.height=64;
+  const g=c.getContext('2d');
+  const gr=g.createRadialGradient(32,32,0,32,32,32);
+  stops.forEach(s=>gr.addColorStop(s[0],s[1]));
+  g.fillStyle=gr;g.fillRect(0,0,64,64);return c;
+}
+const SP_FOG=sprite([[0,'rgba(190,205,215,.55)'],[.6,'rgba(170,185,200,.18)'],[1,'rgba(170,185,200,0)']]);
+const SP_SMK=sprite([[0,'rgba(60,58,56,.6)'],[.6,'rgba(40,38,36,.25)'],[1,'rgba(30,28,26,0)']]);
+const SP_FIRE=sprite([[0,'rgba(255,240,180,1)'],[.35,'rgba(255,150,50,.85)'],[.8,'rgba(200,50,10,.25)'],[1,'rgba(120,20,0,0)']]);
+const SP_GLOW=sprite([[0,'rgba(255,170,70,.8)'],[1,'rgba(255,100,20,0)']]);
+
+/* ---------- timeline ---------- */
+let simT=0,playing=true,phaseIdx=0,phaseProg=0;
+if(matchMedia('(prefers-reduced-motion: reduce)').matches)playing=false;
+function phaseFromT(t){
+  let acc=0;
+  for(let i=0;i<PHASES.length;i++){
+    if(t<acc+PHASES[i].dur)return{i,p:(t-acc)/PHASES[i].dur};
+    acc+=PHASES[i].dur;
+  }
+  return{i:PHASES.length-1,p:1};
+}
+function setPhase(i,prog=0){
+  if(duelActive)endDuel(true);
+  resetDuelFlags(i,prog);
+  phaseIdx=i;phaseProg=prog;
+  simT=PHASES.slice(0,i).reduce((a,p)=>a+p.dur,0)+prog*PHASES[i].dur;
+  smoke.length=0;fire.length=0;embers.length=0;windP.length=0;
+  caoShips.forEach(s=>{
+    s.alpha=1;s.sink=0;s.z=0;
+    if(i===0){s.x=s.sx;s.y=s.sy;s.burn=0;}
+    else{s.x=s.gx;s.y=s.gy;s.burn=i<4?0:clamp(1.1-s.delay*1.4,0,1);}
+  });
+  wuShips.forEach(s=>{s.x=s.x0;s.y=s.y0;s.alpha=1;});
+  fireShips.forEach(f=>{
+    f.gone=0;
+    if(i<3){f.x=f.sx;f.y=f.sy;f.lit=false;}
+    else if(i===3){f.x=f.sx;f.y=f.sy;f.lit=true;}
+    else{f.x=f.tx;f.y=f.ty;f.lit=true;f.gone=1;}
+  });
+  syncUI(true);
+}
+
+/* ---------- UI ---------- */
+const phasesEl=document.getElementById('phases'),tlEl=document.getElementById('timeline');
+const fills=[],btns=[];
+PHASES.forEach((p,i)=>{
+  const b=document.createElement('button');
+  b.className='phase-btn';b.setAttribute('role','tab');
+  b.innerHTML=`<span class="pn">0${i+1}</span>${p.key}`;
+  b.addEventListener('click',()=>setPhase(i,0));
+  phasesEl.appendChild(b);btns.push(b);
+  const s=document.createElement('div');s.className='tseg';
+  const f=document.createElement('div');f.className='fill';s.appendChild(f);
+  s.addEventListener('click',()=>setPhase(i,0));
+  tlEl.appendChild(s);fills.push(f);
+});
+const playBtn=document.getElementById('playBtn');
+const iconPlay=document.getElementById('iconPlay'),iconPause=document.getElementById('iconPause');
+function syncPlayIcon(){iconPlay.style.display=playing?'none':'block';iconPause.style.display=playing?'block':'none';}
+playBtn.addEventListener('click',()=>{playing=!playing;syncPlayIcon();});
+syncPlayIcon();
+document.getElementById('mapSeg').addEventListener('click',e=>{
+  const b=e.target.closest('button');if(!b)return;
+  mapMode=b.dataset.v;
+  [...e.currentTarget.children].forEach(x=>x.classList.toggle('on',x===b));
+});
+document.getElementById('viewSeg').addEventListener('click',e=>{
+  const b=e.target.closest('button');if(!b)return;
+  viewMode=b.dataset.v;
+  [...e.currentTarget.children].forEach(x=>x.classList.toggle('on',x===b));
+});
+const narrPhase=document.getElementById('narrPhase'),narrSub=document.getElementById('narrSub'),
+      narrText=document.getElementById('narrText'),clockEl=document.getElementById('clock');
+const wEl=document.getElementById('weather'),wIcon=document.getElementById('wIcon'),
+      wMain=document.getElementById('wMain'),wSub=document.getElementById('wSub'),
+      wArrow=document.getElementById('wArrow');
+let shownPhase=-1;
+function syncUI(force){
+  if(force||shownPhase!==phaseIdx){
+    shownPhase=phaseIdx;
+    btns.forEach((b,j)=>b.classList.toggle('active',j===phaseIdx));
+    narrPhase.textContent=PHASES[phaseIdx].key;
+    narrSub.textContent=PHASES[phaseIdx].en;
+    narrText.classList.remove('show');
+    setTimeout(()=>{narrText.textContent=PHASES[phaseIdx].narr;narrText.classList.add('show');},120);
+    const w=WEATHER[phaseIdx];
+    wIcon.innerHTML=ICONS[w.icon];
+    wMain.textContent=w.main+' · '+w.wind;
+    wSub.textContent=w.sub;
+    wArrow.style.transform=`rotate(${w.deg}deg)`;
+    wEl.className='weather pulse '+(w.mood||'');
+    setTimeout(()=>wEl.classList.remove('pulse'),750);
+  }
+  fills.forEach((f,j)=>f.style.transform=`scaleX(${j<phaseIdx?1:j===phaseIdx?phaseProg:0})`);
+  const m=Math.floor(simT/60),s=Math.floor(simT%60);
+  clockEl.textContent=`${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`;
+}
+
+/* =====================================================================
+   武将单挑 — general duel card battles (三国志 style)
+===================================================================== */
+const DUELS=[
+  {phase:0, at:.86, loc:'三江口 · 前哨夜战', seed:11, fired:false,
+   A:{name:'甘宁',sur:'甘',title:'折冲将军 · 东吴',war:92,int:78,ldr:86,hp:100,skill:'锦帆突袭',
+      buff:{txt:'夜袭先机 · 攻击 +15%',type:'up'},mul:1.15,fac:'wu'},
+   B:{name:'蔡瑁',sur:'蔡',title:'水军都督 · 曹军',war:71,int:65,ldr:80,hp:90,skill:'荆州水阵',mul:1,fac:'cao'},
+   result:'甘宁百骑劫营，<em>蔡瑁</em>折兵败退——曹军初战受挫，锐气已堕。'},
+  {phase:3, at:.58, loc:'赤壁水道 · 火船冲阵', seed:7, fired:false,
+   A:{name:'黄盖',sur:'黄',title:'丹阳都尉 · 东吴',war:83,int:75,ldr:85,hp:96,skill:'苦肉计·火攻',
+      buff:{txt:'东风助势 · 攻击 +45%',type:'up'},mul:1.45,fac:'wu'},
+   B:{name:'文聘',sur:'文',title:'江夏太守 · 曹军',war:77,int:68,ldr:84,hp:92,skill:'死守舰阵',mul:1,vuln:1.2,
+      buff:{txt:'铁索连环 · 受创 +20%',type:'down'},fac:'cao'},
+   result:'<em>文聘</em>中箭坠水，火船直入连环船阵——曹军前军大乱，烈焰冲天。'},
+  {phase:4, at:.5, loc:'华容道 · 截击残部', seed:5, fired:false,
+   A:{name:'关羽',sur:'关',title:'汉寿亭侯 · 刘备军',war:97,int:79,ldr:95,hp:100,skill:'青龙偃月',mul:1,fac:'wu'},
+   B:{name:'曹操',sur:'曹',title:'汉丞相 · 曹军',war:72,int:91,ldr:96,hp:62,skill:'奸雄诡道',mul:.7,
+      buff:{txt:'败军之将 · 攻击 -30%',type:'down'},fac:'cao'},
+   result:'<em>关羽</em>横刀立马，曹操军彻底溃散；念昔日旧恩，纵其残部北去——赤壁烽火至此落幕。'},
+];
+/* deterministic pre-simulation: same seed -> same fight -> historically correct winner */
+function simulateDuel(d){
+  const rng=mulberry32(d.seed);
+  const a={hp:d.A.hp},b={hp:d.B.hp};
+  const strikes=[];
+  let attIsA=d.A.war>=d.B.war;
+  for(let r=0;r<24&&a.hp>0&&b.hp>0;r++){
+    const att=attIsA?d.A:d.B, defS=attIsA?b:a, def=attIsA?d.B:d.A;
+    const base=(att.war*.62+att.ldr*.38)*.16;
+    const crit=rng()<.1+Math.max(0,(att.int-def.int))*.005;
+    const dmg=Math.round(base*(0.85+rng()*0.35)*(att.mul||1)*(def.vuln||1)*(crit?1.75:1));
+    defS.hp=Math.max(0,defS.hp-dmg);
+    strikes.push({attA:attIsA,dmg,crit,hpA:a.hp,hpB:b.hp});
+    attIsA=!attIsA;
+  }
+  return {strikes, winA:a.hp>0};
+}
+
+let duelActive=false, duelTimers=[], duelSession=0;
+const duelEl=document.getElementById('duel'),duelLoc=document.getElementById('duelLoc'),
+      duelLog=document.getElementById('duelLog'),cardA=document.getElementById('cardA'),
+      cardB=document.getElementById('cardB');
+document.getElementById('duelSkip').addEventListener('click',()=>endDuel(true));
+
+function cardHTML(g){
+  return `
+  <div class="g-hp"><div class="g-hpfill" style="transform:scaleX(1)"></div>
+    <span class="g-hplabel">兵力</span><span class="g-hpnum">${g.hp}</span></div>
+  <div class="g-portrait"><span>${g.sur}</span></div>
+  <div class="g-name">${g.name}</div>
+  <div class="g-title">${g.title}</div>
+  <div class="g-stats">
+    ${[['武力',g.war],['智力',g.int],['统率',g.ldr]].map(([k,v])=>`
+    <div class="g-stat">${k}<div class="g-bar"><div class="g-barfill" style="width:${v}%"></div></div><b>${v}</b></div>`).join('')}
+  </div>
+  <div class="g-skill">绝技 · ${g.skill}</div>
+  ${g.buff?`<span class="g-buff ${g.buff.type}">${g.buff.txt}</span>`:''}`;
+}
+function setHP(card,cur,max){
+  card.querySelector('.g-hpfill').style.transform=`scaleX(${clamp(cur/max,0,1)})`;
+  card.querySelector('.g-hpnum').textContent=cur;
+}
+function popDmg(card,dmg,crit){
+  const el=document.createElement('div');
+  el.className='dmg-pop'+(crit?' crit':'');
+  el.textContent=`-${dmg}${crit?'!':''}`;
+  card.appendChild(el);
+  setTimeout(()=>el.remove(),1050);
+}
+function flashSkill(card,name){
+  const el=document.createElement('div');
+  el.className='skill-flash';el.textContent=`「${name}」发动！`;
+  card.appendChild(el);
+  setTimeout(()=>el.remove(),1200);
+}
+function dT(fn,ms){duelTimers.push(setTimeout(fn,ms));}
+
+function startDuel(d){
+  duelActive=true;d.fired=true;duelSession++;
+  const sess=duelSession;
+  const sim=simulateDuel(d);
+  duelLoc.textContent=d.loc;
+  cardA.innerHTML=cardHTML(d.A);cardB.innerHTML=cardHTML(d.B);
+  cardA.className='gcard wu enter-l';cardB.className='gcard cao enter-r';
+  duelLog.innerHTML='两将阵前对峙，杀气凝于江雾——';
+  duelEl.classList.add('show');duelEl.setAttribute('aria-hidden','false');
+  let tms=1150;
+  sim.strikes.forEach((st,si)=>{
+    dT(()=>{
+      if(sess!==duelSession)return;
+      const attCard=st.attA?cardA:cardB, defCard=st.attA?cardB:cardA;
+      const attG=st.attA?d.A:d.B, defG=st.attA?d.B:d.A;
+      attCard.classList.remove('lunge-l','lunge-r');
+      defCard.classList.remove('shake');
+      void attCard.offsetWidth;
+      attCard.classList.add(st.attA?'lunge-l':'lunge-r');
+      dT(()=>{
+        if(sess!==duelSession)return;
+        defCard.classList.add('shake');
+        popDmg(defCard,st.dmg,st.crit);
+        if(st.crit)flashSkill(attCard,attG.skill);
+        setHP(cardA,st.hpA,d.A.hp);setHP(cardB,st.hpB,d.B.hp);
+        duelLog.innerHTML=st.crit
+          ?`第${(si>>1)+1}回合：<em>${attG.name}</em>「${attG.skill}」会心一击，${defG.name} 受创 <em>${st.dmg}</em>！`
+          :`第${(si>>1)+1}回合：${attG.name} 出手，${defG.name} 受创 ${st.dmg}。`;
+      },170);
+    },tms);
+    tms+=st.crit?1050:820;
+  });
+  dT(()=>{
+    if(sess!==duelSession)return;
+    const winCard=sim.winA?cardA:cardB, loseCard=sim.winA?cardB:cardA;
+    winCard.classList.add('victor');loseCard.classList.add('defeated');
+    const stamp=document.createElement('div');stamp.className='stamp';stamp.textContent='胜';
+    winCard.appendChild(stamp);
+    duelLog.innerHTML=d.result;
+  },tms+250);
+  dT(()=>{if(sess===duelSession)endDuel(false);},tms+3400);
+}
+function endDuel(skipped){
+  duelSession++;
+  duelTimers.forEach(clearTimeout);duelTimers=[];
+  duelEl.classList.remove('show');duelEl.setAttribute('aria-hidden','true');
+  duelActive=false;
+}
+function maybeTriggerDuel(){
+  if(duelActive)return;
+  for(const d of DUELS){
+    if(!d.fired&&phaseIdx===d.phase&&phaseProg>=d.at){startDuel(d);return;}
+  }
+}
+function resetDuelFlags(i,prog){
+  DUELS.forEach(d=>{
+    d.fired=(d.phase<i)||(d.phase===i&&d.at<prog);
+  });
+}
+
+/* ---------- wind ---------- */
+function windVec(){
+  let s=0;
+  if(phaseIdx===2)s=easeIO(clamp(phaseProg*1.6,0,1));
+  else if(phaseIdx===3)s=1;
+  else if(phaseIdx===4)s=.75;
+  if(s===0)return{x:8,y:6,s:.12};
+  return{x:-46*s,y:-34*s,s};
+}
+function burnGlowAmt(){
+  return phaseIdx===3?clamp((phaseProg-.42)*2.2,0,1):phaseIdx===4?1:0;
+}
+
+/* =====================================================================
+   RENDER — TERRAIN
+===================================================================== */
+const projX=new Float32Array(NVX*NVY),projY=new Float32Array(NVX*NVY),projZ=new Float32Array(NVX*NVY);
+const order=quads.map((_,i)=>i);
+
+function drawSky(t){
+  const TH=THEMES[mapMode];
+  // horizon = projection of a very distant point along view dir at ground level
+  const hx2=camPos.x+F.x*60000, hy2=camPos.y+F.y*60000;
+  const hp=project(hx2,hy2,0);
+  const horY=hp.ok?clamp(hp.y,-H,H*2):(cam.pitch>.6?-H:H*.4);
+  const ba=burnGlowAmt();
+  // sky gradient
+  const g=ctx.createLinearGradient(0,0,0,Math.max(horY,1));
+  const horC=mix3(TH.skyHor,[120,60,30],ba*.4);
+  g.addColorStop(0,`rgb(${TH.skyTop[0]|0},${TH.skyTop[1]|0},${TH.skyTop[2]|0})`);
+  g.addColorStop(1,`rgb(${horC[0]|0},${horC[1]|0},${horC[2]|0})`);
+  ctx.fillStyle=g;ctx.fillRect(0,0,W,Math.max(horY,0));
+  // ground haze base below horizon
+  ctx.fillStyle=`rgb(${TH.haze[0]|0},${TH.haze[1]|0},${TH.haze[2]|0})`;
+  ctx.fillRect(0,Math.max(horY-1,0),W,H-horY+1);
+  // moon
+  if(TH.moon&&horY>10){
+    const mx=W*.72,my=Math.min(horY*.34,H*.2);
+    const mg=ctx.createRadialGradient(mx,my,0,mx,my,90);
+    mg.addColorStop(0,'rgba(210,225,235,.5)');mg.addColorStop(.12,'rgba(200,215,230,.16)');mg.addColorStop(1,'rgba(200,215,230,0)');
+    ctx.fillStyle=mg;ctx.fillRect(mx-90,my-90,180,180);
+    ctx.fillStyle='rgba(225,235,242,.9)';
+    ctx.beginPath();ctx.arc(mx,my,11,0,TAU);ctx.fill();
+  }
+  // haze band hugging horizon
+  if(horY>0&&horY<H){
+    const hg=ctx.createLinearGradient(0,horY-44,0,horY+70);
+    hg.addColorStop(0,'rgba(0,0,0,0)');
+    hg.addColorStop(.45,`rgba(${TH.haze[0]|0},${TH.haze[1]|0},${TH.haze[2]|0},.85)`);
+    hg.addColorStop(1,'rgba(0,0,0,0)');
+    ctx.fillStyle=hg;ctx.fillRect(0,horY-44,W,114);
+  }
+  return horY;
+}
+
+function drawMesh(t){
+  const TH=THEMES[mapMode];
+  FOGD=TH.fogD;
+  // project vertices
+  for(let id=0;id<NVX*NVY;id++){
+    const p=project(vXw[id],vYw[id],vH[id]);
+    projX[id]=p.x;projY[id]=p.y;projZ[id]=p.cz;
+  }
+  const ba=burnGlowAmt();
+  const flick=0.86+0.14*Math.sin(t*9.2);
+  const campFire=phaseIdx===4?clamp((phaseProg-.25)*1.8,0,1):0;
+  const cols=TH.cols, haze=TH.haze;
+  // depth sort (far first)
+  order.sort((qa,qb)=>{
+    const A=quads[qa],B=quads[qb];
+    const za=projZ[A.a]+projZ[A.c], zb=projZ[B.a]+projZ[B.c];
+    return zb-za;
+  });
+  for(let oi=0;oi<order.length;oi++){
+    const q=quads[order[oi]];
+    const za=projZ[q.a],zb=projZ[q.b],zc=projZ[q.c],zd=projZ[q.d];
+    if(za<NEAR||zb<NEAR||zc<NEAR||zd<NEAR)continue;
+    const xa=projX[q.a],xb=projX[q.b],xc=projX[q.c],xd=projX[q.d];
+    const ya=projY[q.a],yb=projY[q.b],yc=projY[q.c],yd=projY[q.d];
+    // screen cull
+    if((xa<-40&&xb<-40&&xc<-40&&xd<-40)||(xa>W+40&&xb>W+40&&xc>W+40&&xd>W+40))continue;
+    if((ya<-40&&yb<-40&&yc<-40&&yd<-40)||(ya>H+40&&yb>H+40&&yc>H+40&&yd>H+40))continue;
+    const qi=order[oi];
+    let r=cols[qi*3],g=cols[qi*3+1],b=cols[qi*3+2];
+    // fire light (battle blaze + burning camp)
+    if(ba>0){
+      let fl=ba*420000/(420000+q.wDist*q.wDist)*flick;
+      if(q.water)fl*=1.45;
+      if(campFire>0&&!q.water&&q.cy<-300){
+        const dc=Math.hypot(q.cx-(-60),q.cy-(-480));
+        fl+=campFire*260000/(260000+dc*dc)*flick;
+      }
+      if(fl>0.012){
+        r+= (255-r)*fl*.85; g+=(135-g)*fl*.6; b+=(40-b)*fl*.4;
+      }
+    }
+    // aerial perspective
+    const zAvg=(za+zc)*.5;
+    const fogF=clamp(1-Math.exp(-(zAvg-300)/FOGD),0,.92)*TH.fogA*.95;
+    if(fogF>0.01){
+      r=lerp(r,haze[0],fogF);g=lerp(g,haze[1],fogF);b=lerp(b,haze[2],fogF);
+    }
+    ctx.fillStyle=`rgb(${r|0},${g|0},${b|0})`;
+    ctx.beginPath();
+    ctx.moveTo(xa,ya);ctx.lineTo(xb,yb);ctx.lineTo(xc,yc);ctx.lineTo(xd,yd);
+    ctx.closePath();ctx.fill();
+    // crack covering stroke
+    ctx.strokeStyle=ctx.fillStyle;ctx.lineWidth=1;ctx.stroke();
+  }
+}
+
+function drawWaterDetail(t){
+  const TH=THEMES[mapMode];
+  // shorelines
+  ctx.lineWidth=1.3;
+  [[-1,TH.shoreN],[1,TH.shoreS]].forEach(([sg,col])=>{
+    ctx.beginPath();let started=false;
+    for(let x=-2200;x<=2200;x+=110){
+      const p=project(x,sg*waterHalf(x),1.5);
+      if(!p.ok||p.cz>FOGD*1.6){started=false;continue;}
+      if(!started){ctx.moveTo(p.x,p.y);started=true;}else ctx.lineTo(p.x,p.y);
+    }
+    ctx.strokeStyle=col;ctx.stroke();
+  });
+  // current streaks
+  ctx.lineWidth=1;
+  for(let i=0;i<30;i++){
+    const yy=-270+i*19+Math.sin(i*9)*6;
+    const xx=((i*517+t*26)%3800)-1900;
+    const a=project(xx,yy,.5),b=project(xx+90+((i*37)%60),yy,.5);
+    if(!a.ok||!b.ok||a.cz>FOGD*1.4)continue;
+    ctx.strokeStyle=TH.streak+((TH.streakA+.03*Math.sin(t+i))*vis(a.cz))+')';
+    ctx.beginPath();ctx.moveTo(a.x,a.y);ctx.lineTo(b.x,b.y);ctx.stroke();
+  }
+}
+
+function drawProps(t){
+  const TH=THEMES[mapMode];
+  const campFire=phaseIdx===4?clamp((phaseProg-.25)*1.8,0,1):0;
+  // trees (with simple lit/shadow split)
+  const tree=tr=>{
+    const gz=terrainH(tr.x,tr.y);
+    const p=project(tr.x,tr.y,gz);
+    if(!p.ok||p.cz>FOGD*1.7)return;
+    if(p.x<-30||p.x>W+30||p.y<-40||p.y>H+40)return;
+    const h=tr.s*p.s*2.6, v=vis(p.cz);
+    ctx.globalAlpha=v;
+    ctx.fillStyle=`rgb(${TH.tree[0]},${TH.tree[1]},${TH.tree[2]})`;
+    ctx.beginPath();ctx.moveTo(p.x,p.y-h);ctx.lineTo(p.x-h*.36,p.y);ctx.lineTo(p.x+h*.36,p.y);ctx.closePath();ctx.fill();
+    ctx.fillStyle=`rgba(${TH.tree[0]*1.9|0},${TH.tree[1]*1.9|0},${TH.tree[2]*1.7|0},.5)`;
+    ctx.beginPath();ctx.moveTo(p.x,p.y-h);ctx.lineTo(p.x-h*.36,p.y);ctx.lineTo(p.x-h*.05,p.y);ctx.closePath();ctx.fill();
+  };
+  treesN.forEach(tree);treesS.forEach(tree);
+  ctx.globalAlpha=1;
+  // tents
+  tents.forEach(tt=>{
+    const gz=terrainH(tt.x,tt.y);
+    const p=project(tt.x,tt.y,gz);
+    if(!p.ok||p.cz>FOGD*1.5)return;
+    if(p.x<-30||p.x>W+30||p.y<-40||p.y>H+40)return;
+    const s=tt.s*p.s*2.4, v=vis(p.cz);
+    ctx.globalAlpha=v;
+    ctx.fillStyle=TH.tent;
+    ctx.beginPath();ctx.moveTo(p.x,p.y-s);ctx.lineTo(p.x-s*.85,p.y);ctx.lineTo(p.x+s*.85,p.y);ctx.closePath();ctx.fill();
+    ctx.fillStyle='rgba(255,200,150,.12)';
+    ctx.beginPath();ctx.moveTo(p.x,p.y-s);ctx.lineTo(p.x-s*.85,p.y);ctx.lineTo(p.x-s*.1,p.y);ctx.closePath();ctx.fill();
+    ctx.strokeStyle=TH.tentFlag;ctx.lineWidth=.9;
+    ctx.beginPath();ctx.moveTo(p.x,p.y-s);ctx.lineTo(p.x,p.y-s*1.5);ctx.stroke();
+    // burning camp in rout phase
+    if(campFire>0&&tt.fire<campFire*.8){
+      if(Math.random()<.12)spawnFire(tt.x,tt.y,gz+6);
+      if(Math.random()<.05)spawnSmoke(tt.x,tt.y,gz+16,true);
+    }
+    ctx.globalAlpha=1;
+  });
+  // formation blocks
+  function block(b,pref){
+    const c=[[b.x-b.w/2,b.y-b.h/2],[b.x+b.w/2,b.y-b.h/2],[b.x+b.w/2,b.y+b.h/2],[b.x-b.w/2,b.y+b.h/2]];
+    const pp=c.map(pt=>project(pt[0],pt[1],terrainH(pt[0],pt[1])+1.5));
+    if(pp.some(p=>!p.ok))return;
+    const v=vis(pp[0].cz);
+    ctx.globalAlpha=v;
+    ctx.fillStyle=pref+'.08)';
+    ctx.beginPath();pp.forEach((p,i)=>i?ctx.lineTo(p.x,p.y):ctx.moveTo(p.x,p.y));ctx.closePath();ctx.fill();
+    ctx.strokeStyle=pref+'.55)';ctx.lineWidth=1;ctx.stroke();
+    ctx.globalAlpha=1;
+  }
+  blocksN.forEach(b=>block(b,TH.blkC));
+  blocksS.forEach(b=>block(b,TH.blkW));
+  // soldiers
+  const sol=(arr,pref)=>{
+    arr.forEach(s=>{
+      const p=project(s.x,s.y,terrainH(s.x,s.y)+2);
+      if(!p.ok||p.cz>FOGD)return;
+      if(p.x<0||p.x>W||p.y<0||p.y>H)return;
+      ctx.fillStyle=pref+((.32+.3*Math.sin(t*3+s.p*9))*vis(p.cz))+')';
+      const d=Math.max(1,1.6*p.s*2);
+      ctx.fillRect(p.x,p.y,d,d*1.4);
+    });
+  };
+  sol(soldiersN,TH.solC);sol(soldiersS,TH.solW);
+}
+
+/* =====================================================================
+   SHIPS — extruded hulls
+===================================================================== */
+function drawShip(x,y,z,ang,opts){
+  const P=project(x,y,z);
+  if(!P.ok)return;
+  if(P.x<-70||P.x>W+70||P.y<-90||P.y>H+90)return;
+  const v=vis(P.cz)*(opts.alpha!=null?opts.alpha:1);
+  if(v<=0.02)return;
+  const A=project(x+Math.cos(ang)*10,y+Math.sin(ang)*10,z);
+  let fx=A.x-P.x,fy=A.y-P.y;
+  const fl=Math.hypot(fx,fy)||1;fx/=fl;fy/=fl;
+  const nx=-fy,ny=fx;
+  const s=P.s*(opts.scale||1);
+  const L=18*s,Wd=5.4*s,deck=4.5*s;          // world-unit proportions
+  ctx.globalAlpha=v;
+  // water shadow
+  ctx.fillStyle='rgba(0,0,5,.4)';
+  ctx.beginPath();
+  ctx.ellipse(P.x+1.2*s,P.y+2.4*s,L*1.0,Wd*1.15,Math.atan2(fy,fx),0,TAU);ctx.fill();
+  const burn=opts.burn||0;
+  const isCao=opts.faction==='cao';
+  // hull side (extrusion below deck)
+  const hullPts=p0=>{
+    return [
+      [P.x+fx*L,            P.y+fy*L-p0],
+      [P.x+nx*Wd-fx*L*.18,  P.y+ny*Wd-fy*L*.18-p0],
+      [P.x+nx*Wd*.7-fx*L,   P.y+ny*Wd*.7-fy*L-p0],
+      [P.x-nx*Wd*.7-fx*L,   P.y-ny*Wd*.7-fy*L-p0],
+      [P.x-nx*Wd-fx*L*.18,  P.y-ny*Wd-fy*L*.18-p0],
+    ];
+  };
+  const lo=hullPts(0), hi=hullPts(deck);
+  // dark waterline hull
+  const dk=isCao?[lerp(56,18,burn),lerp(30,13,burn),lerp(24,11,burn)]:[18,38,44];
+  ctx.fillStyle=`rgb(${dk[0]|0},${dk[1]|0},${dk[2]|0})`;
+  ctx.beginPath();
+  lo.forEach((p,i)=>i?ctx.lineTo(p[0],p[1]):ctx.moveTo(p[0],p[1]));
+  // wrap up the far side
+  for(let i=hi.length-1;i>=0;i--)ctx.lineTo(hi[i][0],hi[i][1]);
+  ctx.closePath();ctx.fill();
+  // deck top
+  const dc=isCao?[lerp(112,30,burn),lerp(64,24,burn),lerp(48,20,burn)]:[44,84,94];
+  ctx.fillStyle=`rgb(${dc[0]|0},${dc[1]|0},${dc[2]|0})`;
+  ctx.beginPath();
+  hi.forEach((p,i)=>i?ctx.lineTo(p[0],p[1]):ctx.moveTo(p[0],p[1]));
+  ctx.closePath();ctx.fill();
+  // deck rim highlight
+  ctx.strokeStyle=isCao?'rgba(255,195,150,.3)':'rgba(170,240,250,.35)';
+  ctx.lineWidth=Math.max(.5,.8*s);
+  ctx.beginPath();ctx.moveTo(hi[0][0],hi[0][1]);ctx.lineTo(hi[2][0]*.5+hi[3][0]*.5,hi[2][1]*.5+hi[3][1]*.5);ctx.stroke();
+  // tower (楼船)
+  if(opts.tower&&burn<.85){
+    const tw=6*s,th=11*s,tx0=P.x-fx*L*.15,ty0=P.y-fy*L*.15-deck;
+    ctx.fillStyle=`rgb(${dk[0]*1.25|0},${dk[1]*1.25|0},${dk[2]*1.25|0})`;
+    ctx.fillRect(tx0-tw/2,ty0-th,tw,th);
+    ctx.fillStyle=`rgb(${dc[0]*1.1|0},${dc[1]*1.1|0},${dc[2]*1.1|0})`;
+    ctx.fillRect(tx0-tw/2,ty0-th-2.4*s,tw,2.6*s);
+    ctx.strokeStyle='rgba(0,0,0,.4)';ctx.lineWidth=.6;
+    ctx.strokeRect(tx0-tw/2,ty0-th,tw,th);
+  }
+  // mast + sail + flag
+  const wv=windVec();
+  const lean=wv.s*3.4*s;
+  const mh=14*s;
+  const mx=P.x-lean*.5,my=P.y-deck-mh;
+  ctx.strokeStyle='rgba(185,165,135,.75)';ctx.lineWidth=Math.max(.6,.9*s);
+  ctx.beginPath();ctx.moveTo(P.x,P.y-deck);ctx.lineTo(mx,my);ctx.stroke();
+  if(!opts.noSail){
+    ctx.fillStyle=burn>.25?`rgba(${lerp(190,40,burn)|0},${lerp(170,30,burn)|0},${lerp(130,25,burn)|0},.88)`
+      :(isCao?'rgba(190,172,136,.88)':'rgba(170,192,190,.88)');
+    const sw=7.4*s,sh=8.6*s;
+    ctx.beginPath();
+    ctx.moveTo(mx-sw*.5-lean*.3,my+sh*.1);
+    ctx.quadraticCurveTo(mx-lean*1.5,my+sh*.55,mx-sw*.5-lean*.5,my+sh);
+    ctx.lineTo(mx+sw*.5-lean*.5,my+sh);
+    ctx.quadraticCurveTo(mx+sw*.2-lean*1.2,my+sh*.5,mx+sw*.5-lean*.2,my+sh*.08);
+    ctx.closePath();ctx.fill();
+    // sail shading
+    ctx.fillStyle='rgba(0,0,0,.18)';
+    ctx.beginPath();
+    ctx.moveTo(mx-lean*.8,my+sh*.08);ctx.lineTo(mx-sw*.5-lean*.5,my+sh);ctx.lineTo(mx-lean*.8,my+sh);
+    ctx.closePath();ctx.fill();
+  }
+  ctx.fillStyle=isCao?'#e04a3a':'#3ad6e0';
+  ctx.beginPath();
+  ctx.moveTo(mx,my);ctx.lineTo(mx-5*s-lean,my+1.5*s);ctx.lineTo(mx,my+2.8*s);ctx.closePath();ctx.fill();
+  // burn glow
+  if(burn>0.03){
+    ctx.globalCompositeOperation='lighter';
+    const gs=(22+burn*46)*s*(1+.15*Math.sin(performance.now()*.013+x));
+    ctx.globalAlpha=clamp(burn,0,1)*.9*v;
+    ctx.drawImage(SP_GLOW,P.x-gs,P.y-gs*1.25,gs*2,gs*2);
+    ctx.globalCompositeOperation='source-over';
+  }
+  ctx.globalAlpha=1;
+}
+
+/* ---------- arrows & labels ---------- */
+function drawArrowWorld(pts,color,t,opts={}){
+  const pp=pts.map(p=>project(p[0],p[1],(opts.z||10)+terrainH(p[0],p[1])*(opts.ground?1:0)));
+  if(pp.some(p=>!p.ok))return;
+  ctx.save();
+  ctx.strokeStyle=color;ctx.fillStyle=color;
+  ctx.lineWidth=opts.w||2;ctx.lineJoin='round';ctx.lineCap='round';
+  ctx.setLineDash([10,7]);ctx.lineDashOffset=-t*30;
+  ctx.globalAlpha=(opts.a!=null?opts.a:.8)*(0.75+.25*Math.sin(t*2.2));
+  ctx.beginPath();
+  pp.forEach((p,i)=>{
+    if(i===0)ctx.moveTo(p.x,p.y);
+    else{
+      const prev=pp[i-1];
+      const mx=(prev.x+p.x)/2,my=(prev.y+p.y)/2;
+      ctx.quadraticCurveTo(prev.x,prev.y,mx,my);
+      if(i===pp.length-1)ctx.lineTo(p.x,p.y);
+    }
+  });
+  ctx.stroke();
+  const e=pp[pp.length-1],pe=pp[pp.length-2];
+  const a=Math.atan2(e.y-pe.y,e.x-pe.x);
+  ctx.setLineDash([]);
+  ctx.beginPath();
+  ctx.moveTo(e.x,e.y);
+  ctx.lineTo(e.x-Math.cos(a-.45)*11,e.y-Math.sin(a-.45)*11);
+  ctx.lineTo(e.x-Math.cos(a+.45)*11,e.y-Math.sin(a+.45)*11);
+  ctx.closePath();ctx.fill();
+  ctx.restore();
+}
+function drawLabel(wx,wy,wz,text,sub,color,alpha){
+  if(alpha<=0.02)return;
+  const gz=terrainH(wx,wy);
+  const p=project(wx,wy,gz+wz),base=project(wx,wy,gz);
+  if(!p.ok||!base.ok)return;
+  alpha*=clamp(vis(p.cz)*1.4,0,1);
+  if(alpha<=0.03)return;
+  ctx.save();ctx.globalAlpha=alpha;
+  ctx.strokeStyle=color;ctx.lineWidth=1;
+  ctx.beginPath();ctx.moveTo(base.x,base.y);ctx.lineTo(p.x,p.y);ctx.stroke();
+  ctx.fillStyle=color;
+  ctx.beginPath();ctx.arc(base.x,base.y,2.2,0,TAU);ctx.fill();
+  ctx.font=`500 ${sub?12:13}px 'Noto Sans SC',sans-serif`;
+  const tw=ctx.measureText(text).width;
+  const bx=p.x-tw/2-7,by=p.y-(sub?30:24);
+  ctx.fillStyle='rgba(6,9,12,.72)';
+  ctx.fillRect(bx,by,tw+14,sub?28:20);
+  ctx.strokeStyle=color;ctx.globalAlpha=alpha*.7;
+  ctx.strokeRect(bx+.5,by+.5,tw+13,sub?27:19);
+  ctx.globalAlpha=alpha;
+  ctx.fillStyle='#e8e0d0';
+  ctx.textAlign='center';ctx.textBaseline='top';
+  ctx.fillText(text,p.x,by+3);
+  if(sub){ctx.font=`300 8px 'Noto Sans SC',sans-serif`;ctx.fillStyle=color;ctx.fillText(sub,p.x,by+16);}
+  ctx.restore();
+}
+
+/* ---------- particles ---------- */
+function spawnSmoke(x,y,z,big){
+  if(smoke.length>240)return;
+  smoke.push({x,y,z,r:(big?38:20)+Math.random()*20,a:.5,vz:30+Math.random()*22,life:0,max:3.4+Math.random()*2});
+}
+function spawnFire(x,y,z){
+  if(fire.length>320)return;
+  fire.push({x:x+(Math.random()-.5)*14,y:y+(Math.random()-.5)*10,z,vz:18+Math.random()*26,r:13+Math.random()*16,life:0,max:.7+Math.random()*.7});
+}
+function spawnEmber(x,y,z){
+  if(embers.length>160)return;
+  embers.push({x,y,z,vx:(Math.random()-.5)*20,vy:(Math.random()-.5)*16,vz:26+Math.random()*32,life:0,max:1.4+Math.random()*1.4});
+}
+function updateParticles(dt,t){
+  const wv=windVec();
+  fog.forEach(f=>{
+    f.x+=(f.vx+wv.x*1.4)*dt;f.y+=(f.vy+wv.y*1.2)*dt;
+    if(f.x<-2200)f.x=2100;if(f.x>2200)f.x=-2100;
+    if(f.y<-460)f.y=420;if(f.y>460)f.y=-440;
+  });
+  for(let i=smoke.length-1;i>=0;i--){const s=smoke[i];
+    s.life+=dt;s.z+=s.vz*dt;s.x+=wv.x*dt*1.6;s.y+=wv.y*dt*1.4;s.r+=dt*30;
+    if(s.life>s.max)smoke.splice(i,1);}
+  for(let i=fire.length-1;i>=0;i--){const f=fire[i];
+    f.life+=dt;f.z+=f.vz*dt;f.x+=wv.x*dt*.8;f.y+=wv.y*dt*.7;
+    if(f.life>f.max)fire.splice(i,1);}
+  for(let i=embers.length-1;i>=0;i--){const e=embers[i];
+    e.life+=dt;e.x+=(e.vx+wv.x*2.4)*dt;e.y+=(e.vy+wv.y*2)*dt;e.z+=e.vz*dt;e.vz-=10*dt;
+    if(e.life>e.max)embers.splice(i,1);}
+  if(wv.s>0.2&&windP.length<70&&Math.random()<wv.s*.8){
+    windP.push({x:600+Math.random()*1300,y:200+Math.random()*500,z:30+Math.random()*80,life:0,max:2.2+Math.random()*1.4});
+  }
+  for(let i=windP.length-1;i>=0;i--){const w=windP[i];
+    w.life+=dt;w.x+=wv.x*dt*9;w.y+=wv.y*dt*9;
+    if(w.life>w.max||w.x<-2100)windP.splice(i,1);}
+}
+function drawFog(t,frontHalf){
+  const TH=THEMES[mapMode];
+  fog.forEach((f,i)=>{
+    if((i%2===0)!==frontHalf)return;
+    const p=project(f.x,f.y,f.z);
+    if(!p.ok)return;
+    const r=f.r*p.s*1.4;
+    if(p.x<-r||p.x>W+r||p.y<-r||p.y>H+r)return;
+    ctx.globalAlpha=f.a*TH.fogA*(.8+.2*Math.sin(t*.6+f.ph))*clamp(vis(p.cz)*1.3,0,1);
+    ctx.drawImage(SP_FOG,p.x-r,p.y-r*.55,r*2,r*1.1);
+  });
+  ctx.globalAlpha=1;
+}
+function drawSmokeFire(){
+  smoke.forEach(s=>{
+    const p=project(s.x,s.y,s.z);
+    if(!p.ok)return;
+    const r=s.r*p.s*1.3;
+    ctx.globalAlpha=clamp(s.a*(1-s.life/s.max),0,1)*vis(p.cz);
+    ctx.drawImage(SP_SMK,p.x-r,p.y-r,r*2,r*2);
+  });
+  ctx.globalAlpha=1;
+  ctx.globalCompositeOperation='lighter';
+  fire.forEach(f=>{
+    const p=project(f.x,f.y,f.z);
+    if(!p.ok)return;
+    const k=1-f.life/f.max;
+    const r=f.r*p.s*1.4*k;
+    ctx.globalAlpha=k;
+    ctx.drawImage(SP_FIRE,p.x-r,p.y-r,r*2,r*2);
+  });
+  embers.forEach(e=>{
+    const p=project(e.x,e.y,e.z);
+    if(!p.ok)return;
+    ctx.globalAlpha=1-e.life/e.max;
+    ctx.fillStyle='#ffcf7a';
+    const d=Math.max(1.2,2.4*p.s);
+    ctx.fillRect(p.x,p.y,d,d);
+  });
+  ctx.globalCompositeOperation='source-over';
+  ctx.globalAlpha=1;
+}
+function drawWindStreaks(t){
+  const wv=windVec();
+  if(wv.s<=0.2)return;
+  ctx.save();ctx.lineWidth=1.1;
+  windP.forEach(w=>{
+    const k=Math.sin(Math.PI*clamp(w.life/w.max,0,1));
+    const a1=project(w.x,w.y,w.z),a2=project(w.x+wv.x*3.4,w.y+wv.y*3.4,w.z);
+    if(!a1.ok||!a2.ok)return;
+    ctx.strokeStyle=`rgba(190,225,235,${.3*k*wv.s*vis(a1.cz)})`;
+    ctx.beginPath();ctx.moveTo(a1.x,a1.y);ctx.lineTo(a2.x,a2.y);ctx.stroke();
+  });
+  ctx.restore();
+}
+
+/* ---------- simulation ---------- */
+function updateWorld(dt,t){
+  const i=phaseIdx,pr=phaseProg;
+  caoShips.forEach(s=>{
+    if(i===0){
+      const k=easeIO(clamp(pr*1.25,0,1));
+      s.x=lerp(s.sx,s.gx,k);s.y=lerp(s.sy,s.gy,k);
+    }else if(i<4){s.x=s.gx;s.y=s.gy;}
+    else{
+      const k=easeIn(clamp(pr*1.15,0,1));
+      s.x=s.gx+Math.cos(s.retA)*k*340*s.retS;
+      s.y=s.gy+Math.sin(s.retA)*k*250*s.retS;
+      if(s.sinkP<.42){
+        const sk=clamp((pr-.35-s.sinkP*.4)*2.2,0,1);
+        s.sink=sk;s.z=-sk*10;s.alpha=1-sk*.95;
+      }
+    }
+    let tb=0;
+    if(i===3)tb=clamp(((pr-.5)-s.delay*.5)*4,0,1);
+    else if(i===4)tb=clamp(1.25-s.delay*.6,0,1);
+    s.burn+=(tb-s.burn)*Math.min(1,dt*1.6);
+    s.zBob=Math.sin(t*s.bob+s.jit)*1.4*(1-s.sink);
+    if(s.burn>.12&&s.alpha>.1){
+      if(Math.random()<s.burn*.5)spawnFire(s.x,s.y,8);
+      if(Math.random()<s.burn*.22)spawnSmoke(s.x,s.y,22,true);
+      if(Math.random()<s.burn*.12)spawnEmber(s.x,s.y,14);
+    }
+  });
+  wuShips.forEach(s=>{
+    let ady=0;
+    if(i===4)ady=-easeIO(pr)*150*s.adv;
+    else if(i===3)ady=-clamp((pr-.7)*.5,0,1)*20;
+    s.x=s.x0;s.y=s.y0+ady;
+    s.zBob=Math.sin(t*s.bob+s.jit)*1.4;
+  });
+  fireShips.forEach((f,k)=>{
+    if(i<3){f.x=f.sx;f.y=f.sy;f.lit=false;f.gone=0;return;}
+    if(i===3){
+      f.lit=true;
+      const mv=easeIn(clamp(pr/.55,0,1));
+      f.x=lerp(f.sx,f.tx,mv)+Math.sin(t*2+k)*3*(1-mv);
+      f.y=lerp(f.sy,f.ty,mv);
+      f.gone=clamp((pr-.62)*4,0,1);
+      if(f.gone<1){
+        if(Math.random()<.7)spawnFire(f.x,f.y,8);
+        if(Math.random()<.3)spawnSmoke(f.x,f.y,18,false);
+        if(Math.random()<.2)spawnEmber(f.x,f.y,12);
+      }
+    }else{f.x=f.tx;f.y=f.ty;f.gone=1;}
+  });
+}
+
+/* ---------- camera ---------- */
+function updateCamera(dt,t){
+  const tg=PHASES[phaseIdx].cam,v=VIEWS[viewMode];
+  const tYaw=tg.yaw+v.yawOff+Math.sin(t*.06)*.012;
+  const tPitch=v.pitch+Math.sin(t*.083)*.014;
+  const tDist=tg.dist*v.distMul*(1-phaseProg*.07+Math.sin(t*.07)*.012);
+  const tTx=tg.x+Math.sin(t*.11)*26;
+  const tTy=tg.y+v.tyOff+Math.cos(t*.09)*18;
+  const k=1-Math.exp(-dt*1.5);
+  cam.tx=lerp(cam.tx,tTx,k);
+  cam.ty=lerp(cam.ty,tTy,k);
+  cam.dist=lerp(cam.dist,tDist,k);
+  cam.pitch=lerp(cam.pitch,tPitch,k);
+  cam.yaw=lerpAng(cam.yaw,tYaw,k);
+  updateCamBasis();
+}
+
+/* ---------- frame render ---------- */
+function render(t){
+  const i=phaseIdx,pr=phaseProg;
+  drawSky(t);
+  drawMesh(t);
+  drawWaterDetail(t);
+  drawProps(t);
+  drawFog(t,false);
+
+  // chains
+  const chainVis=i===1?pr:i>1?1:0;
+  if(chainVis>0){
+    chains.forEach(ch=>{
+      const k=clamp((chainVis-ch.ord)*3,0,1);
+      if(k<=0)return;
+      const A=caoShips[ch.a],B=caoShips[ch.b];
+      if(A.alpha<.15||B.alpha<.15)return;
+      const a=project(A.x,A.y,4),b=project(B.x,B.y,4);
+      if(!a.ok||!b.ok)return;
+      const mid={x:(a.x+b.x)/2,y:(a.y+b.y)/2+3.2*a.s};
+      const heat=Math.max(A.burn,B.burn);
+      ctx.lineWidth=Math.max(.7,1.6*a.s);
+      ctx.strokeStyle=heat>.3?`rgba(${200+heat*55|0},${90+heat*60|0},40,${.55*k*vis(a.cz)})`:`rgba(155,155,165,${.5*k*vis(a.cz)})`;
+      ctx.beginPath();ctx.moveTo(a.x,a.y);ctx.quadraticCurveTo(mid.x,mid.y,b.x,b.y);ctx.stroke();
+    });
+  }
+
+  // ships depth-sorted
+  const draws=[];
+  const pushShip=(s,o)=>{const P=project(s.x,s.y,0);if(P.ok)draws.push({d:P.cz,f:o});};
+  caoShips.forEach(s=>{if(s.alpha>.03)pushShip(s,()=>drawShip(s.x,s.y,s.zBob+s.z,s.a+Math.sin(s.jit+t*.4)*.04,{faction:'cao',burn:s.burn,alpha:s.alpha,tower:s.tower}));});
+  wuShips.forEach(s=>pushShip(s,()=>drawShip(s.x,s.y,s.zBob,s.a,{faction:'wu',tower:s.tower})));
+  fireShips.forEach(f=>{if(f.gone<1&&i>=3)pushShip(f,()=>drawShip(f.x,f.y,0,-Math.PI/2,{faction:'wu',burn:f.lit?1:0,alpha:1-f.gone,scale:.92}));});
+  draws.sort((a,b)=>b.d-a.d).forEach(d=>d.f());
+
+  drawSmokeFire();
+  drawWindStreaks(t);
+  drawFog(t,true);
+
+  // tactical arrows
+  if(i===0){
+    const k=clamp(pr*2,0,1);
+    drawArrowWorld([[-430,-560],[-380,-380],[-300,-230]],'rgba(224,74,58,.85)',t,{a:.7*k,ground:true});
+    drawArrowWorld([[360,-560],[330,-380],[260,-230]],'rgba(224,74,58,.85)',t,{a:.7*k,ground:true});
+    drawArrowWorld([[-160,430],[-130,300],[-100,230]],'rgba(58,214,224,.9)',t,{a:.7*clamp(pr*2-.4,0,1),ground:true});
+    drawArrowWorld([[300,430],[280,300],[250,230]],'rgba(58,214,224,.9)',t,{a:.7*clamp(pr*2-.4,0,1),ground:true});
+  }
+  if(i===2){
+    const k=easeIO(clamp(pr*1.5,0,1));
+    drawArrowWorld([[760,420],[380,160],[60,-120]],'rgba(190,230,240,.75)',t,{a:.55*k,w:2.6,z:50});
+    drawArrowWorld([[980,300],[600,40],[260,-200]],'rgba(190,230,240,.6)',t,{a:.4*k,w:2,z:70});
+  }
+  if(i===3){
+    const k=clamp(pr/.5,0,1)*(1-clamp((pr-.6)*3,0,1));
+    drawArrowWorld([[-120,150],[-70,0],[IMPACT.x,IMPACT.y+30]],'rgba(255,150,60,.95)',t,{a:.85*k,w:2.6});
+  }
+  if(i===4){
+    const k=clamp(pr*1.6,0,1);
+    drawArrowWorld([[-220,210],[-240,40],[-280,-120]],'rgba(58,214,224,.9)',t,{a:.8*k});
+    drawArrowWorld([[120,210],[140,40],[170,-120]],'rgba(58,214,224,.9)',t,{a:.8*k});
+    drawArrowWorld([[-60,-200],[-260,-380],[-460,-520]],'rgba(224,74,58,.8)',t,{a:.7*clamp(pr*1.4-.2,0,1),ground:true,w:2.4});
+  }
+
+  // labels
+  const fsC=fireShips[3];
+  drawLabel(0,-170,58,'曹操水军','CAO CAO FLEET · 200,000','rgba(224,74,58,.9)',i===4?.55:.95);
+  drawLabel(40,205,52,'孙刘联军','SUN-LIU ALLIANCE · 30,000','rgba(58,214,224,.9)',.95);
+  drawLabel(330,235,38,'周瑜',null,'rgba(58,214,224,.8)',i<4?.85:.5);
+  drawLabel(fsC?fsC.x:-30,fsC?fsC.y:130,34,'黄盖',null,'rgba(255,170,80,.9)',i>=2&&i<4?.95:i<2?.55:0);
+  drawLabel(-460,380,70,'赤壁','RED CLIFFS','rgba(220,120,80,.85)',.8);
+  drawLabel(900,-10,30,'长江水道','YANGTZE RIVER','rgba(150,190,210,.7)',.7);
+
+  // compass
+  ctx.save();
+  ctx.translate(34,H*.42);
+  ctx.rotate(-cam.yaw);
+  ctx.strokeStyle='rgba(232,224,208,.45)';ctx.lineWidth=1;
+  ctx.beginPath();ctx.arc(0,0,11,0,TAU);ctx.stroke();
+  ctx.fillStyle='rgba(224,74,58,.9)';
+  ctx.beginPath();ctx.moveTo(0,-9);ctx.lineTo(-3,1);ctx.lineTo(3,1);ctx.closePath();ctx.fill();
+  ctx.rotate(cam.yaw);
+  ctx.fillStyle='rgba(232,224,208,.6)';ctx.font='300 8px sans-serif';ctx.textAlign='center';
+  ctx.fillText('北',0,-17);
+  ctx.restore();
+}
+
+/* ---------- main loop ---------- */
+let last=performance.now();
+function frame(now){
+  const dt=Math.min(.05,(now-last)/1000);last=now;
+  const t=now/1000;
+  if(playing&&!duelActive){
+    simT+=dt;
+    if(simT>=TOTAL){simT=0;setPhase(0,0);}
+  }
+  const ph=phaseFromT(simT);
+  if(ph.i!==phaseIdx)setPhase(ph.i,ph.p);
+  else phaseProg=ph.p;
+  if(playing)maybeTriggerDuel();
+  updateCamera(dt,t);
+  updateWorld(dt,t);
+  updateParticles(dt,t);
+  render(t);
+  syncUI(false);
+  requestAnimationFrame(frame);
+}
+updateCamBasis();
+setPhase(0,0);
+requestAnimationFrame(frame);
+})();
+</script>
+</body>
+</html>

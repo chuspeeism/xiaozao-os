@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ATMOS · WebGL 天气光影模拟</title>
+<link rel="icon" href="data:,">
+<style>
+  :root {
+    --accent: #ffb938;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html, body { width: 100%; height: 100%; overflow: hidden; background: #000; }
+  body {
+    font-family: "SF Pro Display", -apple-system, "PingFang SC", "Microsoft YaHei", sans-serif;
+    color: #fff;
+    -webkit-font-smoothing: antialiased;
+  }
+  #app { position: fixed; inset: 0; }
+  #app canvas { display: block; }
+
+  /* 顶部标题 */
+  #brand {
+    position: fixed; top: 26px; left: 30px;
+    font-size: 13px; letter-spacing: 3px; font-weight: 600;
+    color: rgba(255,255,255,.85);
+    text-shadow: 0 1px 8px rgba(0,0,0,.4);
+    user-select: none; z-index: 10;
+  }
+  #brand span { color: var(--accent); transition: color 1s ease; }
+  #brand small {
+    display: block; margin-top: 4px;
+    font-size: 10px; letter-spacing: 2px; font-weight: 400;
+    color: rgba(255,255,255,.45);
+  }
+
+  /* 天气 Tab */
+  #tabs {
+    position: fixed; top: 22px; left: 50%; transform: translateX(-50%);
+    display: flex; gap: 4px; padding: 6px;
+    background: rgba(8, 12, 18, .42);
+    border: 1px solid rgba(255,255,255,.09);
+    border-radius: 999px;
+    backdrop-filter: blur(18px) saturate(1.4);
+    -webkit-backdrop-filter: blur(18px) saturate(1.4);
+    box-shadow: 0 8px 32px rgba(0,0,0,.35);
+    z-index: 10;
+  }
+  .tab {
+    appearance: none; border: none; outline: none; cursor: pointer;
+    display: flex; align-items: center; gap: 6px;
+    padding: 8px 13px; border-radius: 999px;
+    background: transparent;
+    color: rgba(255,255,255,.62);
+    font-size: 13px; font-weight: 500;
+    font-family: inherit;
+    transition: background .35s ease, color .35s ease, transform .15s ease;
+    white-space: nowrap;
+  }
+  .tab:hover { color: rgba(255,255,255,.92); }
+  .tab:active { transform: scale(.96); }
+  .tab .ico { font-size: 15px; filter: saturate(.9); }
+  .tab.active {
+    color: #fff;
+    background: var(--tab-bg, rgba(255,255,255,.14));
+    box-shadow: inset 0 0 0 1px rgba(255,255,255,.14);
+  }
+  .tab .key {
+    font-size: 10px; opacity: .4; font-weight: 400;
+    border: 1px solid rgba(255,255,255,.3); border-radius: 4px;
+    padding: 0 4px; line-height: 14px;
+  }
+
+  /* 左下信息卡 */
+  #info {
+    position: fixed; left: 30px; bottom: 30px;
+    max-width: 380px;
+    padding: 20px 22px;
+    background: rgba(8, 12, 18, .42);
+    border: 1px solid rgba(255,255,255,.09);
+    border-radius: 18px;
+    backdrop-filter: blur(18px) saturate(1.4);
+    -webkit-backdrop-filter: blur(18px) saturate(1.4);
+    box-shadow: 0 8px 32px rgba(0,0,0,.35);
+    z-index: 10;
+    transition: opacity .4s ease;
+  }
+  #info h2 {
+    display: flex; align-items: baseline; gap: 10px;
+    font-size: 24px; font-weight: 700; letter-spacing: 1px;
+  }
+  #info h2 .en {
+    font-size: 12px; font-weight: 400; letter-spacing: 2px;
+    color: var(--accent); text-transform: uppercase;
+    transition: color 1s ease;
+  }
+  #info p {
+    margin-top: 10px;
+    font-size: 13px; line-height: 1.75;
+    color: rgba(255,255,255,.68);
+  }
+  #stats { display: flex; gap: 8px; margin-top: 14px; flex-wrap: wrap; }
+  .chip {
+    font-size: 11px; color: rgba(255,255,255,.75);
+    background: rgba(255,255,255,.07);
+    border: 1px solid rgba(255,255,255,.08);
+    border-radius: 8px; padding: 5px 10px;
+  }
+  .chip b { color: #fff; font-weight: 600; margin-left: 4px; }
+
+  /* 右下操作提示 */
+  #hint {
+    position: fixed; right: 30px; bottom: 30px;
+    font-size: 11px; letter-spacing: 1px;
+    color: rgba(255,255,255,.38);
+    text-align: right; line-height: 1.9;
+    user-select: none; z-index: 10;
+  }
+
+  /* 暗角 */
+  #vignette {
+    position: fixed; inset: 0; pointer-events: none; z-index: 5;
+    background: radial-gradient(ellipse at center, transparent 55%, rgba(0,0,0,.32) 100%);
+  }
+
+  /* 时间轴 */
+  #timeline {
+    position: fixed; bottom: 30px; left: 50%; transform: translateX(-50%);
+    display: flex; align-items: center; gap: 12px;
+    width: min(460px, 60vw);
+    padding: 10px 18px;
+    background: rgba(8, 12, 18, .42);
+    border: 1px solid rgba(255,255,255,.09);
+    border-radius: 999px;
+    backdrop-filter: blur(18px) saturate(1.4);
+    -webkit-backdrop-filter: blur(18px) saturate(1.4);
+    box-shadow: 0 8px 32px rgba(0,0,0,.35);
+    z-index: 10;
+  }
+  #tplay {
+    appearance: none; border: none; cursor: pointer;
+    width: 30px; height: 30px; border-radius: 50%;
+    background: rgba(255,255,255,.12); color: #fff;
+    font-size: 12px; flex-shrink: 0;
+    transition: background .25s ease;
+  }
+  #tplay:hover { background: var(--accent); }
+  #tlabel {
+    font-size: 12px; letter-spacing: 1px; color: rgba(255,255,255,.85);
+    width: 74px; flex-shrink: 0; font-variant-numeric: tabular-nums;
+  }
+  #tslider {
+    flex: 1; appearance: none; height: 4px; border-radius: 2px; outline: none;
+    background: linear-gradient(90deg,
+      #1a2340 0%, #35527e 18%, #ffb938 27%, #bfe0f5 38%,
+      #bfe0f5 62%, #ff9838 75%, #35527e 83%, #1a2340 100%);
+    cursor: pointer;
+  }
+  #tslider::-webkit-slider-thumb {
+    appearance: none; width: 16px; height: 16px; border-radius: 50%;
+    background: #fff; border: 2px solid var(--accent);
+    box-shadow: 0 2px 8px rgba(0,0,0,.5);
+    transition: border-color 1s ease;
+  }
+
+  @media (max-width: 760px) {
+    #tabs { top: auto; bottom: 18px; max-width: 94vw; overflow-x: auto; }
+    .tab { padding: 8px 12px; font-size: 12px; }
+    .tab .key { display: none; }
+    #info { left: 16px; bottom: 140px; right: 16px; max-width: none; padding: 14px 16px; }
+    #info p { display: none; }
+    #timeline { bottom: 74px; width: 86vw; }
+    #hint, #brand small { display: none; }
+  }
+</style>
+</head>
+<body>
+  <div id="app"></div>
+  <div id="vignette"></div>
+
+  <div id="brand">ATMOS<span>◆</span><small>WEBGL 天气光影模拟</small></div>
+  <nav id="tabs"></nav>
+
+  <aside id="info">
+    <h2><span id="info-name"></span><span class="en" id="info-en"></span></h2>
+    <p id="info-desc"></p>
+    <div id="stats"></div>
+  </aside>
+
+  <div id="timeline">
+    <button id="tplay" title="播放昼夜循环">▶</button>
+    <span id="tlabel">☀️ 13:00</span>
+    <input id="tslider" type="range" min="0" max="24" step="0.05" value="13">
+  </div>
+
+  <div id="hint">
+    拖动环视 · 滚轮缩放视野<br>
+    数字键 1 – 8 切换天气 · Q 渲染精度
+  </div>
+
+  <script type="importmap">
+    { "imports": { "three": "./lib/three.module.js" } }
+  </script>
+  <script type="module" src="./main.js"></script>
+</body>
+</html>

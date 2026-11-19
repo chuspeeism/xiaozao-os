@@ -1,0 +1,1293 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>全球航班吞吐量互动可视化 · Global Air Traffic Intelligence Dashboard</title>
+<style>
+/* ============================================================
+   AERO·VIZ GLOBE — 全球航班吞吐量互动可视化（3D 地球 · 美国焦点）
+   深色科技风 / 航空指挥中心 / 数字孪生大屏
+   ============================================================ */
+:root{
+  --bg0:#02050b; --bg1:#050b16; --bg2:#0a1322;
+  --panel:rgba(10,19,34,.72); --panel2:rgba(13,24,42,.82);
+  --line:rgba(86,156,224,.16); --line2:rgba(86,156,224,.32);
+  --cyan:#38c8ff; --cyan2:#8fe9ff; --blue:#2f6fff;
+  --purple:#b27dff; --orange:#ff9b3d; --green:#3ee6a8; --red:#ff5d6c;
+  --text:#d9e8f7; --dim:#6f88a6; --dim2:#41587355;
+  --mono:'JetBrains Mono','SFMono-Regular','Cascadia Mono',Consolas,'Liberation Mono',monospace;
+  --disp:'Bahnschrift','DIN Alternate','Avenir Next Condensed','Arial Narrow','Microsoft YaHei',sans-serif;
+  --body:'Segoe UI','PingFang SC','Microsoft YaHei','Helvetica Neue',sans-serif;
+}
+*{margin:0;padding:0;box-sizing:border-box}
+html,body{height:100%}
+body{
+  background:
+    radial-gradient(1200px 700px at 30% 20%, #081428 0%, transparent 55%),
+    radial-gradient(900px 600px at 78% 80%, #06122a 0%, transparent 60%),
+    linear-gradient(160deg,var(--bg1),var(--bg0) 70%);
+  color:var(--text); font-family:var(--body); overflow:hidden; font-size:13px;
+}
+#app{display:grid; grid-template-rows:58px 1fr 212px; grid-template-columns:1fr 326px;
+  grid-template-areas:"hd hd" "map side" "bottom side"; height:100vh;}
+body.rank-view #app{grid-template-rows:58px 1fr 340px;}
+
+/* ---------- 顶部标题区 ---------- */
+header{grid-area:hd; display:flex; align-items:center; gap:18px; padding:0 18px;
+  border-bottom:1px solid var(--line); background:linear-gradient(180deg,rgba(12,22,40,.9),rgba(8,15,28,.65));
+  backdrop-filter:blur(8px); z-index:30; position:relative;}
+header::after{content:""; position:absolute; left:0; right:0; bottom:-1px; height:1px;
+  background:linear-gradient(90deg,transparent,var(--cyan) 30%,var(--purple) 60%,transparent); opacity:.45;}
+.logo{width:34px;height:34px;flex:none;border:1px solid var(--line2);border-radius:50%;display:grid;place-items:center;
+  background:radial-gradient(circle at 32% 30%,rgba(56,200,255,.3),rgba(47,111,255,.05));
+  box-shadow:0 0 18px rgba(56,200,255,.25) inset;}
+.logo svg{filter:drop-shadow(0 0 4px var(--cyan))}
+.titles h1{font-family:var(--disp); font-size:19px; letter-spacing:3px; font-weight:600;
+  background:linear-gradient(90deg,#eaf6ff,var(--cyan2)); -webkit-background-clip:text; background-clip:text; color:transparent;}
+.titles .sub{font-family:var(--mono); font-size:10px; letter-spacing:2.5px; color:var(--dim); text-transform:uppercase; margin-top:2px;}
+.hd-meta{display:flex; gap:10px; align-items:center; margin-left:6px;}
+.chip{font-family:var(--mono); font-size:10.5px; letter-spacing:1px; padding:4px 10px; border:1px solid var(--line);
+  border-radius:3px; color:var(--dim); background:rgba(56,200,255,.04); white-space:nowrap;}
+.chip b{color:var(--cyan); font-weight:500;}
+.chip.demo{border-color:rgba(255,155,61,.4); color:var(--orange); background:rgba(255,155,61,.06);}
+.chip.demo .dot{display:inline-block;width:6px;height:6px;border-radius:50%;background:var(--orange);margin-right:6px;
+  box-shadow:0 0 8px var(--orange); animation:blink 2s infinite;}
+.chip.real{border-color:rgba(62,230,168,.45); color:var(--green); background:rgba(62,230,168,.06);}
+.chip.real .dot{display:inline-block;width:6px;height:6px;border-radius:50%;background:var(--green);margin-right:6px;box-shadow:0 0 8px var(--green);}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:.35}}
+#filterSummary{margin-left:auto; font-family:var(--mono); font-size:11px; color:var(--cyan2); letter-spacing:1px;
+  border:1px solid var(--line); padding:5px 12px; border-radius:3px; background:rgba(56,200,255,.05);
+  box-shadow:0 0 14px rgba(56,200,255,.08) inset; max-width:420px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;}
+#clock{font-family:var(--mono); font-size:11px; color:var(--dim); letter-spacing:1px;}
+
+/* ---------- 中央 3D 地球 ---------- */
+#mapWrap{grid-area:map; position:relative; overflow:hidden; min-width:0; min-height:0;}
+#mapCanvas{position:absolute; inset:0; width:100%; height:100%; cursor:grab; touch-action:none;}
+#mapCanvas.dragging{cursor:grabbing;}
+#mapWrap .corner{position:absolute; width:18px; height:18px; border:1px solid var(--line2); opacity:.7; pointer-events:none;}
+.corner.tl{top:10px;left:10px;border-right:none;border-bottom:none}
+.corner.tr{top:10px;right:10px;border-left:none;border-bottom:none}
+.corner.bl{bottom:10px;left:10px;border-right:none;border-top:none}
+.corner.br{bottom:10px;right:10px;border-left:none;border-top:none}
+#mapHint{position:absolute; left:14px; bottom:12px; font-family:var(--mono); font-size:10px; color:var(--dim);
+  letter-spacing:1px; pointer-events:none; opacity:.85;}
+#legend{position:absolute; left:14px; top:12px; font-family:var(--mono); font-size:10px; color:var(--dim);
+  background:var(--panel); border:1px solid var(--line); border-radius:4px; padding:8px 10px; backdrop-filter:blur(6px);
+  pointer-events:none; line-height:1.9; letter-spacing:1px;}
+#legend .sw{display:inline-block;width:16px;height:2px;vertical-align:middle;margin-right:6px;border-radius:1px;}
+#legend .nd{display:inline-block;width:7px;height:7px;border-radius:50%;vertical-align:middle;margin-right:6px;}
+#lockCard{position:absolute; left:14px; top:138px; width:252px; display:none; z-index:25;}
+#lockCard.show{display:block; animation:fadeUp .3s ease;}
+@keyframes fadeUp{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+#trendOverlay{position:absolute; left:50%; top:50%; transform:translate(-50%,-50%); width:min(680px,80%); display:none; z-index:24; pointer-events:none;}
+body.trend-view #trendOverlay{display:block; animation:fadeUp .35s ease;}
+
+/* ---------- 玻璃卡片通用 ---------- */
+.glass{background:var(--panel); border:1px solid var(--line); border-radius:6px; backdrop-filter:blur(10px);
+  box-shadow:0 8px 30px rgba(0,0,0,.45), 0 0 0 1px rgba(56,200,255,.03) inset;}
+.glass .g-head{display:flex;align-items:center;gap:8px;padding:8px 12px;border-bottom:1px solid var(--line);
+  font-family:var(--mono);font-size:10px;letter-spacing:2px;color:var(--cyan2);text-transform:uppercase;}
+.g-head .tick{width:6px;height:6px;background:var(--cyan);box-shadow:0 0 8px var(--cyan);transform:rotate(45deg);flex:none;}
+.g-head .x{margin-left:auto;cursor:pointer;color:var(--dim);font-size:12px;pointer-events:auto;}
+.g-head .x:hover{color:var(--red)}
+
+/* ---------- 右侧仪表盘 ---------- */
+#side{grid-area:side; border-left:1px solid var(--line); background:linear-gradient(180deg,rgba(9,17,31,.92),rgba(6,12,22,.92));
+  backdrop-filter:blur(10px); overflow-y:auto; padding:12px; display:flex; flex-direction:column; gap:12px;}
+#side::-webkit-scrollbar{width:5px}
+#side::-webkit-scrollbar-thumb{background:var(--line2);border-radius:3px}
+.sec-title{font-family:var(--mono);font-size:10px;letter-spacing:2.5px;color:var(--dim);text-transform:uppercase;
+  display:flex;align-items:center;gap:8px;}
+.sec-title::after{content:"";flex:1;height:1px;background:linear-gradient(90deg,var(--line2),transparent);}
+.kpi-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;}
+.kpi{border:1px solid var(--line);border-radius:5px;padding:8px 10px;background:linear-gradient(160deg,rgba(56,200,255,.05),rgba(56,200,255,.01));
+  position:relative;overflow:hidden;}
+.kpi::before{content:"";position:absolute;left:0;top:0;bottom:0;width:2px;background:var(--cyan);opacity:.55;box-shadow:0 0 8px var(--cyan);}
+.kpi.org::before{background:var(--orange);box-shadow:0 0 8px var(--orange)}
+.kpi.pur::before{background:var(--purple);box-shadow:0 0 8px var(--purple)}
+.kpi .k-label{font-size:10px;color:var(--dim);letter-spacing:1px;}
+.kpi .k-val{font-family:var(--mono);font-size:17px;color:#eaf6ff;margin-top:3px;font-weight:600;
+  text-shadow:0 0 12px rgba(56,200,255,.35);white-space:nowrap;}
+.kpi .k-val small{font-size:10px;color:var(--dim);font-weight:400;margin-left:2px;}
+.kpi.wide{grid-column:1 / -1;display:flex;align-items:baseline;gap:10px;flex-wrap:wrap;}
+.kpi.wide .k-val{font-size:13px;}
+.kpi .k-sub{font-size:9.5px;color:var(--dim);font-family:var(--mono);margin-top:2px}
+.f-row{display:flex;flex-direction:column;gap:5px;}
+.f-label{font-size:10.5px;color:var(--dim);letter-spacing:1px;font-family:var(--mono);display:flex;justify-content:space-between;}
+.f-label b{color:var(--cyan);font-weight:500;}
+select{width:100%;background:var(--bg2);border:1px solid var(--line);color:var(--text);font-family:var(--mono);font-size:11px;
+  padding:6px 8px;border-radius:4px;outline:none;cursor:pointer;}
+select:hover{border-color:var(--line2)}
+.seg{display:flex;border:1px solid var(--line);border-radius:4px;overflow:hidden;width:100%;}
+.seg button{flex:1;background:transparent;border:none;color:var(--dim);font-size:10.5px;font-family:var(--mono);
+  padding:6px 2px;cursor:pointer;letter-spacing:.5px;transition:all .25s;border-right:1px solid var(--line);}
+.seg button:last-child{border-right:none}
+.seg button:hover{color:var(--text);background:rgba(56,200,255,.05)}
+.seg button.on{color:#03121f;background:linear-gradient(180deg,var(--cyan2),var(--cyan));font-weight:600;
+  box-shadow:0 0 14px rgba(56,200,255,.45);}
+.seg.org button.on{background:linear-gradient(180deg,#ffc285,var(--orange));box-shadow:0 0 14px rgba(255,155,61,.45);}
+input[type=range]{-webkit-appearance:none;width:100%;height:3px;background:linear-gradient(90deg,var(--cyan),var(--dim2));
+  border-radius:2px;outline:none;cursor:pointer;}
+input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:12px;height:12px;border-radius:50%;
+  background:var(--cyan2);border:2px solid #06223a;box-shadow:0 0 10px var(--cyan);cursor:grab;}
+.toggles{display:flex;flex-direction:column;gap:7px;}
+.tg{display:flex;align-items:center;justify-content:space-between;font-size:11px;color:var(--text);cursor:pointer;user-select:none;}
+.tg .sw{width:30px;height:15px;border-radius:8px;border:1px solid var(--line2);background:var(--bg2);position:relative;transition:all .25s;flex:none;}
+.tg .sw::after{content:"";position:absolute;width:9px;height:9px;border-radius:50%;background:var(--dim);top:2px;left:2px;transition:all .25s;}
+.tg.on .sw{background:rgba(56,200,255,.2);border-color:var(--cyan);}
+.tg.on .sw::after{left:16px;background:var(--cyan2);box-shadow:0 0 8px var(--cyan);}
+.btn{background:rgba(56,200,255,.08);border:1px solid var(--line2);color:var(--cyan2);font-family:var(--mono);
+  font-size:10.5px;letter-spacing:1.5px;padding:7px 10px;border-radius:4px;cursor:pointer;transition:all .25s;width:100%;}
+.btn:hover{background:rgba(56,200,255,.16);box-shadow:0 0 14px rgba(56,200,255,.25);}
+.note{font-size:9.5px;color:var(--dim);font-family:var(--mono);line-height:1.7;letter-spacing:.4px;}
+
+/* ---------- 底部:时间轴 + 排行榜 ---------- */
+#bottom{grid-area:bottom;border-top:1px solid var(--line);background:linear-gradient(180deg,rgba(8,15,28,.85),rgba(5,10,19,.95));
+  backdrop-filter:blur(8px);display:grid;grid-template-columns:minmax(360px,46%) 1fr;min-height:0;}
+#tlPane{padding:10px 14px;border-right:1px solid var(--line);display:flex;flex-direction:column;gap:8px;min-width:0;}
+.tl-head{display:flex;align-items:center;gap:10px;}
+#playBtn{width:34px;height:34px;border-radius:50%;border:1px solid var(--cyan);background:rgba(56,200,255,.1);
+  color:var(--cyan2);cursor:pointer;display:grid;place-items:center;transition:all .25s;flex:none;
+  box-shadow:0 0 16px rgba(56,200,255,.25);}
+#playBtn:hover{background:rgba(56,200,255,.22)}
+#playBtn.playing{border-color:var(--orange);color:var(--orange);box-shadow:0 0 16px rgba(255,155,61,.4);
+  background:rgba(255,155,61,.1);animation:pulse 1.6s infinite;}
+@keyframes pulse{0%,100%{box-shadow:0 0 10px rgba(255,155,61,.3)}50%{box-shadow:0 0 22px rgba(255,155,61,.6)}}
+.tl-title{font-family:var(--mono);font-size:10px;letter-spacing:2px;color:var(--dim);}
+#curMonth{font-family:var(--disp);font-size:20px;color:var(--cyan2);letter-spacing:2px;min-width:86px;
+  text-shadow:0 0 14px rgba(56,200,255,.45);}
+#yearBtn{margin-left:auto;font-size:10px;padding:4px 10px;width:auto;}
+#yearBtn.on{color:#03121f;background:linear-gradient(180deg,var(--cyan2),var(--cyan));font-weight:700;}
+#timeline{position:relative;flex:1;min-height:64px;display:flex;align-items:stretch;gap:4px;padding-top:6px;}
+.tl-m{flex:1;position:relative;cursor:pointer;display:flex;flex-direction:column;justify-content:flex-end;gap:4px;min-width:0;}
+.tl-m .bar{width:100%;background:linear-gradient(180deg,rgba(56,200,255,.7),rgba(47,111,255,.25));border-radius:2px 2px 0 0;
+  transition:height .5s cubic-bezier(.2,.8,.2,1), background .3s, box-shadow .3s; min-height:3px;}
+.tl-m .lb{font-family:var(--mono);font-size:9px;color:var(--dim);text-align:center;letter-spacing:1px;transition:color .3s;}
+.tl-m:hover .bar{background:linear-gradient(180deg,var(--cyan2),rgba(56,200,255,.4));}
+.tl-m.cur .bar{background:linear-gradient(180deg,#ffd9a8,var(--orange));box-shadow:0 0 14px rgba(255,155,61,.6);}
+.tl-m.cur .lb{color:var(--orange);font-weight:700;}
+#tlTrack{position:relative;height:4px;background:var(--dim2);border-radius:2px;margin-top:2px;}
+#tlFill{position:absolute;left:0;top:0;bottom:0;background:linear-gradient(90deg,var(--cyan),var(--orange));border-radius:2px;
+  box-shadow:0 0 10px rgba(56,200,255,.5);transition:width .15s linear;}
+#tlThumb{position:absolute;top:50%;width:14px;height:14px;border-radius:50%;background:var(--cyan2);
+  border:2px solid #06223a;box-shadow:0 0 12px var(--cyan);transform:translate(-50%,-50%);cursor:grab;transition:left .15s linear;}
+#rankPane{padding:10px 14px;display:flex;flex-direction:column;min-width:0;min-height:0;}
+.rank-tabs{display:flex;gap:6px;margin-bottom:8px;flex:none;}
+.rank-tabs button{background:transparent;border:1px solid var(--line);color:var(--dim);font-family:var(--mono);
+  font-size:10px;letter-spacing:1px;padding:5px 10px;border-radius:3px;cursor:pointer;transition:all .25s;}
+.rank-tabs button.on{color:var(--cyan2);border-color:var(--cyan);background:rgba(56,200,255,.08);
+  box-shadow:0 0 12px rgba(56,200,255,.2);}
+#rankList{position:relative;flex:1;min-height:0;overflow:hidden;}
+.r-row{position:absolute;left:0;right:0;display:flex;align-items:center;gap:8px;
+  transition:top .65s cubic-bezier(.2,.8,.2,1), opacity .4s;font-family:var(--mono);}
+.r-row .r-idx{width:18px;font-size:9.5px;color:var(--dim);text-align:right;flex:none;}
+.r-row.top3 .r-idx{color:var(--orange);font-weight:700;text-shadow:0 0 8px rgba(255,155,61,.6);}
+.r-row .r-name{width:128px;font-size:10px;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;flex:none;}
+.r-row .r-bar-wrap{flex:1;height:7px;background:rgba(86,156,224,.08);border-radius:2px;overflow:hidden;}
+.r-row .r-bar{height:100%;border-radius:2px;background:linear-gradient(90deg,var(--blue),var(--cyan));
+  box-shadow:0 0 8px rgba(56,200,255,.4);transition:width .65s cubic-bezier(.2,.8,.2,1);}
+.r-row.top3 .r-bar{background:linear-gradient(90deg,var(--orange),#ffd9a8);box-shadow:0 0 8px rgba(255,155,61,.5);}
+.r-row .r-val{width:78px;font-size:9.5px;color:var(--cyan2);text-align:right;flex:none;}
+
+/* ---------- 悬停卡片 ---------- */
+#tooltip{position:fixed;z-index:50;width:248px;pointer-events:none;display:none;}
+#tooltip.show{display:block;}
+.tt-body{padding:9px 12px;}
+.tt-title{font-family:var(--disp);font-size:14px;letter-spacing:1px;color:#fff;display:flex;align-items:baseline;gap:8px;}
+.tt-title .code{font-family:var(--mono);font-size:10px;color:var(--orange);border:1px solid rgba(255,155,61,.4);
+  padding:1px 5px;border-radius:2px;letter-spacing:1px;}
+.tt-sub{font-size:10px;color:var(--dim);font-family:var(--mono);margin:3px 0 7px;letter-spacing:1px;}
+.tt-grid{display:grid;grid-template-columns:1fr 1fr;gap:4px 10px;}
+.tt-grid .ti{display:flex;flex-direction:column;}
+.tt-grid .ti span{font-size:9px;color:var(--dim);letter-spacing:.5px;}
+.tt-grid .ti b{font-family:var(--mono);font-size:11.5px;color:var(--cyan2);font-weight:600;}
+.tt-grid .ti b.org{color:var(--orange)} .tt-grid .ti b.grn{color:var(--green)} .tt-grid .ti b.red{color:var(--red)}
+.tt-spark{margin-top:7px;border-top:1px dashed var(--line);padding-top:6px;}
+.tt-spark span{font-size:9px;color:var(--dim);font-family:var(--mono);letter-spacing:1px;}
+.tt-foot{font-size:8.5px;color:var(--dim);font-family:var(--mono);margin-top:6px;letter-spacing:.5px;opacity:.8;}
+#app{opacity:0;animation:appIn 1.2s ease .1s forwards;}
+@keyframes appIn{to{opacity:1}}
+@media (prefers-reduced-motion: reduce){
+  *,*::before,*::after{animation-duration:.01ms!important;transition-duration:.01ms!important}
+}
+@media (max-width:1100px){
+  #app{grid-template-columns:1fr 280px}
+  .r-row .r-name{width:96px}
+}
+</style>
+</head>
+<body>
+<div id="app">
+  <header>
+    <div class="logo">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+        <circle cx="12" cy="12" r="8.5" stroke="#38c8ff" stroke-width="1.4"/>
+        <ellipse cx="12" cy="12" rx="8.5" ry="3.4" stroke="#38c8ff" stroke-width="1" opacity=".7"/>
+        <path d="M12 3.5v17M3.5 12h17" stroke="#38c8ff" stroke-width=".7" opacity=".5"/>
+      </svg>
+    </div>
+    <div class="titles">
+      <h1>全球航班吞吐量互动可视化</h1>
+      <div class="sub">Global Air Traffic Intelligence Dashboard · US Focus · 3D Globe</div>
+    </div>
+    <div class="hd-meta">
+      <div class="chip">统计周期 <b id="periodLabel">2025 年 1 月 – 12 月</b></div>
+      <div class="chip demo" id="dataBadge"><span class="dot"></span>示例数据演示 · 可替换为真实 data.json / CSV</div>
+    </div>
+    <div id="filterSummary">全部航线 · 全年 · 美国国内 + 国际 + 北美地区</div>
+    <div id="clock">--:--:--</div>
+  </header>
+
+  <div id="mapWrap">
+    <canvas id="mapCanvas"></canvas>
+    <div class="corner tl"></div><div class="corner tr"></div><div class="corner bl"></div><div class="corner br"></div>
+    <div id="legend">
+      <div><span class="sw" style="background:var(--cyan);box-shadow:0 0 6px var(--cyan)"></span>美国国内航线</div>
+      <div><span class="sw" style="background:var(--purple);box-shadow:0 0 6px var(--purple)"></span>国际航线</div>
+      <div><span class="sw" style="background:var(--orange);box-shadow:0 0 6px var(--orange)"></span>北美地区航线</div>
+      <div><span class="nd" style="background:var(--cyan2);box-shadow:0 0 8px var(--cyan)"></span>机场节点 · 大小=吞吐量</div>
+    </div>
+    <div id="mapHint">拖动旋转地球 · 滚轮缩放 · 悬停查看详情 · 点击锁定机场 / 航线 · 点击空白取消</div>
+    <div id="lockCard" class="glass"></div>
+    <div id="trendOverlay" class="glass">
+      <div class="g-head"><span class="tick"></span>月度趋势 · 全美航班量 / 旅客吞吐 <span class="x" id="trendClose">✕</span></div>
+      <div class="tt-body"><canvas id="trendCanvas" width="640" height="220" style="width:100%;height:auto"></canvas></div>
+    </div>
+  </div>
+
+  <aside id="side">
+    <div class="sec-title">年度航空流量总览 · KEY METRICS</div>
+    <div class="kpi-grid">
+      <div class="kpi"><div class="k-label" id="kFlightsLb">全年航班量</div><div class="k-val"><span id="kFlights">0</span><small>架次</small></div></div>
+      <div class="kpi"><div class="k-label" id="kPaxLb">全年旅客吞吐量</div><div class="k-val"><span id="kPax">0</span><small>人次</small></div></div>
+      <div class="kpi org"><div class="k-label" id="kCargoLb">全年货邮吞吐量</div><div class="k-val"><span id="kCargo">0</span><small>吨</small></div></div>
+      <div class="kpi pur"><div class="k-label">覆盖机场 / 航线</div><div class="k-val"><span id="kAirports">0</span><small>座</small> · <span id="kRoutes">0</span><small>条</small></div></div>
+      <div class="kpi wide"><div class="k-label">最繁忙机场</div><div class="k-val" id="kTopAirport" style="color:var(--cyan2)">—</div><div class="k-sub" id="kTopAirportV"></div></div>
+      <div class="kpi wide org"><div class="k-label">最繁忙航线</div><div class="k-val" id="kTopRoute" style="color:#ffd9a8">—</div><div class="k-sub" id="kTopRouteV"></div></div>
+    </div>
+
+    <div class="sec-title">筛选器 · FILTERS</div>
+    <div class="f-row"><div class="f-label">年份选择</div>
+      <select id="fYear"><option value="2025">2025（示例数据）</option></select></div>
+    <div class="f-row"><div class="f-label">月份范围 <b id="fMonthLb">全年 1–12 月</b></div>
+      <div class="seg" id="fMonthSeg">
+        <button data-r="0,0" class="on">全年</button><button data-r="1,3">Q1</button>
+        <button data-r="4,6">Q2</button><button data-r="7,9">Q3</button><button data-r="10,12">Q4</button>
+      </div></div>
+    <div class="f-row"><div class="f-label">航线类型筛选</div>
+      <div class="seg" id="fType">
+        <button data-v="all" class="on">全部</button><button data-v="domestic">国内</button>
+        <button data-v="international">国际</button><button data-v="regional">地区</button>
+      </div></div>
+    <div class="f-row"><div class="f-label">机场等级筛选</div>
+      <div class="seg org" id="fTier">
+        <button data-v="all" class="on">全部机场</button><button data-v="mega">大型枢纽</button>
+        <button data-v="hub">中型枢纽</button><button data-v="normal">普通机场</button>
+      </div></div>
+    <div class="f-row"><div class="f-label">州 / 城市筛选</div>
+      <select id="fProvince"><option value="all">全部州 / 城市</option></select></div>
+    <div class="f-row"><div class="f-label">航线航班量阈值 <b id="fThLb">≥ 0 班/年</b></div>
+      <input type="range" id="fThreshold" min="0" max="15000" step="500" value="0"></div>
+    <div class="toggles">
+      <div class="tg on" id="tRoutes"><span>显示航线轨迹</span><span class="sw"></span></div>
+      <div class="tg on" id="tHeat"><span>显示机场热力</span><span class="sw"></span></div>
+      <div class="tg on" id="tParticles"><span>播放飞行动画</span><span class="sw"></span></div>
+      <div class="tg on" id="tLabels"><span>显示机场标签</span><span class="sw"></span></div>
+      <div class="tg on" id="tAuto"><span>地球自动旋转</span><span class="sw"></span></div>
+    </div>
+
+    <div class="sec-title">视图切换 · VIEW MODE</div>
+    <div class="seg" id="fView">
+      <button data-v="flow" class="on">航线流量</button><button data-v="heat">机场热力</button>
+      <button data-v="trend">月度变化</button><button data-v="rank">排行榜</button>
+    </div>
+
+    <div class="sec-title">数据接入 · DATA SOURCE</div>
+    <button class="btn" id="importBtn">⇪ 导入真实 data.json / CSV</button>
+    <input type="file" id="fileInput" accept=".json,.csv" style="display:none">
+    <div class="note">数据层与视觉层已分离。替换 data.json（airports / routes / monthlyStats，经纬度为全球坐标）或导入 CSV 即可驱动 3D 地球全部视觉。当前为<span style="color:var(--orange)">示例数据演示</span>，非真实统计数据。控制台可调用 <span style="color:var(--cyan2)">AVIZ.loadData(json)</span>。</div>
+  </aside>
+
+  <div id="bottom">
+    <div id="tlPane">
+      <div class="tl-head">
+        <button id="playBtn" title="播放全年变化">
+          <svg id="playIcon" width="13" height="13" viewBox="0 0 14 14"><path d="M3 1.5 12 7 3 12.5z" fill="currentColor"/></svg>
+        </button>
+        <div>
+          <div class="tl-title">播放全年变化 · MONTHLY TIMELINE</div>
+          <div id="curMonth">全年总览</div>
+        </div>
+        <button class="btn" id="yearBtn" style="width:auto" title="切换到全年总览">全年总览</button>
+      </div>
+      <div id="timeline"></div>
+      <div id="tlTrack"><div id="tlFill" style="width:0%"></div><div id="tlThumb" style="left:0%"></div></div>
+    </div>
+    <div id="rankPane">
+      <div class="rank-tabs">
+        <button data-v="airports" class="on">TOP 10 机场吞吐量</button>
+        <button data-v="routes">TOP 10 热门航线</button>
+        <button data-v="growth">TOP 10 增长最快机场</button>
+      </div>
+      <div id="rankList"></div>
+    </div>
+  </div>
+</div>
+<div id="tooltip" class="glass"></div>
+<script>
+/* ============================================================
+   ① 数据层 DATA LAYER —— 与视觉层完全分离
+   替换 data.json / CSV 即可驱动全部可视化（经纬度为全球坐标）
+   ============================================================ */
+const MONTHS = ['1月','2月','3月','4月','5月','6月','7月','8月','9月','10月','11月','12月'];
+
+const DataAdapter = {
+  /** 期望结构:
+   * { airports:[{airportCode,airportName,city,province(州/地区),lat,lng,annualFlights,
+   *              annualPassengers,annualCargo,rank?,monthlyFlights[12]?,monthlyPassengers[12]?,growth?,external?}],
+   *   routes:[{from,to,annualFlights,passengers?,distance?,type:domestic|international|regional,monthly[12]?}],
+   *   monthlyStats:[{month,flights,passengers,cargo}] (可省略，将自动汇总) } */
+  normalize(raw){
+    if(!raw || !Array.isArray(raw.airports) || !Array.isArray(raw.routes))
+      throw new Error('数据结构需包含 airports[] 与 routes[]');
+    const flat=(n)=>(typeof n==='number'&&isFinite(n))?n:0;
+    const evenMonthly=(annual)=>Array.from({length:12},()=>annual/12);
+    const airports=raw.airports.map(a=>({
+      airportCode:String(a.airportCode||'').toUpperCase(),
+      airportName:a.airportName||a.airportCode, city:a.city||'—', province:a.province||'—',
+      lat:flat(a.lat), lng:flat(a.lng),
+      annualFlights:flat(a.annualFlights), annualPassengers:flat(a.annualPassengers),
+      annualCargo:flat(a.annualCargo), growth:(typeof a.growth==='number')?a.growth:null,
+      external:!!a.external,
+      monthlyFlights:(Array.isArray(a.monthlyFlights)&&a.monthlyFlights.length===12)?a.monthlyFlights.map(flat):evenMonthly(flat(a.annualFlights)),
+      monthlyPassengers:(Array.isArray(a.monthlyPassengers)&&a.monthlyPassengers.length===12)?a.monthlyPassengers.map(flat):evenMonthly(flat(a.annualPassengers)),
+    }));
+    [...airports].filter(a=>!a.external).sort((x,y)=>y.annualPassengers-x.annualPassengers)
+      .forEach((a,i)=>a.rank=i+1);
+    const byCode=Object.fromEntries(airports.map(a=>[a.airportCode,a]));
+    const routes=raw.routes.filter(r=>byCode[r.from]&&byCode[r.to]).map(r=>{
+      const A=byCode[r.from],B=byCode[r.to];
+      const dist=flat(r.distance)||haversine(A.lat,A.lng,B.lat,B.lng);
+      const af=flat(r.annualFlights);
+      return {from:r.from,to:r.to,type:(['domestic','international','regional'].includes(r.type))?r.type:'domestic',
+        annualFlights:af,passengers:flat(r.passengers)||Math.round(af*158),distance:Math.round(dist),
+        monthly:(Array.isArray(r.monthly)&&r.monthly.length===12)?r.monthly.map(flat):evenMonthly(af)};
+    });
+    [...routes].sort((x,y)=>y.annualFlights-x.annualFlights).forEach((r,i)=>r.rank=i+1);
+    let monthlyStats=raw.monthlyStats;
+    if(!Array.isArray(monthlyStats)||monthlyStats.length!==12){
+      monthlyStats=MONTHS.map((m,i)=>({month:m,
+        flights:Math.round(routes.reduce((s,r)=>s+r.monthly[i],0)),
+        passengers:Math.round(airports.reduce((s,a)=>s+(a.external?0:a.monthlyPassengers[i]),0)),
+        cargo:Math.round(airports.reduce((s,a)=>s+(a.external?0:a.annualCargo/12*(0.85+0.3*Math.sin(i/11*Math.PI))),0))}));
+    }
+    return {airports,routes,monthlyStats,byCode};
+  },
+  fromJSONText(text){return this.normalize(JSON.parse(text));},
+  fromCSVText(text){
+    const lines=text.split(/\r?\n/).filter(l=>l.trim().length);
+    const sections={airports:[],routes:[]}; let cur='airports',header=null;
+    for(const line of lines){
+      const t=line.trim();
+      if(t.startsWith('#')){cur=t.includes('route')?'routes':'airports';header=null;continue;}
+      const cells=t.split(',').map(c=>c.trim());
+      if(!header){header=cells;continue;}
+      const row={}; header.forEach((h,i)=>{const v=cells[i];row[h]=(v!==''&&!isNaN(+v))?+v:v;});
+      sections[cur].push(row);
+    }
+    return this.normalize(sections);
+  },
+};
+function haversine(la1,lo1,la2,lo2){
+  const R=6371,d=Math.PI/180;
+  const a=Math.sin((la2-la1)*d/2)**2+Math.cos(la1*d)*Math.cos(la2*d)*Math.sin((lo2-lo1)*d/2)**2;
+  return 2*R*Math.asin(Math.sqrt(a));
+}
+
+/* ---- sampleData：美国焦点示例数据（界面已明确标注，非真实统计）---- */
+function buildSampleData(){
+  // 季节曲线：暑期(6-8月)高峰 + 感恩节/圣诞(11-12月)次峰 + 春假(3月)小峰
+  const season=[0.90,0.88,1.02,0.98,1.04,1.12,1.16,1.10,0.96,1.02,1.04,1.08];
+  const seeded=(s)=>{let x=s;return()=>{x=(x*16807)%2147483647;return x/2147483647;};};
+  const mk=(annual,seed)=>{const rnd=seeded(seed);const raw=season.map(s=>s*(0.94+rnd()*0.12));
+    const sum=raw.reduce((a,b)=>a+b,0);return raw.map(v=>Math.round(annual*v/sum));};
+  // [code,name,city,州,lat,lng, 旅客(万人次), 起降(万架次), 货邮(万吨), 同比增长%(示例)]
+  const A=[
+    ['ATL','亚特兰大哈茨菲尔德-杰克逊','亚特兰大','佐治亚州',33.64,-84.43,10820,78.0,64.0,3.1],
+    ['DFW','达拉斯-沃斯堡','达拉斯','得克萨斯州',32.90,-97.04,8780,73.0,80.0,5.6],
+    ['DEN','丹佛国际','丹佛','科罗拉多州',39.86,-104.67,8240,64.0,30.0,6.2],
+    ['ORD','芝加哥奥黑尔','芝加哥','伊利诺伊州',41.97,-87.91,8000,72.0,210.0,4.8],
+    ['LAX','洛杉矶国际','洛杉矶','加利福尼亚州',33.94,-118.41,7660,59.0,250.0,2.9],
+    ['JFK','纽约肯尼迪','纽约','纽约州',40.64,-73.78,6320,47.0,140.0,4.4],
+    ['CLT','夏洛特道格拉斯','夏洛特','北卡罗来纳州',35.21,-80.94,5870,55.0,18.0,4.0],
+    ['LAS','拉斯维加斯哈里·里德','拉斯维加斯','内华达州',36.08,-115.15,5840,55.0,12.0,5.1],
+    ['MCO','奥兰多国际','奥兰多','佛罗里达州',28.43,-81.31,5720,41.0,22.0,6.8],
+    ['MIA','迈阿密国际','迈阿密','佛罗里达州',25.79,-80.29,5590,45.0,270.0,7.4],
+    ['SEA','西雅图-塔科马','西雅图','华盛顿州',47.45,-122.31,5260,44.0,45.0,5.0],
+    ['SFO','旧金山国际','旧金山','加利福尼亚州',37.62,-122.38,5230,43.0,50.0,6.0],
+    ['EWR','纽瓦克自由','纽瓦克','新泽西州',40.69,-74.17,4910,41.0,80.0,3.2],
+    ['PHX','凤凰城天港','凤凰城','亚利桑那州',33.43,-112.01,4870,44.0,30.0,4.2],
+    ['IAH','休斯顿乔治·布什','休斯顿','得克萨斯州',29.98,-95.34,4620,39.0,47.0,3.8],
+    ['BOS','波士顿洛根','波士顿','马萨诸塞州',42.36,-71.01,4350,37.0,25.0,5.5],
+    ['MSP','明尼阿波利斯-圣保罗','明尼阿波利斯','明尼苏达州',44.88,-93.22,3700,33.0,20.0,3.5],
+    ['FLL','劳德代尔堡-好莱坞','劳德代尔堡','佛罗里达州',26.07,-80.15,3500,29.0,9.0,4.6],
+    ['DTW','底特律都会','底特律','密歇根州',42.21,-83.35,3300,29.0,18.0,2.8],
+    ['LGA','纽约拉瓜迪亚','纽约','纽约州',40.78,-73.87,3200,33.0,1.0,2.4],
+    ['PHL','费城国际','费城','宾夕法尼亚州',39.87,-75.24,3100,27.0,50.0,3.0],
+    ['SLC','盐湖城国际','盐湖城','犹他州',40.79,-111.98,2700,26.0,17.0,5.8],
+    ['BWI','巴尔的摩-华盛顿','巴尔的摩','马里兰州',39.18,-76.67,2680,24.0,10.0,2.2],
+    ['DCA','华盛顿里根','华盛顿',  '哥伦比亚特区',38.85,-77.04,2600,27.0,0.8,3.6],
+    ['IAD','华盛顿杜勒斯','华盛顿','弗吉尼亚州',38.95,-77.46,2520,24.0,30.0,8.9],
+    ['SAN','圣迭戈国际','圣迭戈','加利福尼亚州',32.73,-117.19,2500,22.0,15.0,4.1],
+    ['TPA','坦帕国际','坦帕','佛罗里达州',27.98,-82.53,2400,21.0,9.0,5.2],
+    ['BNA','纳什维尔国际','纳什维尔','田纳西州',36.13,-86.67,2300,22.0,7.0,9.6],
+    ['AUS','奥斯汀-伯格斯特罗姆','奥斯汀','得克萨斯州',30.19,-97.67,2100,19.0,9.0,7.7],
+    ['MDW','芝加哥中途','芝加哥','伊利诺伊州',41.79,-87.75,2100,20.0,1.5,1.8],
+    ['HNL','火奴鲁鲁国际','火奴鲁鲁','夏威夷州',21.32,-157.92,2100,18.0,35.0,6.4],
+    ['PDX','波特兰国际','波特兰','俄勒冈州',45.59,-122.60,1700,15.0,25.0,3.9],
+    ['ANC','安克雷奇国际','安克雷奇','阿拉斯加州',61.17,-149.99,570,26.0,350.0,4.3],
+    ['MEM','孟菲斯国际','孟菲斯','田纳西州',35.04,-89.98,400,22.0,400.0,1.2],
+    ['SDF','路易维尔国际','路易维尔','肯塔基州',38.17,-85.74,350,17.0,310.0,2.0],
+  ].map(([code,name,city,prov,lat,lng,paxW,fltW,cargoW,growth],idx)=>({
+    airportCode:code, airportName:name+'机场', city, province:prov, lat, lng,
+    annualPassengers:Math.round(paxW*10000), annualFlights:Math.round(fltW*10000),
+    annualCargo:Math.round(cargoW*10000), growth,
+    monthlyFlights:mk(fltW*10000,91+idx*7), monthlyPassengers:mk(paxW*10000,173+idx*13),
+  }));
+  // 国际 / 北美地区门户（真实经纬度，仅作航线端点）
+  const EXT=[
+    ['LHR','伦敦希思罗','伦敦','英国',51.47,-0.45],['CDG','巴黎戴高乐','巴黎','法国',49.01,2.55],
+    ['FRA','法兰克福','法兰克福','德国',50.04,8.57],['AMS','阿姆斯特丹史基浦','阿姆斯特丹','荷兰',52.31,4.76],
+    ['MAD','马德里巴拉哈斯','马德里','西班牙',40.47,-3.56],['NRT','东京成田','东京','日本',35.77,140.39],
+    ['HND','东京羽田','东京','日本',35.55,139.78],['ICN','首尔仁川','首尔','韩国',37.46,126.44],
+    ['PVG','上海浦东','上海','中国',31.14,121.81],['HKG','香港国际','香港','中国香港',22.31,113.91],
+    ['SIN','新加坡樟宜','新加坡','新加坡',1.36,103.99],['SYD','悉尼金斯福德·史密斯','悉尼','澳大利亚',-33.95,151.18],
+    ['GRU','圣保罗瓜鲁柳斯','圣保罗','巴西',-23.43,-46.47],['DXB','迪拜国际','迪拜','阿联酋',25.25,55.36],
+    ['DOH','多哈哈马德','多哈','卡塔尔',25.27,51.61],['DEL','德里英迪拉·甘地','德里','印度',28.56,77.10],
+    ['YYZ','多伦多皮尔逊','多伦多','加拿大',43.68,-79.63],['YVR','温哥华国际','温哥华','加拿大',49.19,-123.18],
+    ['YUL','蒙特利尔特鲁多','蒙特利尔','加拿大',45.47,-73.74],['MEX','墨西哥城国际','墨西哥城','墨西哥',19.44,-99.07],
+    ['CUN','坎昆国际','坎昆','墨西哥',21.04,-86.87],['MBJ','蒙特哥贝','蒙特哥贝','牙买加',18.50,-77.91],
+    ['PTY','巴拿马城托库门','巴拿马城','巴拿马',9.07,-79.38],
+  ].map(([code,name,city,prov,lat,lng])=>({
+    airportCode:code,airportName:name+'机场',city,province:prov,lat,lng,external:true,
+    annualPassengers:0,annualFlights:0,annualCargo:0,growth:null,
+  }));
+  // 航线 [from,to, 年航班量, type]
+  const R=[
+    // —— 美国国内 ——
+    ['LAX','SFO',13800],['LAX','LAS',12400],['ATL','MCO',12800],['ORD','LGA',11200],['ATL','FLL',10400],
+    ['LAX','JFK',9800],['ATL','LGA',9800],['DFW','LAX',8800],['ATL','DFW',8600],['ATL','ORD',8400],
+    ['DEN','LAX',8200],['ATL','MIA',8200],['DEN','ORD',7800],['PHX','LAX',7800],['SEA','SFO',7600],
+    ['DFW','ORD',7400],['DEN','LAS',7400],['BOS','LGA',7400],['DEN','DFW',7000],['JFK','SFO',6800],
+    ['DEN','PHX',6800],['SEA','LAX',6800],['CLT','ATL',6800],['DEN','SLC',6600],['MIA','JFK',6600],
+    ['MCO','EWR',6400],['LAS','SFO',6400],['DEN','SEA',6200],['PHX','LAS',6200],['BOS','DCA',6200],
+    ['CLT','LGA',6200],['MSP','ORD',5800],['MCO','JFK',5800],['SLC','LAX',5800],['AUS','DFW',5600],
+    ['DCA','ORD',5600],['CLT','MCO',5600],['EWR','LAX',5400],['SEA','PDX',5400],['MCO','BOS',5400],
+    ['IAH','ATL',5400],['DTW','ORD',5400],['SEA','ANC',5200],['EWR','SFO',5200],['MSP','DEN',5200],
+    ['SAN','SFO',5200],['BNA','ATL',5200],['IAH','DFW',5000],['FLL','LGA',4800],['PHL','MCO',4800],
+    ['HNL','LAX',4800],['TPA','ATL',4800],['BWI','BOS',4600],['PDX','SFO',4600],['SAN','PHX',4400],
+    ['MDW','LAS',4400],['PHL','BOS',4400],['HNL','SFO',4200],['MDW','MCO',4200],['IAD','LAX',4000],
+    ['IAD','SFO',3800],['HNL','SEA',3200],['MEM','ANC',2600],['SDF','ORD',2200],
+    // —— 国际 ——
+    ['JFK','LHR',9400,'international'],['EWR','LHR',5600,'international'],['JFK','CDG',5200,'international'],
+    ['LAX','NRT',4400,'international'],['LAX','LHR',4200,'international'],['LAX','ICN',4000,'international'],
+    ['ORD','LHR',3800,'international'],['SFO','NRT',3800,'international'],['BOS','LHR',3600,'international'],
+    ['JFK','FRA',3600,'international'],['LAX','HND',3600,'international'],['MIA','GRU',3400,'international'],
+    ['ATL','CDG',3400,'international'],['SFO','ICN',3400,'international'],['IAD','LHR',3200,'international'],
+    ['ORD','FRA',3200,'international'],['JFK','DXB',3200,'international'],['ATL','AMS',3000,'international'],
+    ['DFW','LHR',3000,'international'],['LAX','PVG',3000,'international'],['JFK','ICN',2800,'international'],
+    ['SEA','NRT',2800,'international'],['MIA','MAD',2800,'international'],['LAX','SYD',2800,'international'],
+    ['JFK','GRU',2800,'international'],['SFO','PVG',2600,'international'],['JFK','MAD',2600,'international'],
+    ['ORD','NRT',2400,'international'],['SFO','HKG',2400,'international'],['SFO','SIN',2400,'international'],
+    ['JFK','DEL',2200,'international'],['JFK','PVG',2200,'international'],['IAH','DOH',2000,'international'],
+    // —— 北美地区（加拿大 / 墨西哥 / 加勒比）——
+    ['DFW','CUN',5800,'regional'],['SEA','YVR',5600,'regional'],['IAH','MEX',5400,'regional'],
+    ['JFK','YYZ',5200,'regional'],['LAX','MEX',5200,'regional'],['ATL','CUN',5000,'regional'],
+    ['ORD','YYZ',4800,'regional'],['DFW','MEX',4800,'regional'],['MIA','CUN',4600,'regional'],
+    ['LAX','YVR',4400,'regional'],['ORD','CUN',4400,'regional'],['JFK','CUN',4200,'regional'],
+    ['MIA','PTY',3800,'regional'],['JFK','YUL',3600,'regional'],['MIA','MBJ',3200,'regional'],
+  ].map(([f,t,af,type],i)=>({from:f,to:t,annualFlights:af,type:type||'domestic',
+    monthly:mk(af,311+i*17),passengers:Math.round(af*(150+(i%5)*12))}));
+  return {airports:[...A,...EXT],routes:R};
+}
+
+/* ---- 简化世界大陆轮廓（抽象示意，用于点阵地球）---- */
+const LAND_POLYS=[
+/*北美*/[[-166,60.5],[-168,65.8],[-161,70.5],[-156,71.4],[-141,69.7],[-128,69.8],[-115,69],[-105,68.5],[-95,71],[-85,70],[-80,66],[-77,62],[-70,60],[-64,60],[-61,55],[-66,50],[-60,47],[-65,44],[-70,42],[-74,40],[-76,37],[-75,35],[-81,31],[-80,26],[-83,29],[-89,29.5],[-94,29.5],[-97,26],[-97,22],[-95,19],[-91,18.5],[-90,21.5],[-87,21.5],[-88,16.5],[-87,13],[-83,8.5],[-79,9],[-77,8],[-80,8.5],[-85,11],[-91,14],[-95,16],[-105,20],[-107,24],[-110,23.5],[-114,28],[-117,32.5],[-122,37],[-124,40],[-124,46],[-123,48.5],[-128,51],[-132,54],[-135,58],[-140,59.5],[-146,61],[-151,59],[-154,58],[-158,56],[-165,54.5],[-162,58.5]],
+/*格陵兰*/[[-45,60],[-42,62],[-40,65],[-32,68.5],[-22,70],[-19,74],[-25,78],[-32,83],[-45,83],[-58,82],[-68,80],[-72,78],[-67,76],[-60,75],[-55,71],[-54,67],[-52,63],[-48,60.7]],
+/*南美*/[[-78,1],[-80,-3],[-81,-6],[-77,-12],[-73,-17],[-70,-19],[-70,-25],[-71,-32],[-73,-40],[-74,-46],[-74,-52],[-69,-55],[-66,-55],[-65,-44],[-63,-41],[-58,-39],[-57,-35],[-53,-34],[-48,-28],[-41,-23],[-39,-18],[-35,-9],[-35,-6],[-44,-2.5],[-50,0],[-52,4],[-55,6],[-60,8.5],[-64,10.5],[-68,11],[-72,12],[-75,10.5],[-77,8]],
+/*欧亚*/[[-9,38.7],[-9,43],[-2,43.6],[-5,48.5],[-1,49.5],[3,52],[8,54],[8,57],[6,58],[5,62],[12,66],[17,69.5],[25,71],[31,70],[37,66.5],[44,67.5],[54,69],[67,69],[73,68],[80,72.5],[95,76],[105,77.5],[113,74],[125,73],[140,72],[150,70],[160,69.8],[170,69.8],[178,68.5],[178,66],[170,60],[160,60],[162,56],[158,52],[155,50],[143,53],[141,54],[138,48],[135,45],[131,43],[129,40],[129,36],[126,34.5],[126,38],[124,39.5],[122,37],[120,35],[122,31],[120,28],[117,23.5],[110,20],[108,15],[109,12],[105,9],[103,12],[100,8],[103,1.5],[100,6],[98,8],[94,16],[91,22],[87,21.5],[80,15],[80,13],[77,8],[73,16],[70,21],[72,25],[66,25],[57,26],[52,28],[48,29.5],[50,26],[54,25],[59,22.5],[55,17],[52,16],[45,12.5],[43,15],[39,21],[35,28],[33,30],[35,33],[36,36.5],[30,36.5],[27,36.5],[26,40],[29,41],[33,42],[37,45],[33,46],[30,46.5],[28,45],[23,40],[22,37],[19,42],[16,40],[18,40.5],[15.6,38],[16,40],[14,42.5],[13,45.5],[8,44],[6,43],[3,42.3],[0,39.5],[-2,36.7],[-6,36]],
+/*非洲*/[[-6,35.8],[-10,31],[-15,27],[-17,21],[-16,16],[-17,14.7],[-15,11],[-13,9],[-8,5],[-4,5.3],[2,6],[8,4.5],[9,-1],[12,-6],[13,-12],[12,-17],[14,-22],[15,-27],[18,-33],[20,-34.8],[27,-33.8],[31,-29.8],[35,-24],[35,-20],[40,-15],[40,-10.5],[39,-6],[41,-2],[44,0],[48,5],[51,10.4],[51,12],[44,11],[43,12.7],[39,15],[37,18],[37,22],[34,27],[33,30],[31,31],[25,32],[19,30.5],[15,32],[10,33.5],[10,37],[5,36.8],[-2,35.5]],
+/*澳洲*/[[113,-22],[114,-26],[115,-34],[118,-35],[124,-33],[129,-32],[132,-32],[136,-35],[138,-35.5],[140,-38],[145,-38.5],[147,-38],[150,-37],[153,-32],[153,-27],[151,-24],[146,-19],[143,-14],[142,-11],[136,-12],[132,-12],[130,-13],[126,-14],[122,-17],[118,-20]],
+/*日本*/[[130,31],[131,33.5],[135,35],[140,36],[141,40],[140,42],[143,44],[145,43.5],[142,42],[140,38],[137,35.5],[133,33.5]],
+/*英国*/[[-5,50],[1.5,51],[0,53],[-2,55.5],[-5,58.5],[-6,56],[-4,53.5],[-5,51.5]],
+/*马达加斯加*/[[44,-25],[47,-25],[50,-16],[49,-12],[45,-16],[44,-20]],
+/*新西兰*/[[173,-35],[176,-38],[176,-41],[172,-44],[167,-46],[170,-44],[173,-41]],
+/*苏门答腊*/[[95,5],[98,3],[102,-1],[106,-6],[104,-6],[100,0]],
+/*加里曼丹*/[[109,1],[113,3],[117,6],[119,1],[116,-3],[110,-2]],
+/*新几内亚*/[[131,-1],[138,-2],[144,-4],[147,-6],[143,-8],[138,-7],[132,-3]],
+/*古巴*/[[-85,22.2],[-80,22.8],[-74,20.2],[-77,19.9],[-84,21.8]],
+/*冰岛*/[[-24,64],[-21,63.4],[-15,64],[-14,65.5],[-18,66.3],[-22,65.8]],
+];
+/*美国本土（用于点阵高亮焦点区域）*/
+const US_POLY=[[-124.5,48.4],[-124,46],[-124,40],[-122,37],[-117,32.6],[-114,32.7],[-111,31.3],[-106,31.7],[-103,29],[-99,26.5],[-97,26],[-97,28],[-94,29.5],[-89,29.2],[-85,29.7],[-83,29],[-81.5,25.1],[-80,25.1],[-80,26.5],[-80.5,28.5],[-81,31],[-76,35],[-75,38],[-74,40],[-70,41.5],[-70,43],[-67,44.8],[-69,47.3],[-75,45],[-79,43.3],[-83,42],[-84,46],[-88,48],[-95,49],[-110,49],[-123,49]];
+function pointInPoly(lng,lat,poly){
+  let inside=false;
+  for(let i=0,j=poly.length-1;i<poly.length;j=i++){
+    const [xi,yi]=poly[i],[xj,yj]=poly[j];
+    if(((yi>lat)!==(yj>lat))&&(lng<(xj-xi)*(lat-yi)/(yj-yi)+xi)) inside=!inside;
+  }
+  return inside;
+}
+</script>
+<script>
+(() => {
+/* ============================================================
+   ② 渲染层 RENDER LAYER —— Canvas 正交投影 3D 地球
+   点阵大陆 / 大圆航线弧 / 飞行粒子 / 机场热力 / 拖动旋转
+   ============================================================ */
+const COLORS={domestic:'#38c8ff',international:'#b27dff',regional:'#ff9b3d'};
+const D2R=Math.PI/180;
+
+const state={
+  data:null, isSample:true, year:2025,
+  month:0, monthF:0, range:[0,0],
+  type:'all', tier:'all', province:'all', threshold:0,
+  showRoutes:true, showHeat:true, showParticles:true, showLabels:true, autoRotate:true,
+  view:'flow', rankTab:'airports',
+  hover:null, lock:null,
+  playing:false, playT:0,
+  introT0:performance.now(), mouse:{x:-1,y:-1},
+  // 3D 相机：初始对准美国（约 38°N, 98°W）
+  rot:{yaw:98*D2R, pitch:38*D2R}, vel:{yaw:0,pitch:0},
+  zoom:1, dragging:false,
+};
+
+const canvas=document.getElementById('mapCanvas'), ctx=canvas.getContext('2d');
+let W=0,H=0,DPR=1,CX=0,CY=0,RAD=0;
+let landDots=[], stars=[];
+
+function resize(){
+  const r=canvas.parentElement.getBoundingClientRect();
+  DPR=Math.min(window.devicePixelRatio||1,2);
+  W=r.width;H=r.height;
+  canvas.width=W*DPR;canvas.height=H*DPR;
+  ctx.setTransform(DPR,0,0,DPR,0,0);
+  CX=W*0.5; CY=H*0.52;
+  stars=Array.from({length:140},()=>({x:Math.random()*W,y:Math.random()*H,r:Math.random()*1.1+0.2,p:Math.random()*6.28}));
+}
+function radius(){ return Math.min(W,H)*0.40*state.zoom; }
+
+/* ---- 球面数学 ---- */
+function toVec(lng,lat){ // 单位球向量
+  const φ=lat*D2R, λ=lng*D2R, c=Math.cos(φ);
+  return [c*Math.sin(λ), Math.sin(φ), c*Math.cos(λ)];
+}
+function rotateVec(v){ // yaw(绕极轴) → pitch(绕屏幕水平轴)
+  const {yaw,pitch}=state.rot;
+  const cy=Math.cos(yaw),sy=Math.sin(yaw),cp=Math.cos(pitch),sp=Math.sin(pitch);
+  const x1=v[0]*cy+v[2]*sy, z1=-v[0]*sy+v[2]*cy, y1=v[1];
+  return [x1, y1*cp-z1*sp, y1*sp+z1*cp];
+}
+function projectVec(v,alt=0){ // 返回 [屏幕x, 屏幕y, 深度z(>0可见)]
+  const r=rotateVec(v), R=radius()*(1+alt);
+  return [CX+r[0]*R, CY-r[1]*R, r[2]];
+}
+function slerp(a,b,t){
+  let dot=a[0]*b[0]+a[1]*b[1]+a[2]*b[2];
+  dot=Math.max(-1,Math.min(1,dot));
+  const ω=Math.acos(dot);
+  if(ω<1e-6) return [...a];
+  const s=Math.sin(ω), k1=Math.sin((1-t)*ω)/s, k2=Math.sin(t*ω)/s;
+  return [a[0]*k1+b[0]*k2, a[1]*k1+b[1]*k2, a[2]*k1+b[2]*k2];
+}
+
+/* ---- 几何预计算 ---- */
+function buildLandDots(){
+  landDots=[];
+  for(let lat=-58;lat<=80;lat+=2.1){
+    const step=2.1/Math.max(0.28,Math.cos(lat*D2R));
+    for(let lng=-180;lng<180;lng+=step){
+      let land=false;
+      for(const p of LAND_POLYS){ if(pointInPoly(lng,lat,p)){land=true;break;} }
+      if(land) landDots.push({v:toVec(lng,lat), us:pointInPoly(lng,lat,US_POLY)});
+    }
+  }
+}
+function buildGeometry(){
+  const d=state.data;
+  d.airports.forEach((a,i)=>{
+    a.v=toVec(a.lng,a.lat); a.op=a.op??0; a.delay=300+i*45;
+    a.sx=-9999;a.sy=-9999;a.depth=-1;
+  });
+  d.routes.forEach((r,i)=>{
+    const A=d.byCode[r.from],B=d.byCode[r.to];
+    r.A=A;r.B=B;
+    const dot=Math.max(-1,Math.min(1,A.v[0]*B.v[0]+A.v[1]*B.v[1]+A.v[2]*B.v[2]));
+    const ang=Math.acos(dot);
+    const hMax=Math.min(0.34, 0.025+ang*0.22); // 弧高随大圆角距增长
+    const N=Math.max(26,Math.min(56,Math.round(ang/D2R/3)+20));
+    r.v3=[]; // 含弧高的三维路径点
+    for(let k=0;k<=N;k++){
+      const t=k/N, s=slerp(A.v,B.v,t), h=hMax*Math.sin(Math.PI*t);
+      r.v3.push({s,h});
+    }
+    r.spts=new Array(r.v3.length); // 每帧投影缓存（命中检测用）
+    r.op=r.op??0; r.delay=1100+(r.rank||i)*20; r.drawP=0; r.particles=null;
+  });
+}
+
+/* ---- 数值插值 ---- */
+function lerp(a,b,t){return a+(b-a)*t;}
+function monthVal(arr,mF){
+  const avg=arr.reduce((s,v)=>s+v,0)/12;
+  if(mF<=0) return avg;
+  if(mF<1) return lerp(avg,arr[0],mF);
+  const i=Math.min(11,Math.max(0,Math.floor(mF-1))), j=Math.min(11,i+1);
+  return lerp(arr[i],arr[j],Math.max(0,Math.min(1,mF-1-i)));
+}
+function rangeSum(arr,[a,b]){ if(a===0) return arr.reduce((s,v)=>s+v,0);
+  let s=0; for(let i=a-1;i<b;i++) s+=arr[i]; return s; }
+
+/* ---- 可见性（交互层判定，渲染层平滑过渡）---- */
+function airportVisible(a){
+  if(a.external) return true;
+  if(state.tier!=='all'){
+    const t=a.annualPassengers>=4e7?'mega':(a.annualPassengers>=1.5e7?'hub':'normal');
+    if(t!==state.tier) return false;
+  }
+  if(state.province!=='all'&&a.province!==state.province&&a.city!==state.province) return false;
+  return true;
+}
+function routeVisible(r){
+  if(state.type!=='all'&&r.type!==state.type) return false;
+  if(r.annualFlights<state.threshold) return false;
+  if(state.province!=='all'){
+    const pa=r.A.province===state.province||r.A.city===state.province;
+    const pb=r.B.province===state.province||r.B.city===state.province;
+    if(!pa&&!pb) return false;
+  } else if(!(airportVisible(r.A)||r.A.external)||!(airportVisible(r.B)||r.B.external)) return false;
+  if(state.tier!=='all'&&!airportVisible(r.A)&&!airportVisible(r.B)) return false;
+  if(state.lock){
+    if(state.lock.kind==='airport'){const c=state.lock.ref.airportCode;if(r.from!==c&&r.to!==c) return 'dim';}
+    if(state.lock.kind==='route'&&state.lock.ref!==r) return 'dim';
+  }
+  return true;
+}
+
+/* ---- 粒子 ---- */
+function ensureParticles(r){
+  const flow=monthVal(r.monthly,state.monthF);
+  const want=Math.max(1,Math.min(12,Math.round(flow/160)));
+  if(!r.particles) r.particles=[];
+  while(r.particles.length<want) r.particles.push({t:Math.random(),dir:Math.random()<0.5?1:-1,ph:Math.random()*6.28});
+  if(r.particles.length>want) r.particles.length=want;
+  return flow;
+}
+function pathPoint(r,t){ // 三维路径插值
+  const f=t*(r.v3.length-1), i=Math.min(r.v3.length-2,Math.floor(f)), u=f-i;
+  const a=r.v3[i],b=r.v3[i+1];
+  return {s:[lerp(a.s[0],b.s[0],u),lerp(a.s[1],b.s[1],u),lerp(a.s[2],b.s[2],u)], h:lerp(a.h,b.h,u)};
+}
+
+/* ---- 主循环 ---- */
+let lastT=performance.now();
+function frame(now){
+  const dt=Math.min(0.05,(now-lastT)/1000); lastT=now;
+  tick(dt,now); draw(now);
+  requestAnimationFrame(frame);
+}
+function tick(dt,now){
+  // 播放全年
+  if(state.playing){
+    state.playT+=dt;
+    const m=1+(state.playT*1.55)%12;
+    state.monthF=m;
+    const mi=Math.min(12,Math.round(m));
+    if(mi!==state.month){state.month=mi;UI.onMonthChanged(false);}
+  } else {
+    state.monthF+=(state.month-state.monthF)*Math.min(1,dt*6);
+  }
+  // 地球自转 + 惯性
+  if(!state.dragging){
+    if(state.autoRotate&&!state.hover&&!state.lock) state.rot.yaw+=dt*0.045;
+    state.rot.yaw+=state.vel.yaw*dt; state.rot.pitch+=state.vel.pitch*dt;
+    state.vel.yaw*=Math.pow(0.06,dt); state.vel.pitch*=Math.pow(0.06,dt);
+  }
+  state.rot.pitch=Math.max(-1.45,Math.min(1.45,state.rot.pitch));
+  // 透明度缓动
+  const d=state.data; if(!d) return;
+  const intro=now-state.introT0;
+  d.airports.forEach(a=>{
+    let target=airportVisible(a)?1:0;
+    if(!target&&!a.external){
+      if(d.routes.some(r=>routeVisible(r)===true&&(r.A===a||r.B===a))) target=0.45;
+    }
+    if(a.external){ target=d.routes.some(r=>(r.A===a||r.B===a)&&routeVisible(r)===true)?0.9:0; }
+    if(state.lock&&state.lock.kind==='airport'&&state.lock.ref!==a){
+      const c=state.lock.ref.airportCode;
+      const linked=d.routes.some(r=>routeVisible(r)===true&&((r.from===c&&r.B===a)||(r.to===c&&r.A===a)));
+      if(!linked) target*=0.22;
+    }
+    if(intro<a.delay) target=0;
+    a.op+=(target-a.op)*Math.min(1,dt*5);
+  });
+  d.routes.forEach(r=>{
+    const v=routeVisible(r);
+    let target=v===true?1:(v==='dim'?0.06:0);
+    if(state.view==='heat') target*=0.18;
+    if(!state.showRoutes) target=0;
+    const dp=intro>r.delay?1:0;
+    r.drawP+=(dp-r.drawP)*Math.min(1,dt*1.6);
+    r.op+=(target-r.op)*Math.min(1,dt*4);
+  });
+}
+
+function draw(now){
+  ctx.clearRect(0,0,W,H);
+  const t=now/1000, d=state.data; if(!d) return;
+  const intro=Math.min(1,(now-state.introT0)/1500);
+  const R=radius();
+  drawStars(t,intro);
+  drawSphere(R,intro,t);
+  drawGraticule(R,intro);
+  drawLand(intro);
+  if(state.showHeat) drawHeat(t);
+  drawRoutes(t);
+  if(state.showParticles&&state.showRoutes) drawParticles(t);
+  drawAirports(t);
+  drawRim(R,intro,t);
+}
+function drawStars(t,intro){
+  ctx.save();
+  for(const s of stars){
+    ctx.globalAlpha=intro*(0.25+0.35*Math.abs(Math.sin(t*0.7+s.p)));
+    ctx.fillStyle='#9fc8ef';
+    ctx.fillRect(s.x,s.y,s.r,s.r);
+  }
+  ctx.restore();
+}
+function drawSphere(R,intro,t){
+  ctx.save(); ctx.globalAlpha=intro;
+  // 大气辉光
+  let g=ctx.createRadialGradient(CX,CY,R*0.92,CX,CY,R*1.22);
+  g.addColorStop(0,'rgba(56,160,255,0.0)');
+  g.addColorStop(0.55,'rgba(56,160,255,0.10)');
+  g.addColorStop(0.8,'rgba(56,200,255,0.05)');
+  g.addColorStop(1,'rgba(0,0,0,0)');
+  ctx.fillStyle=g; ctx.beginPath(); ctx.arc(CX,CY,R*1.22,0,6.29); ctx.fill();
+  // 球体
+  g=ctx.createRadialGradient(CX-R*0.32,CY-R*0.36,R*0.1,CX,CY,R);
+  g.addColorStop(0,'#0d2244');
+  g.addColorStop(0.55,'#081633');
+  g.addColorStop(1,'#040b1c');
+  ctx.fillStyle=g; ctx.beginPath(); ctx.arc(CX,CY,R,0,6.29); ctx.fill();
+  ctx.restore();
+}
+function drawGraticule(R,intro){
+  ctx.save(); ctx.globalAlpha=0.5*intro; ctx.strokeStyle='rgba(86,156,224,0.13)'; ctx.lineWidth=1;
+  const seg=(pts)=>{ let open=false;
+    for(const v of pts){ const [x,y,z]=projectVec(v);
+      if(z>0.01){ if(!open){ctx.beginPath();ctx.moveTo(x,y);open=true;} else ctx.lineTo(x,y); }
+      else if(open){ctx.stroke();open=false;} }
+    if(open) ctx.stroke(); };
+  for(let lat=-60;lat<=60;lat+=30){
+    const pts=[]; for(let lng=-180;lng<=180;lng+=4) pts.push(toVec(lng,lat)); seg(pts); }
+  for(let lng=-180;lng<180;lng+=30){
+    const pts=[]; for(let lat=-85;lat<=85;lat+=4) pts.push(toVec(lng,lat)); seg(pts); }
+  ctx.restore();
+}
+function drawLand(intro){
+  ctx.save();
+  const sz=Math.max(1.1,radius()*0.0062);
+  for(const p of landDots){
+    const [x,y,z]=projectVec(p.v);
+    if(z<=0.01) continue;
+    const fade=Math.min(1,z*1.6);
+    if(p.us){ ctx.fillStyle='rgba(120,220,255,'+(0.75*fade*intro)+')'; }
+    else    { ctx.fillStyle='rgba(90,140,200,'+(0.42*fade*intro)+')'; }
+    ctx.fillRect(x-sz/2,y-sz/2,sz,sz);
+  }
+  ctx.restore();
+}
+function drawHeat(t){
+  const d=state.data, boost=state.view==='heat'?1.9:1;
+  ctx.save(); ctx.globalCompositeOperation='lighter';
+  const maxP=Math.max(...d.airports.filter(a=>!a.external).map(a=>monthVal(a.monthlyPassengers,state.monthF)));
+  for(const a of d.airports){
+    if(a.external||a.op<0.02) continue;
+    const [x,y,z]=projectVec(a.v);
+    if(z<=0.05) continue;
+    const v=monthVal(a.monthlyPassengers,state.monthF)/maxP;
+    const Rr=(14+v*52)*boost*(1+0.05*Math.sin(t*1.4+x))*Math.min(1,z*1.5)*state.zoom;
+    const g=ctx.createRadialGradient(x,y,0,x,y,Rr);
+    const hot=v>0.55;
+    g.addColorStop(0,hot?`rgba(255,155,61,${0.22*a.op*boost*z})`:`rgba(56,200,255,${0.15*a.op*boost*z})`);
+    g.addColorStop(0.5,hot?`rgba(255,120,60,${0.07*a.op*z})`:`rgba(47,111,255,${0.05*a.op*z})`);
+    g.addColorStop(1,'rgba(0,0,0,0)');
+    ctx.fillStyle=g; ctx.beginPath(); ctx.arc(x,y,Rr,0,6.29); ctx.fill();
+  }
+  ctx.restore();
+}
+function drawRoutes(t){
+  const d=state.data;
+  const maxF=Math.max(...d.routes.map(r=>r.annualFlights));
+  ctx.save(); ctx.globalCompositeOperation='lighter'; ctx.lineCap='round';
+  for(const r of d.routes){
+    // 投影缓存每帧更新（命中检测共用）
+    const n=r.v3.length;
+    for(let i=0;i<n;i++){ const p=r.v3[i]; r.spts[i]=projectVec(p.s,p.h); }
+    if(r.op<0.015||r.drawP<0.01) continue;
+    const flow=monthVal(r.monthly,state.monthF)*12/Math.max(1,r.annualFlights);
+    const wBase=(0.5+(r.annualFlights/maxF)**0.65*2.8*(0.7+0.3*flow))*Math.max(0.6,state.zoom);
+    const col=COLORS[r.type];
+    const hot=(state.hover&&state.hover.kind==='route'&&state.hover.ref===r)||(state.lock&&state.lock.kind==='route'&&state.lock.ref===r);
+    const lim=Math.max(2,Math.floor(n*r.drawP));
+    // 可见段折线（被地球遮挡处断开）
+    for(let pass=0;pass<2;pass++){
+      ctx.strokeStyle=col;
+      ctx.lineWidth=pass===0?wBase*3.2:(hot?wBase*1.5:wBase);
+      const aBase=pass===0?0.10:(0.32+0.3*(r.annualFlights/maxF));
+      let open=false;
+      for(let i=0;i<lim;i++){
+        const [x,y,z]=r.spts[i];
+        const vis=z>-r.v3[i].h*0.85;
+        if(vis){
+          ctx.globalAlpha=aBase*r.op*(hot?(pass?1.8:2.2):1)*Math.min(1,(z+0.12)*1.8);
+          if(!open){ctx.beginPath();ctx.moveTo(x,y);open=true;} else ctx.lineTo(x,y);
+        } else if(open){ctx.stroke();open=false;}
+      }
+      if(open) ctx.stroke();
+    }
+  }
+  ctx.restore();
+}
+function drawParticles(t){
+  const d=state.data;
+  ctx.save(); ctx.globalCompositeOperation='lighter';
+  for(const r of d.routes){
+    if(r.op<0.05||r.drawP<0.95) continue;
+    const flow=ensureParticles(r);
+    const speed=(0.05+0.13*Math.min(1,flow/1100));
+    const col=COLORS[r.type];
+    for(const p of r.particles){
+      p.t=(p.t+speed*p.dir*0.016+1)%1;
+      const c=pathPoint(r,p.t), c2=pathPoint(r,(p.t-0.02*p.dir+1)%1);
+      const [x,y,z]=projectVec(c.s,c.h);
+      if(z<=-c.h*0.6) continue;
+      const [x2,y2]=projectVec(c2.s,c2.h);
+      const a=r.op*(0.5+0.5*Math.sin(t*4+p.ph))*Math.min(1,(z+0.1)*2);
+      ctx.strokeStyle=col; ctx.globalAlpha=a*0.5; ctx.lineWidth=1.4;
+      ctx.beginPath(); ctx.moveTo(x2,y2); ctx.lineTo(x,y); ctx.stroke();
+      ctx.fillStyle='#fff'; ctx.globalAlpha=a*0.95;
+      ctx.beginPath(); ctx.arc(x,y,1.3*Math.max(0.7,state.zoom),0,6.29); ctx.fill();
+    }
+  }
+  ctx.restore();
+}
+function drawAirports(t){
+  const d=state.data;
+  const maxP=Math.max(...d.airports.filter(a=>!a.external).map(a=>monthVal(a.monthlyPassengers,state.monthF)));
+  ctx.save();
+  for(const a of d.airports){
+    const [x,y,z]=projectVec(a.v);
+    a.sx=x;a.sy=y;a.depth=z;
+    if(a.op<0.02||z<=0.04) continue;
+    const fade=Math.min(1,z*1.7);
+    const hot=(state.hover&&state.hover.kind==='airport'&&state.hover.ref===a)||(state.lock&&state.lock.kind==='airport'&&state.lock.ref===a);
+    if(a.external){
+      ctx.globalAlpha=a.op*0.85*fade;
+      ctx.strokeStyle=hot?'#fff':'rgba(178,125,255,0.85)'; ctx.lineWidth=1;
+      ctx.strokeRect(x-3,y-3,6,6);
+      if(state.showLabels||hot){
+        ctx.fillStyle='rgba(217,232,247,0.8)'; ctx.font='9px monospace';
+        ctx.fillText(a.city,x+7,y+3);
+      }
+      continue;
+    }
+    const v=monthVal(a.monthlyPassengers,state.monthF)/maxP;
+    const Rr=(2.4+v*7.2)*(hot?1.5:1)*(1+0.07*Math.sin(t*2+x*0.05))*Math.max(0.7,state.zoom);
+    const lv=a.annualPassengers>=6e7?'#ff9b3d':(a.annualPassengers>=3e7?'#8fe9ff':'#4f8fd4');
+    // 脉冲环
+    const ringT=(t*0.5+a.lat*0.05)%1;
+    ctx.strokeStyle=lv; ctx.globalAlpha=a.op*(1-ringT)*0.45*fade; ctx.lineWidth=1;
+    ctx.beginPath(); ctx.arc(x,y,Rr+ringT*15,0,6.29); ctx.stroke();
+    // 发光核心
+    ctx.globalAlpha=a.op*fade;
+    const g=ctx.createRadialGradient(x,y,0,x,y,Rr*2.2);
+    g.addColorStop(0,lv); g.addColorStop(1,'rgba(0,0,0,0)');
+    ctx.fillStyle=g; ctx.beginPath(); ctx.arc(x,y,Rr*2.2,0,6.29); ctx.fill();
+    ctx.fillStyle='#eaf6ff'; ctx.beginPath(); ctx.arc(x,y,Math.max(1.3,Rr*0.42),0,6.29); ctx.fill();
+    if(hot){ctx.strokeStyle='#fff';ctx.globalAlpha=a.op*0.9;ctx.lineWidth=1;
+      ctx.beginPath();ctx.arc(x,y,Rr+4,0,6.29);ctx.stroke();}
+    if(state.showLabels&&(v>0.4||hot)&&z>0.35){
+      ctx.globalAlpha=a.op*(hot?1:0.8)*fade;
+      ctx.font=(hot?'bold ':'')+'10px "JetBrains Mono",monospace';
+      ctx.fillStyle=hot?'#fff':'rgba(217,232,247,0.85)';
+      ctx.fillText(a.airportCode,x+Rr+5,y+3);
+    }
+  }
+  ctx.restore();
+}
+function drawRim(R,intro,t){
+  ctx.save(); ctx.globalAlpha=intro;
+  ctx.strokeStyle='rgba(110,200,255,0.5)'; ctx.lineWidth=1.2;
+  ctx.shadowColor='rgba(56,200,255,0.7)'; ctx.shadowBlur=16;
+  ctx.beginPath(); ctx.arc(CX,CY,R,0,6.29); ctx.stroke();
+  ctx.shadowBlur=0;
+  // 赤道面装饰环
+  ctx.globalAlpha=0.18*intro;
+  ctx.strokeStyle='rgba(86,156,224,0.6)'; ctx.lineWidth=0.8;
+  ctx.beginPath(); ctx.ellipse(CX,CY,R*1.12,R*0.30,(-12+Math.sin(t*0.1)*2)*D2R,0,6.29); ctx.stroke();
+  ctx.restore();
+}
+
+/* ---- 月度趋势视图图表 ---- */
+function drawTrendChart(){
+  const cv=document.getElementById('trendCanvas'),c=cv.getContext('2d');
+  const ms=state.data.monthlyStats,Wt=cv.width,Ht=cv.height,pad=34;
+  c.clearRect(0,0,Wt,Ht);
+  const maxF=Math.max(...ms.map(m=>m.flights)),maxP=Math.max(...ms.map(m=>m.passengers));
+  ms.forEach((m,i)=>{
+    const x=pad+i*(Wt-pad*2)/11,h=(m.flights/maxF)*(Ht-pad*2)*0.9;
+    const cur=Math.round(state.monthF)===i+1;
+    c.fillStyle=cur?'rgba(255,155,61,0.85)':'rgba(56,200,255,0.3)';
+    c.fillRect(x-9,Ht-pad-h,18,h);
+    c.fillStyle=cur?'#ff9b3d':'#6f88a6';c.font='10px monospace';c.textAlign='center';
+    c.fillText(MONTHS[i],x,Ht-pad+14);
+  });
+  c.strokeStyle='#8fe9ff';c.lineWidth=2;c.shadowColor='#38c8ff';c.shadowBlur=8;c.beginPath();
+  ms.forEach((m,i)=>{const x=pad+i*(Wt-pad*2)/11,y=Ht-pad-(m.passengers/maxP)*(Ht-pad*2)*0.9;
+    i?c.lineTo(x,y):c.moveTo(x,y);});
+  c.stroke();c.shadowBlur=0;
+  ms.forEach((m,i)=>{const x=pad+i*(Wt-pad*2)/11,y=Ht-pad-(m.passengers/maxP)*(Ht-pad*2)*0.9;
+    c.fillStyle='#eaf6ff';c.beginPath();c.arc(x,y,2.6,0,6.29);c.fill();});
+  c.fillStyle='#6f88a6';c.font='10px monospace';c.textAlign='left';
+  c.fillText('▇ 航班量(架次)   ─ 旅客吞吐(人次)   示例数据',pad,16);
+}
+
+/* ============================================================
+   ③ 交互层 INTERACTION LAYER —— 拖动旋转 / 筛选 / 时间轴 / 悬停 / 排行
+   ============================================================ */
+const $=(s)=>document.querySelector(s), $$=(s)=>[...document.querySelectorAll(s)];
+const fmt=(n)=>Math.round(n).toLocaleString('zh-CN');
+const fmtW=(n)=> n>=1e8 ? (n/1e8).toFixed(2)+' 亿' : n>=1e4 ? (n/1e4).toFixed(1)+' 万' : fmt(n);
+
+const tweens=new Map();
+function rollNumber(el,target,format=fmtW){
+  const from=tweens.get(el)?.cur??0,t0=performance.now(),dur=750;
+  const tw={cur:from};tweens.set(el,tw);
+  (function step(now){
+    const t=Math.min(1,(now-t0)/dur),e=1-Math.pow(1-t,3);
+    tw.cur=from+(target-from)*e;el.textContent=format(tw.cur);
+    if(t<1&&tweens.get(el)===tw) requestAnimationFrame(step);
+  })(t0);
+}
+
+const UI={
+  buildTimeline(){
+    const tl=$('#timeline');tl.innerHTML='';
+    const ms=state.data.monthlyStats,maxF=Math.max(...ms.map(m=>m.flights));
+    ms.forEach((m,i)=>{
+      const el=document.createElement('div');el.className='tl-m';el.dataset.m=i+1;
+      el.innerHTML=`<div class="bar" style="height:${Math.round(m.flights/maxF*42)}px"></div><div class="lb">${MONTHS[i]}</div>`;
+      el.onclick=()=>{UI.stopPlay();state.month=i+1;state.range=[i+1,i+1];UI.onMonthChanged(true);};
+      tl.appendChild(el);
+    });
+  },
+  syncTimeline(){
+    $$('#timeline .tl-m').forEach(el=>el.classList.toggle('cur',+el.dataset.m===state.month));
+    const pct=state.month===0?0:((state.month-0.5)/12*100);
+    $('#tlFill').style.width=pct+'%';$('#tlThumb').style.left=pct+'%';
+    $('#curMonth').textContent=state.month===0?'全年总览':`${state.year}·${MONTHS[state.month-1]}`;
+    $('#yearBtn').classList.toggle('on',state.month===0);
+  },
+  onMonthChanged(resetRangeSeg=true){
+    if(resetRangeSeg&&state.month>0){$$('#fMonthSeg button').forEach(b=>b.classList.remove('on'));}
+    UI.syncTimeline();UI.updateKPI();UI.updateRank();UI.updateSummary();
+    if(state.view==='trend') drawTrendChart();
+  },
+  stopPlay(){if(!state.playing)return;state.playing=false;
+    $('#playBtn').classList.remove('playing');
+    $('#playIcon').innerHTML='<path d="M3 1.5 12 7 3 12.5z" fill="currentColor"/>';},
+  togglePlay(){
+    state.playing=!state.playing;
+    $('#playBtn').classList.toggle('playing',state.playing);
+    $('#playIcon').innerHTML=state.playing
+      ?'<path d="M2.5 1.5h3v11h-3zM8.5 1.5h3v11h-3z" fill="currentColor"/>'
+      :'<path d="M3 1.5 12 7 3 12.5z" fill="currentColor"/>';
+    if(state.playing){state.playT=(Math.max(1,state.month)-1)/1.55;if(state.month===0)state.month=1;}
+    UI.syncTimeline();
+  },
+  updateKPI(){
+    const d=state.data,rg=state.month>0?[state.month,state.month]:state.range;
+    const isYear=rg[0]===0;
+    const lbPrefix=isYear?'全年':(rg[0]===rg[1]?MONTHS[rg[0]-1]+'当月':`${MONTHS[rg[0]-1]}–${MONTHS[rg[1]-1]}`);
+    $('#kFlightsLb').textContent=lbPrefix+'航班量';
+    $('#kPaxLb').textContent=lbPrefix+'旅客吞吐量';
+    $('#kCargoLb').textContent=lbPrefix+'货邮吞吐量';
+    const ms=d.monthlyStats;
+    const pick=(key)=>isYear?ms.reduce((s,m)=>s+m[key],0):ms.slice(rg[0]-1,rg[1]).reduce((s,m)=>s+m[key],0);
+    rollNumber($('#kFlights'),pick('flights'));
+    rollNumber($('#kPax'),pick('passengers'));
+    rollNumber($('#kCargo'),pick('cargo'));
+    const vis=d.airports.filter(a=>!a.external&&airportVisible(a));
+    const visR=d.routes.filter(r=>routeVisible(r)===true||routeVisible(r)==='dim');
+    rollNumber($('#kAirports'),vis.length,fmt);rollNumber($('#kRoutes'),visR.length,fmt);
+    const topA=[...vis].sort((a,b)=>rangeSum(b.monthlyPassengers,rg)-rangeSum(a.monthlyPassengers,rg))[0];
+    const topR=[...visR].sort((a,b)=>rangeSum(b.monthly,rg)-rangeSum(a.monthly,rg))[0];
+    $('#kTopAirport').textContent=topA?`${topA.city} · ${topA.airportName} (${topA.airportCode})`:'—';
+    $('#kTopAirportV').textContent=topA?`旅客 ${fmtW(rangeSum(topA.monthlyPassengers,rg))} 人次 · 起降 ${fmtW(rangeSum(topA.monthlyFlights,rg))} 架次`:'';
+    $('#kTopRoute').textContent=topR?`${topR.A.city} ⇄ ${topR.B.city}`:'—';
+    $('#kTopRouteV').textContent=topR?`${topR.from} – ${topR.to} · ${fmtW(rangeSum(topR.monthly,rg))} 班 · ${fmt(topR.distance)} km`:'';
+  },
+  rankRows:new Map(),
+  updateRank(){
+    const d=state.data,rg=state.month>0?[state.month,state.month]:state.range;
+    const list=$('#rankList');let items=[];
+    if(state.rankTab==='airports'){
+      items=d.airports.filter(a=>!a.external&&airportVisible(a))
+        .map(a=>({id:'a'+a.airportCode,name:`${a.city} ${a.airportCode}`,val:rangeSum(a.monthlyPassengers,rg),txt:fmtW(rangeSum(a.monthlyPassengers,rg))}));
+    }else if(state.rankTab==='routes'){
+      items=d.routes.filter(r=>routeVisible(r)===true)
+        .map(r=>({id:'r'+r.from+r.to,name:`${r.A.city}–${r.B.city}`,val:rangeSum(r.monthly,rg),txt:fmtW(rangeSum(r.monthly,rg))+' 班'}));
+    }else{
+      items=d.airports.filter(a=>!a.external&&airportVisible(a)&&a.growth!=null)
+        .map(a=>({id:'g'+a.airportCode,name:`${a.city} ${a.airportCode}`,val:a.growth,txt:(a.growth>0?'+':'')+a.growth.toFixed(1)+'%'+(state.isSample?'·示例':'')}));
+    }
+    items.sort((x,y)=>y.val-x.val);items=items.slice(0,10);
+    const maxV=Math.max(...items.map(i=>Math.abs(i.val)),1e-9);
+    const rowH=Math.max(13,Math.floor((list.clientHeight||130)/10));
+    const seen=new Set();
+    items.forEach((it,i)=>{
+      seen.add(it.id);
+      let row=UI.rankRows.get(it.id);
+      if(!row){
+        row=document.createElement('div');row.className='r-row';row.style.opacity=0;row.style.top=(i*rowH)+'px';
+        row.innerHTML=`<div class="r-idx"></div><div class="r-name"></div><div class="r-bar-wrap"><div class="r-bar" style="width:0%"></div></div><div class="r-val"></div>`;
+        list.appendChild(row);UI.rankRows.set(it.id,row);
+        requestAnimationFrame(()=>row.style.opacity=1);
+      }
+      row.classList.toggle('top3',i<3);
+      row.querySelector('.r-idx').textContent=String(i+1).padStart(2,'0');
+      row.querySelector('.r-name').textContent=it.name;
+      row.querySelector('.r-val').textContent=it.txt;
+      row.style.top=(i*rowH)+'px';row.style.height=(rowH-3)+'px';row.style.opacity=1;
+      row.querySelector('.r-bar').style.width=Math.max(3,Math.abs(it.val)/maxV*100)+'%';
+    });
+    for(const [id,row] of UI.rankRows){if(!seen.has(id)){row.style.opacity=0;setTimeout(()=>{row.remove();UI.rankRows.delete(id);},400);}}
+  },
+  updateSummary(){
+    const typeTxt={all:'全部航线 · 美国国内 + 国际 + 北美地区',domestic:'仅美国国内航线',international:'仅国际航线',regional:'仅北美地区航线'}[state.type];
+    const tierTxt={all:'',mega:' · 大型枢纽',hub:' · 中型枢纽',normal:' · 普通机场'}[state.tier];
+    const mTxt=state.month>0?MONTHS[state.month-1]:(state.range[0]===0?'全年':`${MONTHS[state.range[0]-1]}–${MONTHS[state.range[1]-1]}`);
+    const pv=state.province!=='all'?' · '+state.province:'';
+    const th=state.threshold>0?` · ≥${fmtW(state.threshold)}班`:'';
+    $('#filterSummary').textContent=`${typeTxt} · ${mTxt}${tierTxt}${pv}${th}`;
+  },
+};
+
+/* ---- 命中检测（使用每帧投影缓存）---- */
+function hitTest(mx,my){
+  const d=state.data;if(!d)return null;
+  let best=null,bd=144;
+  for(const a of d.airports){
+    if(a.op<0.2||a.depth<=0.05)continue;
+    const dx=a.sx-mx,dy=a.sy-my,dd=dx*dx+dy*dy;
+    if(dd<bd){bd=dd;best={kind:'airport',ref:a};}
+  }
+  if(best)return best;
+  bd=42;
+  for(const r of d.routes){
+    if(r.op<0.25)continue;
+    for(let i=0;i<r.spts.length-1;i+=2){
+      const p1=r.spts[i],p2=r.spts[i+1];
+      if(!p1||!p2||p1[2]<=0||p2[2]<=0)continue;
+      const dd=segDist2(mx,my,p1,p2);
+      if(dd<bd){bd=dd;best={kind:'route',ref:r};}
+    }
+  }
+  return best;
+}
+function segDist2(px,py,[x1,y1],[x2,y2]){
+  const dx=x2-x1,dy=y2-y1,L=dx*dx+dy*dy||1;
+  let t=((px-x1)*dx+(py-y1)*dy)/L;t=Math.max(0,Math.min(1,t));
+  const qx=x1+dx*t-px,qy=y1+dy*t-py;return qx*qx+qy*qy;
+}
+
+/* ---- 悬停卡片 ---- */
+function sparkSVG(arr,color){
+  const max=Math.max(...arr),min=Math.min(...arr);
+  const pts=arr.map((v,i)=>`${(i/11*138).toFixed(1)},${(30-(v-min)/(max-min+1e-9)*26).toFixed(1)}`).join(' ');
+  return `<svg width="140" height="34" style="display:block;margin-top:3px"><polyline points="${pts}" fill="none" stroke="${color}" stroke-width="1.5" style="filter:drop-shadow(0 0 3px ${color})"/></svg>`;
+}
+function cardHTML(h){
+  const mLb=state.month>0?MONTHS[state.month-1]:'月均';
+  const note=state.isSample?'<div class="tt-foot">⚠ 示例数据演示 · 非真实统计</div>':'<div class="tt-foot">真实数据接入</div>';
+  if(h.kind==='airport'){
+    const a=h.ref;
+    if(a.external)return `<div class="g-head"><span class="tick" style="background:#b27dff;box-shadow:0 0 8px #b27dff"></span>境外门户 · GATEWAY</div><div class="tt-body"><div class="tt-title">${a.airportName}<span class="code">${a.airportCode}</span></div>
+      <div class="tt-sub">${a.city} · ${a.province}</div>${note}</div>`;
+    const cm=state.month>0?a.monthlyFlights[state.month-1]:monthVal(a.monthlyFlights,0);
+    const mom=state.month>1?((a.monthlyFlights[state.month-1]/a.monthlyFlights[state.month-2]-1)*100):null;
+    return `<div class="g-head"><span class="tick"></span>机场节点 · AIRPORT</div><div class="tt-body">
+      <div class="tt-title">${a.airportName}<span class="code">${a.airportCode}</span></div>
+      <div class="tt-sub">${a.city} · ${a.province} · 全美排名 #${a.rank}</div>
+      <div class="tt-grid">
+        <div class="ti"><span>全年起降架次</span><b>${fmtW(a.annualFlights)}</b></div>
+        <div class="ti"><span>全年旅客吞吐</span><b>${fmtW(a.annualPassengers)}</b></div>
+        <div class="ti"><span>全年货邮吞吐</span><b class="org">${fmtW(a.annualCargo)} 吨</b></div>
+        <div class="ti"><span>${mLb}航班量</span><b class="org">${fmtW(cm)}</b></div>
+        <div class="ti"><span>同比变化</span><b class="${a.growth>=0?'grn':'red'}">${a.growth==null?'—':(a.growth>0?'+':'')+a.growth+'%'}${state.isSample?'（示例）':''}</b></div>
+        <div class="ti"><span>环比变化</span><b class="${mom>=0?'grn':'red'}">${mom==null?'—':(mom>0?'+':'')+mom.toFixed(1)+'%'}</b></div>
+      </div>
+      <div class="tt-spark"><span>12 个月航班量趋势</span>${sparkSVG(a.monthlyFlights,'#38c8ff')}</div>${note}</div>`;
+  }
+  const r=h.ref,cm=state.month>0?r.monthly[state.month-1]:monthVal(r.monthly,0);
+  const tName={domestic:'美国国内航线',international:'国际航线',regional:'北美地区航线'}[r.type];
+  return `<div class="g-head"><span class="tick" style="background:${COLORS[r.type]};box-shadow:0 0 8px ${COLORS[r.type]}"></span>航线轨迹 · ROUTE</div><div class="tt-body">
+    <div class="tt-title" style="font-size:13px">${r.A.city} → ${r.B.city}<span class="code">${r.from}–${r.to}</span></div>
+    <div class="tt-sub" style="color:${COLORS[r.type]}">${tName} · 航线排名 #${r.rank}</div>
+    <div class="tt-grid">
+      <div class="ti"><span>全年航班量</span><b>${fmtW(r.annualFlights)} 班</b></div>
+      <div class="ti"><span>旅客量</span><b>${fmtW(r.passengers)}</b></div>
+      <div class="ti"><span>航线距离</span><b class="org">${fmt(r.distance)} km</b></div>
+      <div class="ti"><span>${mLb}航班量</span><b class="org">${fmtW(cm)} 班</b></div>
+    </div>
+    <div class="tt-spark"><span>月度趋势</span>${sparkSVG(r.monthly,COLORS[r.type])}</div>${note}</div>`;
+}
+
+/* ---- 鼠标：拖动旋转 / 悬停 / 点击 / 缩放 ---- */
+const tooltip=$('#tooltip');
+let pDown=null, moved=0, lastDrag=null;
+canvas.addEventListener('pointerdown',(e)=>{
+  pDown={x:e.clientX,y:e.clientY};moved=0;lastDrag={x:e.clientX,y:e.clientY,t:performance.now()};
+  state.vel.yaw=0;state.vel.pitch=0;
+  canvas.setPointerCapture(e.pointerId);
+});
+canvas.addEventListener('pointermove',(e)=>{
+  const rect=canvas.getBoundingClientRect();
+  state.mouse={x:e.clientX-rect.left,y:e.clientY-rect.top};
+  if(pDown){
+    const dx=e.clientX-lastDrag.x,dy=e.clientY-lastDrag.y;
+    moved+=Math.abs(dx)+Math.abs(dy);
+    if(moved>4){
+      state.dragging=true;canvas.classList.add('dragging');
+      tooltip.classList.remove('show');state.hover=null;
+      const k=0.0052/Math.max(0.6,state.zoom);
+      state.rot.yaw+=dx*k; state.rot.pitch+=dy*k;
+      const now=performance.now(),dt=Math.max(8,now-lastDrag.t)/1000;
+      state.vel.yaw=dx*k/dt*0.5; state.vel.pitch=dy*k/dt*0.5;
+      lastDrag={x:e.clientX,y:e.clientY,t:now};
+    }
+    return;
+  }
+  const h=hitTest(state.mouse.x,state.mouse.y);
+  state.hover=h;
+  canvas.style.cursor=h?'pointer':'';
+  if(h){
+    tooltip.innerHTML=cardHTML(h);tooltip.classList.add('show');
+    const tw=260,th=tooltip.offsetHeight||220;
+    let x=e.clientX+18,y=e.clientY+14;
+    if(x+tw>innerWidth)x=e.clientX-tw-14;
+    if(y+th>innerHeight)y=innerHeight-th-10;
+    tooltip.style.left=x+'px';tooltip.style.top=y+'px';
+  } else tooltip.classList.remove('show');
+});
+canvas.addEventListener('pointerup',(e)=>{
+  const wasDrag=state.dragging;
+  state.dragging=false;canvas.classList.remove('dragging');pDown=null;
+  if(wasDrag)return; // 拖动结束不算点击
+  const h=state.hover;
+  if(!h){state.lock=null;$('#lockCard').classList.remove('show');UI.updateKPI();return;}
+  state.lock={kind:h.kind,ref:h.ref};
+  const lc=$('#lockCard');
+  lc.innerHTML=cardHTML(h).replace('AIRPORT','AIRPORT · 已锁定').replace('ROUTE','ROUTE · 已锁定').replace('GATEWAY','GATEWAY · 已锁定')
+    .replace('</div><div class="tt-body">','<span class="x" id="lockX">✕</span></div><div class="tt-body">');
+  lc.classList.add('show');
+  const x=lc.querySelector('#lockX');if(x){x.style.pointerEvents='auto';x.onclick=(ev)=>{ev.stopPropagation();state.lock=null;lc.classList.remove('show');};}
+});
+canvas.addEventListener('pointerleave',()=>{if(!state.dragging){state.hover=null;tooltip.classList.remove('show');}});
+canvas.addEventListener('wheel',(e)=>{
+  e.preventDefault();
+  state.zoom=Math.max(0.65,Math.min(2.2,state.zoom*(e.deltaY<0?1.08:0.92)));
+},{passive:false});
+
+/* ---- 控件绑定 ---- */
+function bindSeg(sel,cb){$$(sel+' button').forEach(b=>b.onclick=()=>{
+  $$(sel+' button').forEach(x=>x.classList.remove('on'));b.classList.add('on');cb(b);refresh();});}
+bindSeg('#fType',b=>state.type=b.dataset.v);
+bindSeg('#fTier',b=>state.tier=b.dataset.v);
+bindSeg('#fMonthSeg',b=>{const [a,c]=b.dataset.r.split(',').map(Number);
+  state.range=[a,c];state.month=0;UI.stopPlay();
+  $('#fMonthLb').textContent=a===0?'全年 1–12 月':`${MONTHS[a-1]} – ${MONTHS[c-1]}`;UI.syncTimeline();});
+bindSeg('#fView',b=>{
+  state.view=b.dataset.v;
+  document.body.classList.toggle('trend-view',state.view==='trend');
+  document.body.classList.toggle('rank-view',state.view==='rank');
+  if(state.view==='trend')drawTrendChart();
+  setTimeout(()=>{resize();UI.updateRank();},60);
+});
+$('#trendClose').onclick=()=>{document.body.classList.remove('trend-view');state.view='flow';
+  $$('#fView button').forEach(x=>x.classList.toggle('on',x.dataset.v==='flow'));};
+$('#fProvince').onchange=(e)=>{state.province=e.target.value;refresh();};
+$('#fThreshold').oninput=(e)=>{state.threshold=+e.target.value;
+  $('#fThLb').textContent='≥ '+fmt(state.threshold)+' 班/年';refresh();};
+$('#fYear').onchange=(e)=>{state.year=+e.target.value;$('#periodLabel').textContent=state.year+' 年 1 月 – 12 月';UI.syncTimeline();};
+[['#tRoutes','showRoutes'],['#tHeat','showHeat'],['#tParticles','showParticles'],['#tLabels','showLabels'],['#tAuto','autoRotate']]
+  .forEach(([sel,key])=>{$(sel).onclick=()=>{state[key]=!state[key];$(sel).classList.toggle('on',state[key]);};});
+$('#playBtn').onclick=()=>UI.togglePlay();
+$('#yearBtn').onclick=()=>{UI.stopPlay();state.month=0;state.range=[0,0];
+  $$('#fMonthSeg button').forEach(x=>x.classList.toggle('on',x.dataset.r==='0,0'));
+  $('#fMonthLb').textContent='全年 1–12 月';UI.onMonthChanged(false);};
+$$('.rank-tabs button').forEach(b=>b.onclick=()=>{
+  $$('.rank-tabs button').forEach(x=>x.classList.remove('on'));b.classList.add('on');
+  state.rankTab=b.dataset.v;UI.updateRank();});
+(function(){const tr=$('#tlTrack');let drag=false;
+  const pick=(e)=>{const r=tr.getBoundingClientRect();
+    const m=Math.max(1,Math.min(12,Math.round(((e.clientX-r.left)/r.width)*12+0.5)));
+    UI.stopPlay();state.month=m;UI.onMonthChanged(true);};
+  tr.addEventListener('pointerdown',e=>{drag=true;tr.setPointerCapture(e.pointerId);pick(e);});
+  tr.addEventListener('pointermove',e=>drag&&pick(e));
+  tr.addEventListener('pointerup',()=>drag=false);
+})();
+function refresh(){UI.updateKPI();UI.updateRank();UI.updateSummary();}
+
+/* ---- 数据导入：真实 data.json / CSV ---- */
+$('#importBtn').onclick=()=>$('#fileInput').click();
+$('#fileInput').onchange=async(e)=>{
+  const f=e.target.files[0];if(!f)return;
+  try{
+    const text=await f.text();
+    const parsed=f.name.endsWith('.csv')?DataAdapter.fromCSVText(text):DataAdapter.fromJSONText(text);
+    mountData(parsed,false);
+  }catch(err){alert('数据解析失败：'+err.message+'\n请参考代码内 DataAdapter 注释中的结构。');}
+  e.target.value='';
+};
+window.AVIZ={loadData(json){mountData(DataAdapter.normalize(json),false);},state,DataAdapter,
+  flyTo(lng,lat){state.rot.yaw=-lng*D2R;state.rot.pitch=lat*D2R;}};
+
+function mountData(parsed,isSample){
+  state.data=parsed;state.isSample=isSample;state.lock=null;state.hover=null;
+  state.introT0=performance.now();
+  const badge=$('#dataBadge');
+  if(isSample){badge.className='chip demo';badge.innerHTML='<span class="dot"></span>示例数据演示 · 可替换为真实 data.json / CSV';}
+  else{badge.className='chip real';badge.innerHTML='<span class="dot"></span>真实数据接入';}
+  const provs=[...new Set(parsed.airports.filter(a=>!a.external).map(a=>a.province))].sort();
+  $('#fProvince').innerHTML='<option value="all">全部州 / 城市</option>'+provs.map(p=>`<option>${p}</option>`).join('');
+  state.province='all';
+  buildGeometry();UI.buildTimeline();UI.syncTimeline();refresh();drawTrendChart();
+}
+
+/* ---- 启动 ---- */
+window.addEventListener('resize',resize);
+resize();
+buildLandDots();
+mountData(DataAdapter.normalize(buildSampleData()),true);
+requestAnimationFrame(frame);
+setInterval(()=>{$('#clock').textContent=new Date().toLocaleTimeString('zh-CN',{hour12:false})+' UTC'+(new Date().getTimezoneOffset()<=0?'+':'')+(-new Date().getTimezoneOffset()/60);},1000);
+})();
+</script>
+</body>
+</html>

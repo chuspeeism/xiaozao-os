@@ -1,0 +1,1091 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8" />
+<title>2025 年度复盘 — 市场营销</title>
+<script src="deck-stage.js"></script>
+<style>
+  /* =====================================================================
+     DESIGN SYSTEM — Northwind Labs, Marketing Year-End 2025
+     Inspired by modernist / Bauhaus geometric composition.
+     Original palette + marks. NOT a recreation of any existing brand.
+     ===================================================================== */
+
+  :root {
+    --red:    #E04A2F;
+    --blue:   #2C4BD0;
+    --amber:  #F4B73E;
+    --ink:    #111317;
+    --cream:  #F1ECE1;
+    --paper:  #FFFFFF;
+    --dot:    #D7D3C7;
+
+    /* Type scale for 1920x1080 */
+    --t-display: 180px;
+    --t-title:   88px;
+    --t-h2:      64px;
+    --t-body:    32px;
+    --t-small:   24px;
+
+    /* Spacing */
+    --pad:  100px;
+    --gap:  48px;
+  }
+
+  * { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; background: #000; }
+
+  @font-face {
+    font-family: 'Geist';
+    src: local('Inter'), local('Helvetica Neue'), local('Arial');
+  }
+  @font-face {
+    font-family: 'Alimama ShuHeiTi';
+    src: url('data:font/woff2;base64,d09GMgABAAAAAASUAA4AAAAAB+QAAARBAAEAAAAAAAAAAAAAAAAAAAAAAAAAAAAAGyAcIAZgAGQKhlSFSQE2AiQDHAsSAAQgBYMaByAXJBgSG1IGCI7TFbFNkhTJL//hvezPTTIKOrMus6mcEtOuCw0WFIbLJ38JIUJ29wiCIEimRU01m0JIqqpUMQhdqNZNXI5/THv6+/Olj/wia9HYUWk0KVvgAcYBbXtqno8FFKdPnQcmvU0jKwbu0FSchevv54EAvFAyGttU2mDEAaBpAACxcq78nLkKHWOxmOkIoELOQhvS/Q1CU43zwT45q3ET6ulj67XBHnLBWA+AAGAG5ioABQMAsM2mWCQpTm3NwuJXoUqXtUrdx3bfP96naU61mltzaa/3/7pr+a5ui5JACGn0DAsgEKgB6AAAABwAAHQYegYMQp2Z43QhnDmQA8YYyPGvNIohof/Y3HZ84XD1JK/zcbHLRt4G8+Qr3lQzAu5AMxPAXm03jET0iQh/+yc1vFNgJeJdCz1OM0QS7+cj9nHw+NkRaHgcZtcP+d9eWmsVIOEJgIsRz3TZ+CHEoxfg3NZf9aKETxSoEQSWXdhCJEUKioRquvLWvU6+X7tul0WwCyRiZmAvO+/oRDyk8DjHzhGWMLN5j1tY4qVZHn6xC87Xq52US1e8whI3ZrpctgQJYtwOWvBtXRx/vhDT+lP59J7TV1VNDj3ceLAl5Gz+6fzGIYMPNZ4SajpZkdRHGjpMvjIrkxZ+KGu749nEJac+HzX4dsub6s4lCdcTrk2fHrFn6r59Z39B7DM5vWazRy6bMKwudP1Qa9LoB9PkzZjubMWMitNzTj9+NB1nnp/Fu9r11mfua3nixEaDwhf3jlgyuMuzrMn6O0zM/mxi0PMFe4ZlzM0YPGlO6vTh03e93zV12YxmvsBBy3Ovpk5N9W9TP1M/bUv9LDXt+ps3Ax7jU8V3zb+rmHq0yZSGxrEHIr6Y/0Xy550nd148c/GXQqnSYVWM1dLeGjRveJ/h97Ug23yYt3+AOzmOWiyJnjC/tCwdM7z38MJPLbg6ZMg//6BgwG/qsJycaNxY+YfGwnlVlY0b1W2mmtY2Oz++Z8ufxv43MTpn5Oyh3cs7bRwzvqbNndKJX/fEHrF3+IKeCV2sbVtlZVeUF3ToHG2aumyinl06N6W0Z2ZmL2v74qGj8isBACAAwbnPNi3rYS78zciy3wHAxx23+gDAp+CNsdpPWiD7HTsXgAEDAAi4/hZlXw7hwMBbaYE+v6JbdVI4EAfKZyqqkSSdFQGMNqIxDiEMmR7QF0BQatAZiyoTgKkAiyUJprKMAPtZVqazLEfxHasTHOO59eREoNwII00y2iADDDSWokQ6Vbp0CquhBumtV21VxCk30AGG1+IpOZtTJFFUGquvlN3JoZRsb4zp9JNAv9p4/Tb0E8AwaJjTMM43Tjv9DGIziKLMCEP1Va+fAcYZqpfR0qRQ2ScK2FVwqlaQOnCMd9JxGNRoY6ZGGE45NU5+yCKS2lbpvkQt6P9fBNhPe/7/bgAAKS4FWlCkFRmBRe56AAA=') format('woff2');
+    font-display: swap;
+  }
+
+  deck-stage > section {
+    font-family: 'Helvetica Neue', 'Inter', 'Arial', sans-serif;
+    color: var(--ink);
+    background: var(--paper);
+    letter-spacing: -0.01em;
+  }
+
+  /* -------- Typographic defaults -------- */
+  .title {
+    font-size: var(--t-title);
+    font-weight: 800;
+    line-height: 0.95;
+    letter-spacing: -0.03em;
+    margin: 0;
+  }
+  .h2 {
+    font-size: var(--t-h2);
+    font-weight: 800;
+    line-height: 1;
+    letter-spacing: -0.025em;
+    margin: 0;
+  }
+  .body {
+    font-size: var(--t-body);
+    line-height: 1.35;
+    font-weight: 400;
+    margin: 0;
+  }
+  .small {
+    font-size: var(--t-small);
+    line-height: 1.4;
+    font-weight: 500;
+    letter-spacing: 0;
+    margin: 0;
+  }
+  .eyebrow {
+    font-family: 'SFMono-Regular', ui-monospace, Menlo, monospace;
+    font-size: 24px;
+    font-weight: 500;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    margin: 0;
+  }
+  .mono { font-family: 'SFMono-Regular', ui-monospace, Menlo, monospace; }
+
+  /* -------- Wordmark (original) -------- */
+  .mark {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    font-family: 'SFMono-Regular', ui-monospace, Menlo, monospace;
+    font-size: 24px;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+  }
+  .mark .slash {
+    display: inline-block;
+    width: 10px;
+    height: 26px;
+    background: currentColor;
+    transform: skewX(-22deg);
+  }
+
+  /* -------- Slide frame -------- */
+  .slide {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+  }
+  .slide.cream { background: var(--cream); }
+  .slide.ink   { background: var(--ink); color: var(--paper); }
+  .slide.red   { background: var(--red); color: var(--paper); }
+  .slide.blue  { background: var(--blue); color: var(--paper); }
+  .slide.amber { background: var(--amber); color: var(--ink); }
+
+  .pad { padding: var(--pad); height: 100%; display: flex; flex-direction: column; }
+
+  /* Footer bar on content slides */
+  .footer {
+    position: absolute;
+    left: var(--pad);
+    right: var(--pad);
+    bottom: 48px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-family: 'SFMono-Regular', ui-monospace, Menlo, monospace;
+    font-size: 24px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    opacity: 0.55;
+  }
+
+  /* -------- Tile grid (cover-style mosaic) -------- */
+  .mosaic {
+    display: grid;
+    width: 100%;
+    height: 100%;
+  }
+
+  .tile { position: relative; overflow: hidden; }
+  .tile.red    { background: var(--red); }
+  .tile.blue   { background: var(--blue); }
+  .tile.amber  { background: var(--amber); }
+  .tile.ink    { background: var(--ink); }
+  .tile.cream  { background: var(--cream); }
+  .tile.paper  { background: var(--paper); }
+
+  /* Dot pattern background */
+  .dots {
+    background-image: radial-gradient(var(--dot) 6px, transparent 6.5px);
+    background-size: 40px 40px;
+    background-position: 20px 20px;
+  }
+  .dots.blue {
+    background-color: var(--blue);
+    background-image: radial-gradient(rgba(255,255,255,0.35) 6px, transparent 6.5px);
+  }
+  .dots.cream {
+    background-color: var(--cream);
+  }
+
+  /* Diagonal stripes */
+  .stripes-diag {
+    background-image: repeating-linear-gradient(
+      -45deg,
+      var(--ink) 0 18px,
+      transparent 18px 36px
+    );
+  }
+  .stripes-diag.white {
+    background-image: repeating-linear-gradient(
+      -45deg,
+      var(--paper) 0 18px,
+      transparent 18px 36px
+    );
+  }
+
+  /* ---- Geometric shapes ---- */
+  .shape { position: absolute; }
+  .circle { border-radius: 50%; }
+
+  /* Half circle via clip */
+  .half-top    { clip-path: inset(0 0 50% 0); }
+  .half-bottom { clip-path: inset(50% 0 0 0); }
+  .half-left   { clip-path: inset(0 50% 0 0); }
+  .half-right  { clip-path: inset(0 0 0 50%); }
+
+  /* Arc (C-shape) */
+  .arc {
+    border-radius: 50%;
+    background: transparent;
+    border-style: solid;
+  }
+
+  /* Vertical bars (for Q1 bar-chart motif) */
+  .bars {
+    display: flex;
+    align-items: flex-end;
+    gap: 14px;
+    height: 100%;
+  }
+  .bar { width: 30px; background: var(--paper); }
+
+  /* =====================================================================
+     SLIDE LAYOUTS
+     ===================================================================== */
+
+  /* Cover */
+  .cover {
+    display: grid;
+    grid-template-columns: 1.35fr 1fr;
+    grid-template-rows: 1fr 1fr;
+    width: 100%;
+    height: 100%;
+    background: var(--cream);
+  }
+  .cover .hero {
+    grid-column: 1 / 2;
+    grid-row: 1 / 3;
+    background: var(--red);
+    color: var(--paper);
+    padding: 110px 100px 90px;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    position: relative;
+    overflow: hidden;
+  }
+  .cover .hero .big {
+    font-weight: 800;
+    line-height: 0.92;
+    letter-spacing: -0.035em;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+  }
+  .cover .hero .cover-year {
+    font-family: 'Alimama ShuHeiTi', 'Helvetica Neue', 'Inter', 'Arial', sans-serif;
+    font-size: 275px;
+    font-weight: 800;
+    line-height: 0.82;
+    letter-spacing: -0.035em;
+    margin-bottom: 20px;
+  }
+  .cover .hero .cover-review {
+    font-family: 'Alimama ShuHeiTi', 'Helvetica Neue', 'Inter', 'Arial', sans-serif;
+    font-size: 210px;
+    font-weight: 800;
+    line-height: 0.9;
+    letter-spacing: 0;
+    white-space: nowrap;
+  }
+  .cover .hero .sub {
+    font-size: 32px;
+    max-width: none;
+    line-height: 1.35;
+    margin-top: 40px;
+    white-space: nowrap;
+  }
+  .cover .tile-a { background: var(--blue); position: relative; }
+  .cover .tile-b { background: var(--ink); position: relative; }
+
+  /* Q section header */
+  .qsection {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    height: 100%;
+  }
+  .qsection .label {
+    padding: var(--pad);
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+  }
+  .qsection .art {
+    position: relative;
+    overflow: hidden;
+  }
+
+  /* Stat grid */
+  .statgrid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 0;
+    border-top: 2px solid var(--ink);
+    border-left: 2px solid var(--ink);
+  }
+  .statgrid .cell {
+    border-right: 2px solid var(--ink);
+    border-bottom: 2px solid var(--ink);
+    padding: 44px 36px 36px;
+    min-height: 260px;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+  }
+  .statgrid .num {
+    font-size: 104px;
+    font-weight: 800;
+    line-height: 0.95;
+    letter-spacing: -0.035em;
+  }
+  .statgrid .lbl { font-size: 24px; font-weight: 500; }
+  .statgrid .note { font-size: 24px; opacity: 0.6; font-family: ui-monospace, monospace; }
+
+  /* TOC list */
+  .toc {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 2px;
+    background: var(--ink);
+  }
+  .toc .row {
+    background: var(--cream);
+    padding: 36px 40px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 36px;
+    font-weight: 600;
+  }
+  .toc .row .num {
+    font-family: ui-monospace, monospace;
+    font-size:24px;
+    opacity: 0.5;
+    letter-spacing: 0.08em;
+  }
+
+  /* Table */
+  table.t {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 28px;
+  }
+  table.t th, table.t td {
+    text-align: left;
+    padding: 24px 20px;
+    border-bottom: 2px solid var(--ink);
+    font-weight: 500;
+  }
+  table.t th {
+    font-family: ui-monospace, monospace;
+    text-transform: uppercase;
+    font-size:24px;
+    letter-spacing: 0.1em;
+    opacity: 0.6;
+    border-bottom: 2px solid var(--ink);
+    padding-bottom: 16px;
+  }
+  table.t td.num { font-family: ui-monospace, monospace; text-align: right; font-weight: 600; }
+  table.t tr.total td { font-weight: 800; border-top: 3px solid var(--ink); border-bottom: 0; padding-top: 28px; }
+
+  /* Bar chart (CSS only) */
+  .chart {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 28px;
+    width: 100%;
+  }
+  .chart .row { display: grid; grid-template-columns: 200px 1fr 140px; align-items: center; gap: 24px; }
+  .chart .row .lbl { font-size: 26px; font-weight: 600; }
+  .chart .row .track { height: 40px; background: rgba(17,19,23,0.08); position: relative; }
+  .chart .row .fill { height: 100%; }
+  .chart .row .val { font-family: ui-monospace, monospace; font-size: 24px; font-weight: 700; text-align: right; }
+
+  /* Pull quote */
+  .quote {
+    font-size: 104px;
+    font-weight: 800;
+    line-height: 1.02;
+    letter-spacing: -0.035em;
+    max-width: 1400px;
+  }
+  .quote .open { color: var(--red); }
+
+  /* Two-col text */
+  .two-col {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 80px;
+    align-items: start;
+  }
+
+  /* Utility */
+  .sp-between { display: flex; justify-content: space-between; align-items: center; }
+  .col { display: flex; flex-direction: column; }
+  .row { display: flex; flex-direction: row; align-items: center; }
+  .mt-auto { margin-top: auto; }
+</style>
+</head>
+<body>
+
+<deck-stage width="1920" height="1080">
+
+  <!-- ============================================================
+       01 — COVER
+       ============================================================ -->
+  <section data-label="封面">
+    <div class="cover">
+      <div class="hero">
+        <div class="mark"><span class="slash"></span>NW LABS</div>
+        <div>
+          <div class="eyebrow" style="opacity:.8;margin-bottom:32px;">市场营销 · 年终复盘</div>
+          <div class="big">
+            <div class="cover-year">2025</div>
+            <div class="cover-review">年度复盘</div>
+          </div>
+          <div class="sub">Northwind Labs 品牌重塑、管道扩张与社区建设的一年。</div>
+        </div>
+        <div class="sp-between" style="font-family:ui-monospace,monospace;font-size:24px;letter-spacing:.08em;opacity:.85;">
+          <div>2025 · 12 · 18</div>
+          <div>MARA OKONKWO · 市场负责人</div>
+        </div>
+      </div>
+
+      <div class="cover tile-a" style="display:block;">
+        <!-- half circle + dot (cobalt tile) -->
+        <div class="shape circle" style="width:60%;aspect-ratio:1;background:var(--paper);left:50%;top:55%;transform:translate(-50%,-50%);clip-path:inset(50% 0 0 0);"></div>
+        <div class="shape circle" style="width:11%;aspect-ratio:1;background:var(--amber);right:14%;top:42%;"></div>
+      </div>
+      <div class="cover tile-b" style="display:block;">
+        <!-- vertical bars motif (ink tile) -->
+        <div style="position:absolute;inset:0;padding:80px 60px;">
+          <div class="bars">
+            <div class="bar" style="height:52%;background:var(--red);"></div>
+            <div class="bar" style="height:78%;"></div>
+            <div class="bar" style="height:38%;background:var(--amber);"></div>
+            <div class="bar" style="height:92%;"></div>
+            <div class="bar" style="height:64%;background:var(--red);"></div>
+            <div class="bar" style="height:46%;"></div>
+            <div class="bar" style="height:84%;background:var(--amber);"></div>
+            <div class="bar" style="height:28%;"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============================================================
+       02 — THE YEAR AT A GLANCE
+       ============================================================ -->
+  <section data-label="一览">
+    <div class="slide cream">
+      <div class="pad">
+        <div class="sp-between">
+          <div class="eyebrow">章节 · 01</div>
+          <div class="mark"><span class="slash"></span>NW LABS</div>
+        </div>
+        <h1 class="title" style="margin-top:40px;max-width:1400px;">全年概览。</h1>
+
+        <div class="statgrid" style="margin-top:80px;">
+          <div class="cell">
+            <div class="lbl">营销来源管道额</div>
+            <div class="num" style="color:var(--red);">$42.8M</div>
+            <div class="note">同比 +38%</div>
+          </div>
+          <div class="cell">
+            <div class="lbl">合格线索（MQL）</div>
+            <div class="num" style="color:var(--blue);">18,412</div>
+            <div class="note">同比 +61%</div>
+          </div>
+          <div class="cell">
+            <div class="lbl">品牌搜索量</div>
+            <div class="num">2.4×</div>
+            <div class="note">较 2025 年 1 月</div>
+          </div>
+          <div class="cell" style="background:var(--ink);color:var(--paper);">
+            <div class="lbl">CAC 回收期</div>
+            <div class="num" style="color:var(--amber);">9.1个月</div>
+            <div class="note" style="opacity:.7;">从 14.2 个月降至</div>
+          </div>
+        </div>
+
+        <div class="footer">
+          <div>01 · 全年概览</div>
+          <div>市场营销 · 2025 年终</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============================================================
+       03 — AGENDA / QUARTERS OVERVIEW
+       ============================================================ -->
+  <section data-label="议程">
+    <div class="slide">
+      <div class="pad">
+        <div class="sp-between">
+          <div class="eyebrow">议程</div>
+          <div class="mark"><span class="slash"></span>NW LABS</div>
+        </div>
+        <h1 class="title" style="margin-top:40px;max-width:1400px;">四个季度，<br/>四个重点。</h1>
+
+        <div class="toc" style="margin-top:80px;">
+          <div class="row"><span>Q1 — 品牌重启</span><span class="num">/ 01</span></div>
+          <div class="row"><span>Q2 — 需求引擎</span><span class="num">/ 02</span></div>
+          <div class="row"><span>Q3 — 内容与社区</span><span class="num">/ 03</span></div>
+          <div class="row"><span>Q4 — 留存与扩张</span><span class="num">/ 04</span></div>
+        </div>
+
+        <div class="footer">
+          <div>02 · 议程</div>
+          <div>市场营销 · 2025 年终</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============================================================
+       04 — Q1 BRAND RELAUNCH (red section header)
+       ============================================================ -->
+  <section data-label="Q1 品牌">
+    <div class="slide" style="background:var(--red);color:var(--paper);">
+      <div class="qsection">
+        <div class="label">
+          <div class="sp-between">
+            <div class="eyebrow" style="opacity:.85;">Q1 · 1月 – 3月</div>
+            <div class="mark" style="opacity:.85;"><span class="slash"></span>NW LABS</div>
+          </div>
+          <div>
+            <h1 class="title" style="font-size:120px;">品牌<br/>重启。</h1>
+            <p class="body" style="max-width:620px;margin-top:36px;opacity:.9;">
+              全新的识别体系、更聚焦的叙事，以及面向规模化的系统。
+              11 周内上线 12 个触点。
+            </p>
+          </div>
+          <div class="row" style="gap:40px;opacity:.85;font-family:ui-monospace,monospace;font-size:24px;letter-spacing:.08em;">
+            <div>投入 · $480K</div>
+            <div>团队 · 6</div>
+            <div>上线 · 3月4日</div>
+          </div>
+        </div>
+        <div class="art">
+          <!-- Vertical bars on red, reminiscent of a rebuild motif -->
+          <div style="position:absolute;inset:0;padding:120px 80px;">
+            <div class="bars" style="gap:22px;">
+              <div class="bar" style="height:38%;background:var(--ink);"></div>
+              <div class="bar" style="height:64%;"></div>
+              <div class="bar" style="height:86%;background:var(--ink);"></div>
+              <div class="bar" style="height:44%;"></div>
+              <div class="bar" style="height:72%;background:var(--ink);"></div>
+              <div class="bar" style="height:100%;"></div>
+              <div class="bar" style="height:56%;background:var(--ink);"></div>
+              <div class="bar" style="height:34%;"></div>
+              <div class="bar" style="height:78%;background:var(--ink);"></div>
+              <div class="bar" style="height:50%;"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============================================================
+       05 — Q2 DEMAND ENGINE (blue section header)
+       ============================================================ -->
+  <section data-label="Q2 需求">
+    <div class="slide blue">
+      <div class="qsection">
+        <div class="label">
+          <div class="sp-between">
+            <div class="eyebrow" style="opacity:.85;">Q2 · 4月 – 6月</div>
+            <div class="mark" style="opacity:.85;"><span class="slash"></span>NW LABS</div>
+          </div>
+          <div>
+            <h1 class="title" style="font-size:120px;">需求<br/>引擎。</h1>
+            <p class="body" style="max-width:620px;margin-top:36px;opacity:.9;">
+              付费、自然增长与生命周期运营统一到同一个漏斗。
+              MQL 数量增长至 3 倍，单商机成本下降 44%。
+            </p>
+          </div>
+          <div class="row" style="gap:40px;opacity:.85;font-family:ui-monospace,monospace;font-size:24px;letter-spacing:.08em;">
+            <div>投入 · $1.8M</div>
+            <div>渠道 · 7</div>
+            <div>单商机成本 · –44%</div>
+          </div>
+        </div>
+        <div class="art">
+          <!-- Half-circle + dot -->
+          <div class="shape" style="width:70%;aspect-ratio:1;background:var(--paper);left:50%;top:62%;transform:translate(-50%,-50%);clip-path:inset(50% 0 0 0);"></div>
+          <div class="shape circle" style="width:13%;aspect-ratio:1;background:var(--amber);right:18%;top:48%;"></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============================================================
+       06 — Q3 CONTENT & COMMUNITY (amber section header)
+       ============================================================ -->
+  <section data-label="Q3 内容">
+    <div class="slide amber">
+      <div class="qsection">
+        <div class="label">
+          <div class="sp-between">
+            <div class="eyebrow" style="opacity:.75;">Q3 · 7月 – 9月</div>
+            <div class="mark"><span class="slash"></span>NW LABS</div>
+          </div>
+          <div>
+            <h1 class="title" style="font-size:120px;">内容<br/>与社区。</h1>
+            <p class="body" style="max-width:620px;margin-top:36px;">
+              发布节奏翻倍。上线旗舰长篇研究系列 Practitioner Index，
+              并启动首个区域线下活动项目。
+            </p>
+          </div>
+          <div class="row" style="gap:40px;font-family:ui-monospace,monospace;font-size:24px;letter-spacing:.08em;opacity:.75;">
+            <div>文章 · 184</div>
+            <div>活动 · 22</div>
+            <div>订阅 · 86K</div>
+          </div>
+        </div>
+        <div class="art">
+          <!-- Two overlapping half-circles -->
+          <div class="shape" style="width:58%;aspect-ratio:1;background:var(--red);left:28%;top:50%;transform:translate(-50%,-50%);clip-path:inset(0 50% 0 0);"></div>
+          <div class="shape" style="width:58%;aspect-ratio:1;background:var(--ink);left:62%;top:50%;transform:translate(-50%,-50%);clip-path:inset(0 0 0 50%);"></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============================================================
+       07 — Q4 RETENTION & EXPANSION (ink section header)
+       ============================================================ -->
+  <section data-label="Q4 留存">
+    <div class="slide ink">
+      <div class="qsection">
+        <div class="label">
+          <div class="sp-between">
+            <div class="eyebrow" style="opacity:.7;">Q4 · 10月 – 12月</div>
+            <div class="mark" style="opacity:.85;"><span class="slash"></span>NW LABS</div>
+          </div>
+          <div>
+            <h1 class="title" style="font-size:120px;">留存<br/>与扩张。</h1>
+            <p class="body" style="max-width:620px;margin-top:36px;opacity:.85;">
+              生命周期营销接手售后增长。现有客户扩张 ARR 增至 2.1 倍；
+              NPS 从 34 提升到 52。
+            </p>
+          </div>
+          <div class="row" style="gap:40px;opacity:.75;font-family:ui-monospace,monospace;font-size:24px;letter-spacing:.08em;">
+            <div>扩张 · 2.1×</div>
+            <div>NPS · 52</div>
+            <div>流失 · –3.2百分点</div>
+          </div>
+        </div>
+        <div class="art">
+          <!-- Concentric target motif -->
+          <div class="shape circle" style="width:60%;aspect-ratio:1;background:var(--paper);left:50%;top:50%;transform:translate(-50%,-50%);"></div>
+          <div class="shape circle" style="width:44%;aspect-ratio:1;background:var(--blue);left:50%;top:50%;transform:translate(-50%,-50%);"></div>
+          <div class="shape circle" style="width:30%;aspect-ratio:1;background:var(--red);left:50%;top:50%;transform:translate(-50%,-50%);"></div>
+          <div class="shape circle" style="width:16%;aspect-ratio:1;background:var(--amber);left:50%;top:50%;transform:translate(-50%,-50%);"></div>
+          <div class="shape circle" style="width:6%;aspect-ratio:1;background:var(--ink);left:50%;top:50%;transform:translate(-50%,-50%);"></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============================================================
+       08 — PIPELINE CONTRIBUTION (data table)
+       ============================================================ -->
+  <section data-label="管道额">
+    <div class="slide cream">
+      <div class="pad">
+        <div class="sp-between">
+          <div class="eyebrow">章节 · 02 · 结果</div>
+          <div class="mark"><span class="slash"></span>NW LABS</div>
+        </div>
+        <h1 class="title" style="margin-top:40px;">管道贡献。</h1>
+        <p class="body" style="margin-top:24px;max-width:1100px;opacity:.75;">
+          按季度拆分的营销来源管道额，对比 2024 年基线。
+        </p>
+
+        <div style="margin-top:60px;max-width:1400px;">
+          <table class="t">
+            <thead>
+              <tr><th>季度</th><th>项目</th><th style="text-align:right;">2024 管道额</th><th style="text-align:right;">2025 管道额</th><th style="text-align:right;">Δ</th></tr>
+            </thead>
+            <tbody>
+              <tr><td>Q1</td><td>品牌重启</td><td class="num">$4.2M</td><td class="num">$6.8M</td><td class="num" style="color:var(--red);">+62%</td></tr>
+              <tr><td>Q2</td><td>需求引擎</td><td class="num">$8.1M</td><td class="num">$13.4M</td><td class="num" style="color:var(--red);">+65%</td></tr>
+              <tr><td>Q3</td><td>内容与社区</td><td class="num">$9.8M</td><td class="num">$11.2M</td><td class="num" style="color:var(--red);">+14%</td></tr>
+              <tr><td>Q4</td><td>留存与扩张</td><td class="num">$8.9M</td><td class="num">$11.4M</td><td class="num" style="color:var(--red);">+28%</td></tr>
+              <tr class="total"><td colspan="2">2025 合计</td><td class="num">$31.0M</td><td class="num">$42.8M</td><td class="num" style="color:var(--red);">+38%</td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <div class="footer">
+          <div>03 · 管道额</div>
+          <div>市场营销 · 2025 年终</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============================================================
+       09 — CHANNEL PERFORMANCE (bar chart)
+       ============================================================ -->
+  <section data-label="渠道">
+    <div class="slide">
+      <div class="pad">
+        <div class="sp-between">
+          <div class="eyebrow">章节 · 02 · 结果</div>
+          <div class="mark"><span class="slash"></span>NW LABS</div>
+        </div>
+        <h1 class="title" style="margin-top:40px;">渠道表现。</h1>
+        <p class="body" style="margin-top:24px;max-width:1100px;opacity:.65;">按渠道拆分的来源管道额占比 · 2025 财年</p>
+
+        <div class="chart" style="margin-top:70px;max-width:1500px;">
+          <div class="row"><div class="lbl">自然搜索</div><div class="track"><div class="fill" style="width:74%;background:var(--red);"></div></div><div class="val">$11.6M</div></div>
+          <div class="row"><div class="lbl">付费社媒</div><div class="track"><div class="fill" style="width:58%;background:var(--blue);"></div></div><div class="val">$9.1M</div></div>
+          <div class="row"><div class="lbl">生命周期邮件</div><div class="track"><div class="fill" style="width:46%;background:var(--amber);"></div></div><div class="val">$7.2M</div></div>
+          <div class="row"><div class="lbl">活动与聚会</div><div class="track"><div class="fill" style="width:38%;background:var(--ink);"></div></div><div class="val">$6.0M</div></div>
+          <div class="row"><div class="lbl">合作伙伴</div><div class="track"><div class="fill" style="width:32%;background:var(--red);"></div></div><div class="val">$5.0M</div></div>
+          <div class="row"><div class="lbl">付费搜索</div><div class="track"><div class="fill" style="width:24%;background:var(--blue);"></div></div><div class="val">$3.9M</div></div>
+        </div>
+
+        <div class="footer">
+          <div>04 · 渠道</div>
+          <div>市场营销 · 2025 年终</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============================================================
+       10 — BRAND AWARENESS LIFT (big number)
+       ============================================================ -->
+  <section data-label="品牌提升">
+    <div class="slide blue" style="color:var(--paper);">
+      <div class="pad">
+        <div class="sp-between">
+          <div class="eyebrow" style="opacity:.8;">章节 · 02 · 结果</div>
+          <div class="mark" style="opacity:.85;"><span class="slash"></span>NW LABS</div>
+        </div>
+
+        <div style="margin-top:60px;display:grid;grid-template-columns:1.1fr .9fr;gap:80px;align-items:center;flex:1;">
+          <div>
+            <p class="eyebrow" style="opacity:.8;">品牌认知提升</p>
+            <div style="font-size:360px;font-weight:800;line-height:.88;letter-spacing:-0.045em;margin-top:24px;">2.4×</div>
+            <p class="body" style="margin-top:40px;max-width:540px;opacity:.9;">
+              买家样本中的无提示认知率从 1 月的 11%
+              提升至 11 月的 27%。品牌词搜索量同步增长，
+              同期提升 2.4 倍。
+            </p>
+          </div>
+
+          <div style="position:relative;height:580px;">
+            <div class="shape circle" style="width:520px;height:520px;background:var(--paper);left:50%;top:50%;transform:translate(-50%,-50%);"></div>
+            <div class="shape circle" style="width:360px;height:360px;background:var(--red);left:50%;top:50%;transform:translate(-50%,-50%);"></div>
+            <div class="shape circle" style="width:220px;height:220px;background:var(--amber);left:50%;top:50%;transform:translate(-50%,-50%);"></div>
+            <div class="shape" style="width:520px;height:260px;background:var(--blue);left:50%;top:50%;transform:translate(-50%,0);"></div>
+          </div>
+        </div>
+
+        <div class="footer" style="color:var(--paper);opacity:.7;">
+          <div>05 · 品牌提升</div>
+          <div>市场营销 · 2025 年终</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============================================================
+       11 — CONTENT ENGINE OUTPUT (stat grid)
+       ============================================================ -->
+  <section data-label="内容引擎">
+    <div class="slide cream">
+      <div class="pad">
+        <div class="sp-between">
+          <div class="eyebrow">章节 · 02 · 结果</div>
+          <div class="mark"><span class="slash"></span>NW LABS</div>
+        </div>
+        <h1 class="title" style="margin-top:40px;">内容引擎产出。</h1>
+
+        <div class="statgrid" style="margin-top:80px;">
+          <div class="cell">
+            <div class="lbl">长篇文章</div>
+            <div class="num">184</div>
+            <div class="note">同比 +112%</div>
+          </div>
+          <div class="cell" style="background:var(--red);color:var(--paper);">
+            <div class="lbl">研究报告</div>
+            <div class="num">7</div>
+            <div class="note" style="opacity:.8;">含 Practitioner Index</div>
+          </div>
+          <div class="cell">
+            <div class="lbl">邮件简报订阅者</div>
+            <div class="num" style="color:var(--blue);">86.2K</div>
+            <div class="note">同比 +148%</div>
+          </div>
+          <div class="cell" style="background:var(--amber);">
+            <div class="lbl">自然访问 / 月</div>
+            <div class="num">1.9M</div>
+            <div class="note">1 月为 540K</div>
+          </div>
+        </div>
+
+        <div class="footer">
+          <div>06 · 内容</div>
+          <div>市场营销 · 2025 年终</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============================================================
+       12 — COMMUNITY & EVENTS (mosaic)
+       ============================================================ -->
+  <section data-label="社区">
+    <div class="slide">
+      <div class="mosaic" style="grid-template-columns:1.25fr .75fr .6fr .6fr;grid-template-rows:1fr 1fr;">
+
+        <!-- Big paper tile with headline -->
+        <div class="tile paper" style="grid-column:1/2;grid-row:1/3;padding:100px;display:flex;flex-direction:column;justify-content:space-between;">
+          <div class="sp-between">
+            <div class="eyebrow">章节 · 02 · 结果</div>
+            <div class="mark"><span class="slash"></span>NW LABS</div>
+          </div>
+          <div>
+            <h1 class="title" style="font-size:100px;">社区<br/>与活动。</h1>
+            <p class="body" style="margin-top:32px;max-width:560px;opacity:.75;">
+              Practitioner 线下活动项目覆盖 4 大洲 22 个城市。
+              9,400 人到场参与，另有 54,000 人加入 Discord。
+            </p>
+          </div>
+          <div class="row" style="gap:60px;font-family:ui-monospace,monospace;font-size:24px;letter-spacing:.08em;opacity:.55;">
+            <div>22 城市</div>
+            <div>9.4K 参会者</div>
+            <div>54K Discord 社群</div>
+          </div>
+        </div>
+
+        <!-- cobalt tile — half-circle + dot -->
+        <div class="tile blue" style="grid-column:2/3;grid-row:1/2;">
+          <div class="shape" style="width:72%;aspect-ratio:1;background:var(--paper);left:50%;top:62%;transform:translate(-50%,-50%);clip-path:inset(50% 0 0 0);"></div>
+          <div class="shape circle" style="width:14%;aspect-ratio:1;background:var(--amber);right:14%;top:50%;"></div>
+        </div>
+
+        <!-- amber tile — triangle pattern -->
+        <div class="tile amber" style="grid-column:3/4;grid-row:1/2;display:flex;align-items:center;justify-content:center;">
+          <svg viewBox="0 0 200 200" style="width:70%;height:70%;">
+            <polygon points="100,30 170,170 30,170" fill="#111317"/>
+            <polygon points="100,70 145,155 55,155" fill="#E04A2F"/>
+          </svg>
+        </div>
+
+        <!-- ink tile with diagonal stripes -->
+        <div class="tile ink stripes-diag white" style="grid-column:4/5;grid-row:1/2;"></div>
+
+        <!-- dots tile -->
+        <div class="tile dots cream" style="grid-column:2/3;grid-row:2/3;"></div>
+
+        <!-- red tile with half-circle -->
+        <div class="tile red" style="grid-column:3/4;grid-row:2/3;">
+          <div class="shape" style="width:130%;aspect-ratio:1;background:var(--ink);left:50%;top:100%;transform:translate(-50%,-50%);clip-path:inset(50% 0 0 0);"></div>
+        </div>
+
+        <!-- ink tile with circle+half -->
+        <div class="tile ink" style="grid-column:4/5;grid-row:2/3;display:flex;align-items:center;justify-content:center;">
+          <div style="position:relative;width:70%;aspect-ratio:1;">
+            <div class="shape circle" style="inset:0;background:var(--amber);"></div>
+            <div class="shape circle" style="inset:0;background:var(--ink);clip-path:inset(0 50% 0 0);"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============================================================
+       13 — WHAT WORKED (two col list)
+       ============================================================ -->
+  <section data-label="有效做法">
+    <div class="slide cream">
+      <div class="pad">
+        <div class="sp-between">
+          <div class="eyebrow">章节 · 03 · 复盘</div>
+          <div class="mark"><span class="slash"></span>NW LABS</div>
+        </div>
+        <h1 class="title" style="margin-top:40px;">有效做法。</h1>
+
+        <div class="two-col" style="margin-top:70px;">
+          <div class="col" style="gap:36px;">
+            <div class="row" style="gap:28px;align-items:flex-start;">
+              <div style="width:70px;height:70px;background:var(--red);flex-shrink:0;"></div>
+              <div>
+                <div class="h2" style="font-size:40px;">更清晰的叙事</div>
+                <p class="body" style="margin-top:10px;opacity:.7;">“实践者优先” 定位让销售和产品有了统一主线。信息测试推动 CTR 提升 31%。</p>
+              </div>
+            </div>
+            <div class="row" style="gap:28px;align-items:flex-start;">
+              <div style="width:70px;height:70px;background:var(--blue);border-radius:50%;clip-path:inset(0 50% 0 0);flex-shrink:0;"></div>
+              <div>
+                <div class="h2" style="font-size:40px;">生命周期成为渠道</div>
+                <p class="body" style="margin-top:10px;opacity:.7;">把邮件当作需求渠道，而不是培育补充，贡献了 $7.2M 来源管道额。</p>
+              </div>
+            </div>
+            <div class="row" style="gap:28px;align-items:flex-start;">
+              <div style="width:70px;height:70px;background:var(--amber);border-radius:50%;flex-shrink:0;"></div>
+              <div>
+                <div class="h2" style="font-size:40px;">重回线下</div>
+                <p class="body" style="margin-top:10px;opacity:.7;">线下活动转化率是线上活动的 3.4 倍。2026 财年应继续加码。</p>
+              </div>
+            </div>
+          </div>
+          <div class="col" style="gap:36px;">
+            <div class="row" style="gap:28px;align-items:flex-start;">
+              <div style="width:70px;height:70px;background:var(--ink);flex-shrink:0;"></div>
+              <div>
+                <div class="h2" style="font-size:40px;">旗舰研究</div>
+                <p class="body" style="margin-top:10px;opacity:.7;">Practitioner Index 带来 Q3 入站的 47%。一个大投入胜过几十个小项目。</p>
+              </div>
+            </div>
+            <div class="row" style="gap:28px;align-items:flex-start;">
+              <div style="width:70px;height:70px;background:var(--red);clip-path:polygon(50% 0, 100% 100%, 0 100%);flex-shrink:0;"></div>
+              <div>
+                <div class="h2" style="font-size:40px;">真正的设计系统</div>
+                <p class="body" style="margin-top:10px;opacity:.7;">交付模板而不是一次性素材，把活动周期从 6.1 周缩短到 2.4 周。</p>
+              </div>
+            </div>
+            <div class="row" style="gap:28px;align-items:flex-start;">
+              <div style="width:70px;height:35px;background:var(--blue);border-radius:70px 70px 0 0;flex-shrink:0;margin-top:18px;"></div>
+              <div>
+                <div class="h2" style="font-size:40px;">伙伴联合营销</div>
+                <p class="body" style="margin-top:10px;opacity:.7;">与伙伴共创报告，让触达翻倍，同时生产成本只有原来的 40%。</p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="footer">
+          <div>07 · 有效做法</div>
+          <div>市场营销 · 2025 年终</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============================================================
+       14 — WHAT DIDN'T (honest list)
+       ============================================================ -->
+  <section data-label="未达预期">
+    <div class="slide">
+      <div class="pad">
+        <div class="sp-between">
+          <div class="eyebrow">章节 · 03 · 复盘</div>
+          <div class="mark"><span class="slash"></span>NW LABS</div>
+        </div>
+        <h1 class="title" style="margin-top:40px;">未达预期。</h1>
+
+        <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:40px;margin-top:70px;">
+          <div style="border-top:6px solid var(--red);padding-top:32px;">
+            <div class="mono" style="font-size:24px;letter-spacing:.1em;opacity:.5;">未中 · 01</div>
+            <div class="h2" style="font-size:42px;margin-top:12px;">付费搜索平台期</div>
+            <p class="body" style="margin-top:16px;opacity:.7;">核心品类 CPC 上升 63%。尽管持续测试创意，Q4 ROAS 仍跌破 1.8。</p>
+          </div>
+          <div style="border-top:6px solid var(--blue);padding-top:32px;">
+            <div class="mono" style="font-size:24px;letter-spacing:.1em;opacity:.5;">未中 · 02</div>
+            <div class="h2" style="font-size:42px;margin-top:12px;">视频投入不足</div>
+            <p class="body" style="margin-top:16px;opacity:.7;">原计划 40 条视频，实际只交付 14 条。这个形式已被竞争对手验证，我们必须补上。</p>
+          </div>
+          <div style="border-top:6px solid var(--amber);padding-top:32px;">
+            <div class="mono" style="font-size:24px;letter-spacing:.1em;opacity:.5;">未中 · 03</div>
+            <div class="h2" style="font-size:42px;margin-top:12px;">APAC 扩张停滞</div>
+            <p class="body" style="margin-top:16px;opacity:.7;">缺少本地化内容，也没有区域团队。APAC 管道额维持在总量的 6%，没有增长。</p>
+          </div>
+        </div>
+
+        <div style="margin-top:80px;padding:48px 56px;background:var(--ink);color:var(--paper);max-width:1500px;">
+          <p class="body" style="font-size:36px;font-weight:500;line-height:1.3;">
+            共同问题：第二波投入不足。一旦某件事被验证有效，我们加码的速度太慢。
+          </p>
+        </div>
+
+        <div class="footer">
+          <div>08 · 未达预期</div>
+          <div>市场营销 · 2025 年终</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============================================================
+       15 — 2026 PRIORITIES
+       ============================================================ -->
+  <section data-label="2026 重点">
+    <div class="slide cream">
+      <div class="pad">
+        <div class="sp-between">
+          <div class="eyebrow">章节 · 04 · 下一步</div>
+          <div class="mark"><span class="slash"></span>NW LABS</div>
+        </div>
+        <h1 class="title" style="margin-top:40px;">2026 优先事项。</h1>
+
+        <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:2px;margin-top:80px;background:var(--ink);border:2px solid var(--ink);">
+          <div style="background:var(--red);color:var(--paper);padding:48px 36px;display:flex;flex-direction:column;justify-content:space-between;min-height:440px;">
+            <div class="mono" style="font-size:24px;letter-spacing:.1em;opacity:.85;">01</div>
+            <div>
+              <div class="h2" style="font-size:44px;line-height:1;">加倍投入<br/>研究<br/>引擎。</div>
+              <p class="body" style="margin-top:20px;opacity:.9;font-size:24px;">四份旗舰报告。每季度一份。团队配置到位。</p>
+            </div>
+          </div>
+          <div style="background:var(--blue);color:var(--paper);padding:48px 36px;display:flex;flex-direction:column;justify-content:space-between;min-height:440px;">
+            <div class="mono" style="font-size:24px;letter-spacing:.1em;opacity:.85;">02</div>
+            <div>
+              <div class="h2" style="font-size:44px;line-height:1;">把视频<br/>作为一级<br/>渠道。</div>
+              <p class="body" style="margin-top:20px;opacity:.9;font-size:24px;">专属小组。每周系列内容；每月长篇内容。</p>
+            </div>
+          </div>
+          <div style="background:var(--amber);padding:48px 36px;display:flex;flex-direction:column;justify-content:space-between;min-height:440px;">
+            <div class="mono" style="font-size:24px;letter-spacing:.1em;opacity:.7;">03</div>
+            <div>
+              <div class="h2" style="font-size:44px;line-height:1;">APAC<br/>市场进入。</div>
+              <p class="body" style="margin-top:20px;font-size:24px;opacity:.8;">区域负责人、日语 + 韩语内容，并纳入三座线下活动城市。</p>
+            </div>
+          </div>
+          <div style="background:var(--ink);color:var(--paper);padding:48px 36px;display:flex;flex-direction:column;justify-content:space-between;min-height:440px;">
+            <div class="mono" style="font-size:24px;letter-spacing:.1em;opacity:.7;">04</div>
+            <div>
+              <div class="h2" style="font-size:44px;line-height:1;">提升<br/>度量<br/>成熟度。</div>
+              <p class="body" style="margin-top:20px;opacity:.85;font-size:24px;">Q2 前在所有付费渠道上线营销组合模型（MMM）+ 增量测试。</p>
+            </div>
+          </div>
+        </div>
+
+        <div class="footer">
+          <div>09 · 2026 重点</div>
+          <div>市场营销 · 2025 年终</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============================================================
+       16 — CLOSING / THANK YOU
+       ============================================================ -->
+  <section data-label="致谢">
+    <div class="slide" style="background:var(--red);color:var(--paper);">
+      <div class="mosaic" style="grid-template-columns:1.4fr 1fr;grid-template-rows:1fr;">
+        <div style="padding:120px 100px;display:flex;flex-direction:column;justify-content:space-between;">
+          <div class="sp-between">
+            <div class="mark" style="opacity:.9;"><span class="slash"></span>NW LABS</div>
+            <div class="eyebrow" style="opacity:.85;">完。</div>
+          </div>
+          <div>
+            <div style="font-size:200px;font-weight:800;line-height:.9;letter-spacing:-0.04em;">谢谢<br/>大家。</div>
+            <p class="body" style="margin-top:48px;max-width:720px;opacity:.9;font-size:32px;">
+              致 22 位一起把 2025 做成的人，也致被我们一路拉着向前的团队。
+              下一程继续。
+            </p>
+          </div>
+          <div class="row" style="gap:60px;font-family:ui-monospace,monospace;font-size:24px;letter-spacing:.08em;opacity:.85;">
+            <div>问题？</div>
+            <div>MARA@NORTHWIND.LABS</div>
+          </div>
+        </div>
+
+        <!-- Right-side mosaic art -->
+        <div style="display:grid;grid-template-columns:1fr 1fr;grid-template-rows:1fr 1fr;">
+          <div style="background:var(--blue);position:relative;">
+            <div class="shape" style="width:80%;aspect-ratio:1;background:var(--paper);left:50%;top:62%;transform:translate(-50%,-50%);clip-path:inset(50% 0 0 0);"></div>
+            <div class="shape circle" style="width:16%;aspect-ratio:1;background:var(--amber);right:14%;top:52%;"></div>
+          </div>
+          <div style="background:var(--amber);position:relative;">
+            <div class="shape" style="width:80%;aspect-ratio:1;background:var(--red);left:28%;top:50%;transform:translate(-50%,-50%);clip-path:inset(0 50% 0 0);"></div>
+            <div class="shape" style="width:80%;aspect-ratio:1;background:var(--ink);left:72%;top:50%;transform:translate(-50%,-50%);clip-path:inset(0 0 0 50%);"></div>
+          </div>
+          <div style="background:var(--ink);position:relative;">
+            <div class="shape circle" style="width:62%;aspect-ratio:1;background:var(--paper);left:50%;top:50%;transform:translate(-50%,-50%);"></div>
+            <div class="shape circle" style="width:38%;aspect-ratio:1;background:var(--red);left:50%;top:50%;transform:translate(-50%,-50%);"></div>
+            <div class="shape circle" style="width:18%;aspect-ratio:1;background:var(--amber);left:50%;top:50%;transform:translate(-50%,-50%);"></div>
+          </div>
+          <div class="dots" style="background-color:var(--cream);position:relative;">
+            <div class="shape" style="width:50%;height:14%;background:var(--blue);left:50%;top:50%;transform:translate(-50%,-50%) rotate(-22deg);"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+</deck-stage>
+
+</body>
+</html>

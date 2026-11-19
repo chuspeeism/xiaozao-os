@@ -1,0 +1,160 @@
+<!doctype html>
+<html lang="zh">
+<head>
+<meta charset="utf-8" />
+<title>大师的 AI 小灶 — 账号愿景</title>
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;700;800&family=Cormorant+Garamond:wght@500;700&family=ZCOOL+KuaiLe&display=swap" rel="stylesheet">
+<style>
+  html, body { margin: 0; padding: 0; background: #000; }
+  * { box-sizing: border-box; }
+  deck-stage > section > div { width: 100%; height: 100%; }
+  @font-face {
+    font-family: 'Space Grotesk';
+    font-weight: 800 900;
+    font-style: normal;
+    src: local('Space Grotesk Bold');
+  }
+
+  /* Tweak: font swap — !important beats inline styles. */
+  body[data-tweak-font="serif"] deck-stage *:not(svg):not(svg *) {
+    font-family: 'Cormorant Garamond', 'Times New Roman', Georgia, serif !important;
+    letter-spacing: -0.01em !important;
+  }
+  body[data-tweak-font="cute"] deck-stage *:not(svg):not(svg *) {
+    font-family: 'ZCOOL KuaiLe', 'Space Grotesk', sans-serif !important;
+  }
+  body[data-tweak-font="mono"] deck-stage *:not(svg):not(svg *) {
+    font-family: 'JetBrains Mono', ui-monospace, Menlo, monospace !important;
+  }
+
+  /* Tweak: density — hides decorative chrome at low, packs more at high. */
+  body[data-tweak-density="low"] [data-deco] { display: none !important; }
+  body[data-tweak-density="low"] [data-deco="corner"] { display: none !important; }
+  body[data-tweak-density="low"] [data-deco="subtitle"] { display: none !important; }
+  body[data-tweak-density="low"] [data-deco="footer"] { display: none !important; }
+
+  /* Tweak: bg color override — applies to every SlideFrame root. */
+  body[data-tweak-bg] deck-stage > section > div { background: var(--tweak-bg, #16F08B) !important; }
+  /* Vision slide is intentionally inverted (black bg) — don't recolor it. */
+  body[data-tweak-bg] deck-stage > section[data-label="Vision"] > div { background: #000 !important; }
+</style>
+<script src="deck-stage.js"></script>
+<script src="https://unpkg.com/react@18.3.1/umd/react.development.js" integrity="sha384-hD6/rw4ppMLGNu3tX5cjIb+uRZ7UkRJ6BPkLpg4hAu/6onKUg4lLsHAs9EBPT82L" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" integrity="sha384-u6aeetuaXnQ38mYT8rp6sbXaQe3NL9t+IBXmnYxwkUI2Hw4bsp2Wvmx4yRQF1uAm" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" integrity="sha384-m08KidiNqLdpJqLq95G/LEi8Qvjl/xUYll3QILypMoQ65QorJ9Lvtp2RXYGBFj1y" crossorigin="anonymous"></script>
+</head>
+<body>
+
+<deck-stage width="1920" height="1080">
+  <section data-label="Cover" id="s1"></section>
+  <section data-label="Cover Alt" id="s1b"></section>
+  <section data-label="Who" id="s2"></section>
+  <section data-label="Menu" id="s3"></section>
+  <section data-label="Box Office" id="s4"></section>
+  <section data-label="House Specials" id="s5"></section>
+  <section data-label="Vision" id="s6"></section>
+  <section data-label="Roadmap" id="s7"></section>
+  <section data-label="End" id="s8"></section>
+</deck-stage>
+
+<div id="tweaks-root"></div>
+
+<script type="text/babel" src="tweaks-panel.jsx"></script>
+<script type="text/babel" src="slides.jsx"></script>
+<script type="text/babel">
+  const mounts = [
+    ['s1',  window.SlideCover],
+    ['s1b', window.SlideCoverB],
+    ['s2',  window.SlideWho],
+    ['s3',  window.SlideMenu],
+    ['s4',  window.SlideMetrics],
+    ['s5',  window.SlideSpecials],
+    ['s6',  window.SlideVision],
+    ['s7',  window.SlideRoadmap],
+    ['s8',  window.SlideEnd],
+  ];
+  mounts.forEach(([id, Comp]) => {
+    const el = document.getElementById(id);
+    if (el && Comp) ReactDOM.createRoot(el).render(<Comp />);
+  });
+
+  // ---- Tweaks Panel ------------------------------------------------------
+  const TWEAK_DEFAULTS = /*EDITMODE-BEGIN*/{
+    "bg": "#ff2c14",
+    "font": "mono",
+    "density": "high"
+  }/*EDITMODE-END*/;
+
+  function applyTweaksToDOM(t) {
+    document.body.dataset.tweakFont = t.font;
+    document.body.dataset.tweakDensity = t.density;
+    document.body.dataset.tweakBg = t.bg;
+    document.body.style.setProperty('--tweak-bg', t.bg);
+    window.__tweaks = { ...t };
+    window.dispatchEvent(new CustomEvent('tweakschange', { detail: t }));
+  }
+  applyTweaksToDOM(TWEAK_DEFAULTS);
+
+  function App() {
+    const [t, setTweak] = window.useTweaks(TWEAK_DEFAULTS);
+
+    React.useEffect(() => {
+      applyTweaksToDOM(t);
+    }, [t]);
+
+    return (
+      <window.TweaksPanel title="Tweaks">
+        <window.TweakSection title="背景色调">
+          <window.TweakColor
+            label="主色"
+            value={t.bg}
+            onChange={(v) => setTweak('bg', v)}
+          />
+        </window.TweakSection>
+
+        <window.TweakSection title="信息密度">
+          <window.TweakRadio
+            label="密度"
+            value={t.density}
+            onChange={(v) => setTweak('density', v)}
+            options={[
+              { value: 'low', label: '简洁' },
+              { value: 'standard', label: '标准' },
+              { value: 'high', label: '满格' },
+            ]}
+          />
+        </window.TweakSection>
+
+        <window.TweakSection title="字体替换">
+          <window.TweakRadio
+            label="字族"
+            value={t.font}
+            onChange={(v) => setTweak('font', v)}
+            options={[
+              { value: 'sans',  label: '默认' },
+              { value: 'serif', label: '衬线' },
+              { value: 'cute',  label: '俏皮' },
+              { value: 'mono',  label: '等宽' },
+            ]}
+          />
+        </window.TweakSection>
+      </window.TweaksPanel>
+    );
+  }
+
+  // Wait for Babel to expose tweak components, then mount.
+  function tryMount() {
+    if (window.TweaksPanel && window.TweakSection && window.useTweaks && window.SlideCover) {
+      ReactDOM.createRoot(document.getElementById('tweaks-root')).render(<App />);
+    } else {
+      requestAnimationFrame(tryMount);
+    }
+  }
+  tryMount();
+</script>
+
+</body>
+</html>

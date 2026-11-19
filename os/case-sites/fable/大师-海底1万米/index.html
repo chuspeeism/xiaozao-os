@@ -1,0 +1,1044 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="theme-color" content="#02060c">
+<meta name="description" content="向下滚动，从海面一路下潜至 10,909 米的马里亚纳海沟，沿途遇见蓝鲸、巨型乌贼、深海鮟鱇、冥河水母、巨型端足虫与奋斗者号潜水器。">
+<title>深潜 10,000 米 · 深海生物尺寸对比模拟器</title>
+<style>
+  :root{
+    --ink:#dff2fb;
+    --ink-dim:#8fb9d4;
+    --cyan:#4fd2ff;
+  }
+  *{box-sizing:border-box}
+  html{scroll-behavior:auto}
+  body{
+    margin:0;
+    background:#02060c;
+    color:var(--ink);
+    font-family:"PingFang SC","Hiragino Sans GB","Microsoft YaHei","Noto Sans SC",system-ui,sans-serif;
+    overflow-x:hidden;
+    -webkit-font-smoothing:antialiased;
+  }
+  canvas#ocean{position:fixed;inset:0;width:100vw;height:100vh;z-index:0;display:block}
+  #fallback{position:fixed;inset:0;z-index:0;display:none}
+  body.no-webgl #ocean{display:none}
+  body.no-webgl #fallback{display:block}
+
+  main{position:relative;z-index:2}
+
+  /* ---------- HUD ---------- */
+  #hud{
+    position:fixed;top:20px;left:22px;z-index:20;
+    user-select:none;pointer-events:none;
+    font-variant-numeric:tabular-nums;
+  }
+  .hud-brand{
+    font-size:11px;letter-spacing:.42em;color:var(--ink-dim);
+    text-transform:uppercase;margin-bottom:6px;
+  }
+  .hud-depth{
+    font-size:46px;font-weight:700;line-height:1;color:#bfeaff;
+    text-shadow:0 0 18px rgba(79,210,255,.45);
+  }
+  .hud-depth .unit{font-size:18px;font-weight:400;margin-left:6px;color:var(--ink-dim)}
+  .hud-rows{margin-top:10px;font-size:12.5px;color:var(--ink-dim)}
+  .hud-row{display:flex;gap:10px;margin:3px 0}
+  .hud-row span{width:3.2em;letter-spacing:.2em}
+  .hud-row b{font-weight:600;color:#cdeaf8}
+  .hud-zone{
+    display:inline-block;margin-top:12px;padding:5px 12px;border-radius:999px;
+    font-size:12px;letter-spacing:.18em;border:1px solid rgba(143,216,255,.35);
+    background:rgba(20,60,90,.35);color:#aee6ff;backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);
+    transition:background .8s,border-color .8s,color .8s;
+  }
+  .hud-zone.z0{background:rgba(40,140,190,.35);color:#d8f5ff}
+  .hud-zone.z1{background:rgba(22,90,150,.35);color:#aee6ff}
+  .hud-zone.z2{background:rgba(20,45,110,.40);color:#9fc4ff;border-color:rgba(120,160,255,.30)}
+  .hud-zone.z3{background:rgba(16,24,80,.45);color:#92a8f0;border-color:rgba(110,130,230,.28)}
+  .hud-zone.z4{background:rgba(30,12,60,.5);color:#b9a6f5;border-color:rgba(150,120,240,.3)}
+
+  /* ---------- 右侧深度标尺 ---------- */
+  #ruler{position:fixed;right:18px;top:50%;transform:translateY(-50%);z-index:20;pointer-events:none}
+  .ruler-track{
+    position:relative;width:30px;height:72vh;border-radius:8px;overflow:visible;
+    background:linear-gradient(to bottom,
+      #2a93c9 0%, #2a93c9 1.8%,
+      #14528e 1.8%, #14528e 9.1%,
+      #122c63 9.1%, #122c63 36.4%,
+      #0c1c44 36.4%, #0c1c44 54.5%,
+      #070f2b 54.5%, #04081a 100%);
+    border:1px solid rgba(143,216,255,.22);
+    box-shadow:inset 0 0 18px rgba(0,0,0,.55);
+  }
+  .ruler-tick{position:absolute;right:calc(100% + 7px);transform:translateY(-50%);
+    font-size:10px;color:rgba(160,210,240,.55);letter-spacing:.08em;white-space:nowrap}
+  #rulerMarker{
+    position:absolute;left:-5px;right:-5px;height:2px;background:#bfeaff;
+    box-shadow:0 0 10px rgba(79,210,255,.9);transition:none;
+  }
+  #rulerMarker i{
+    position:absolute;right:calc(100% + 9px);top:50%;transform:translateY(-50%);
+    font-style:normal;font-size:11px;font-weight:600;color:#bfeaff;white-space:nowrap;
+    text-shadow:0 0 8px rgba(79,210,255,.6);
+  }
+
+  /* ---------- 通用 section ---------- */
+  .section{
+    min-height:165vh;
+    display:flex;flex-direction:column;align-items:center;justify-content:center;
+    padding:10vh 22px;position:relative;
+  }
+  .section.far{margin-top:55vh}
+
+  .depth-tag{
+    display:flex;align-items:center;gap:16px;
+    font-size:13px;letter-spacing:.4em;color:#8fd8ff;
+    text-transform:uppercase;margin-bottom:5vh;white-space:nowrap;
+  }
+  .depth-tag::before,.depth-tag::after{
+    content:"";display:block;width:11vw;max-width:140px;height:1px;
+    background:linear-gradient(90deg,transparent,rgba(143,216,255,.6));
+  }
+  .depth-tag::after{background:linear-gradient(90deg,rgba(143,216,255,.6),transparent)}
+
+  /* 入场动画 */
+  .reveal{opacity:0;transform:translateY(64px);transition:opacity 1.3s cubic-bezier(.2,.7,.2,1),transform 1.3s cubic-bezier(.2,.7,.2,1)}
+  .reveal.visible{opacity:1;transform:translateY(0)}
+  figure.reveal{transition-delay:.1s}
+  .card.reveal{transition-delay:.22s}
+
+  /* ---------- 生物 ---------- */
+  figure.creature{margin:0 0 5vh;position:relative;animation:floaty 9s ease-in-out infinite}
+  figure.creature svg{display:block;height:auto;overflow:visible}
+  @keyframes floaty{0%,100%{transform:translateY(0) rotate(-.4deg)}50%{transform:translateY(-18px) rotate(.4deg)}}
+
+  .whale  svg{width:min(92vw,1180px);filter:drop-shadow(0 0 34px rgba(40,120,170,.25))}
+  .squid  svg{width:min(88vw,1060px);filter:drop-shadow(0 0 30px rgba(140,40,60,.18))}
+  .angler {animation-duration:6.5s}
+  .angler svg{width:min(52vw,470px);filter:drop-shadow(0 0 26px rgba(60,130,200,.14))}
+  .jelly  {animation-duration:7.5s}
+  .jelly  svg{width:min(36vw,300px);filter:drop-shadow(0 0 40px rgba(255,80,100,.16))}
+  .amphi  {animation-duration:5.5s}
+  .amphi  svg{width:min(46vw,420px);filter:drop-shadow(0 0 26px rgba(255,220,190,.16))}
+  .sub    {animation-duration:6s}
+  .sub    svg{width:min(64vw,640px);filter:drop-shadow(0 0 30px rgba(120,255,210,.10))}
+
+  /* 鮟鱇拟饵发光 */
+  .esca{animation:escaPulse 2.4s ease-in-out infinite;transform-box:fill-box;transform-origin:center}
+  @keyframes escaPulse{0%,100%{opacity:.5}50%{opacity:1}}
+
+  /* 水母伞盖搏动 */
+  .bell{animation:bellPulse 4.6s ease-in-out infinite;transform-box:fill-box;transform-origin:50% 22%}
+  @keyframes bellPulse{0%,100%{transform:scale(1,1)}50%{transform:scale(.952,1.05)}}
+  .jarm{animation:armSway 4.6s ease-in-out infinite;transform-box:fill-box;transform-origin:50% 0%}
+  @keyframes armSway{0%,100%{transform:rotate(.8deg)}50%{transform:rotate(-.8deg)}}
+
+  /* 潜水器灯光 */
+  .beam{
+    position:absolute;left:-44%;width:52%;height:17%;
+    background:linear-gradient(to left,rgba(255,250,215,.30),rgba(255,250,215,0) 88%);
+    clip-path:polygon(100% 36%,0 0,0 100%,100% 64%);
+    filter:blur(3px);transform-origin:right center;
+    animation:flick 5s linear infinite;pointer-events:none;
+  }
+  .beam.b1{top:34%;transform:rotate(-4deg)}
+  .beam.b2{top:56%;transform:rotate(7deg);animation-delay:1.7s}
+  @keyframes flick{0%,100%{opacity:.78}43%{opacity:1}47%{opacity:.85}60%{opacity:.98}}
+
+  /* ---------- 信息卡 ---------- */
+  .card{
+    max-width:620px;width:100%;
+    background:rgba(7,18,32,.58);
+    border:1px solid rgba(120,200,255,.14);
+    border-radius:18px;padding:30px 34px 26px;
+    backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);
+    box-shadow:0 18px 60px rgba(0,0,0,.45);
+  }
+  .card h2{margin:0 0 16px;font-size:30px;letter-spacing:.04em}
+  .card h2 .latin{font-style:italic;font-weight:400;font-size:.52em;color:var(--ink-dim);margin-left:10px;letter-spacing:.02em}
+  .stats{display:flex;flex-wrap:wrap;gap:10px 28px;margin-bottom:16px}
+  .stats div{min-width:120px}
+  .stats label{display:block;font-size:11px;letter-spacing:.25em;color:#6fa3c4;margin-bottom:3px}
+  .stats b{font-weight:600;font-size:15.5px;color:#d6f0fd}
+  .card p{margin:0 0 18px;line-height:1.85;font-size:14.5px;color:#c2dcec}
+
+  /* 比例尺 */
+  .scale{border-top:1px dashed rgba(120,200,255,.18);padding-top:16px}
+  .srow{display:grid;grid-template-columns:92px 1fr 70px;align-items:center;gap:12px;margin:9px 0}
+  .sname{font-size:12.5px;color:var(--ink-dim);display:flex;align-items:center;gap:6px;letter-spacing:.06em}
+  .hico{width:9px;height:21px;fill:#e8b765;flex:none}
+  .sbar{height:10px;border-radius:6px;width:var(--w);min-width:4px;
+    background:linear-gradient(90deg,#2bd4ff,#1378b8);
+    box-shadow:0 0 12px rgba(43,212,255,.35)}
+  .sbar.human{background:linear-gradient(90deg,#ffd47e,#e8a13c);box-shadow:0 0 10px rgba(255,200,120,.3)}
+  .sval{font-size:12px;color:var(--ink-dim);text-align:right;font-variant-numeric:tabular-nums}
+  .scap{margin:12px 0 0;font-size:12.5px;color:#7fa8c4;line-height:1.7}
+
+  /* ---------- 首屏 ---------- */
+  .intro{min-height:112vh;text-align:center}
+  .intro h1{
+    margin:0;font-size:clamp(46px,9vw,98px);font-weight:800;letter-spacing:.06em;line-height:1.12;
+    background:linear-gradient(180deg,#eafaff 20%,#5fc6f0 75%,#1f6fa8);
+    -webkit-background-clip:text;background-clip:text;color:transparent;
+    text-shadow:0 0 60px rgba(80,190,255,.25);
+  }
+  .intro h1 em{font-style:normal;color:transparent}
+  .intro .sub{margin:18px 0 0;font-size:clamp(15px,2.4vw,21px);letter-spacing:.55em;color:#9fd4ee;text-indent:.55em}
+  .intro .desc{margin:4vh auto 0;max-width:560px;line-height:2;color:#a9c8db;font-size:14.5px}
+  .scroll-hint{margin-top:9vh;font-size:13px;letter-spacing:.4em;color:#8fd8ff;animation:hint 2.2s ease-in-out infinite}
+  @keyframes hint{0%,100%{transform:translateY(0);opacity:.55}50%{transform:translateY(12px);opacity:1}}
+
+  /* ---------- 终点 ---------- */
+  .finale{min-height:130vh;text-align:center}
+  .finale h2{font-size:clamp(34px,6vw,64px);margin:0 0 8px;letter-spacing:.08em;color:#cfe2ff;text-shadow:0 0 40px rgba(110,140,255,.3)}
+  .finale .fsub{letter-spacing:.5em;color:#7d93c9;font-size:13px;margin-bottom:6vh;text-indent:.5em}
+  .finale p{max-width:560px;margin:0 auto;line-height:2.1;color:#aebfd8;font-size:14.5px}
+  .fstats{display:flex;gap:42px;justify-content:center;flex-wrap:wrap;margin:7vh 0}
+  .fstats div b{display:block;font-size:30px;color:#bfd6ff;font-weight:700;text-shadow:0 0 20px rgba(120,150,255,.4)}
+  .fstats div span{font-size:11.5px;letter-spacing:.3em;color:#6f84b3}
+  #toTop{
+    margin-top:7vh;padding:13px 38px;border-radius:999px;cursor:pointer;
+    background:rgba(40,80,160,.25);border:1px solid rgba(140,180,255,.4);color:#cfe2ff;
+    font-size:14px;letter-spacing:.3em;text-indent:.3em;font-family:inherit;
+    transition:background .4s,box-shadow .4s;
+  }
+  #toTop:hover{background:rgba(60,110,210,.4);box-shadow:0 0 30px rgba(100,150,255,.35)}
+  .foot-note{margin-top:8vh;font-size:11.5px;color:#46618c;letter-spacing:.1em}
+
+  @media (prefers-reduced-motion:reduce){
+    figure.creature,.bell,.jarm,.esca,.scroll-hint,.beam{animation:none!important}
+    .reveal{transition:opacity .6s}
+  }
+  @media (max-width:760px){
+    #ruler{display:none}
+    .hud-depth{font-size:34px}
+    .hud-rows{font-size:11.5px}
+    .card{padding:24px 22px}
+    .card h2{font-size:24px}
+    .whale svg,.squid svg{width:96vw}
+    .angler svg{width:74vw}
+    .jelly svg{width:52vw}
+    .amphi svg{width:68vw}
+    .sub svg{width:84vw}
+    .section.far{margin-top:30vh}
+    .srow{grid-template-columns:78px 1fr 58px}
+  }
+</style>
+</head>
+<body>
+
+<canvas id="ocean"></canvas>
+<div id="fallback"></div>
+
+<!-- 共享小人图标 -->
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <symbol id="icon-human" viewBox="0 0 40 100">
+    <circle cx="20" cy="11" r="9"/>
+    <path d="M20,22 C30,22 34,30 34,42 L31,61 L26,61 L26,96 L21.5,96 L20.8,66 L19.2,66 L18.5,96 L14,96 L14,61 L9,61 L6,42 C6,30 10,22 20,22 Z"/>
+  </symbol>
+</svg>
+
+<div id="hud" aria-hidden="true">
+  <div class="hud-brand">Abyss Dive · 深潜模拟器</div>
+  <div class="hud-depth"><span id="depthNum">0</span><span class="unit">m</span></div>
+  <div class="hud-rows">
+    <div class="hud-row"><span>压强</span><b id="pressure">1 atm</b></div>
+    <div class="hud-row"><span>水温</span><b id="temp">23.0 ℃</b></div>
+    <div class="hud-row"><span>阳光</span><b id="light">100%</b></div>
+  </div>
+  <div class="hud-zone z0" id="zoneChip">透光带 · EPIPELAGIC</div>
+</div>
+
+<div id="ruler" aria-hidden="true">
+  <div class="ruler-track">
+    <span class="ruler-tick" style="top:1.8%">200</span>
+    <span class="ruler-tick" style="top:9.1%">1,000</span>
+    <span class="ruler-tick" style="top:36.4%">4,000</span>
+    <span class="ruler-tick" style="top:54.5%">6,000</span>
+    <span class="ruler-tick" style="top:99.2%">10,909</span>
+    <div id="rulerMarker"><i>0 m</i></div>
+  </div>
+</div>
+
+<main>
+
+  <!-- ======================= 海面 ======================= -->
+  <header class="section intro" data-depth="0">
+    <h1>深潜 <em>10,000</em> 米</h1>
+    <p class="sub">深海生物尺寸对比模拟器</p>
+    <p class="desc">
+      向下滚动，从阳光摇曳的海面一路下潜至马里亚纳海沟。<br>
+      沿途你将依次遇见六位深海居民——
+      它们的体型、栖息深度与生存方式，远比传说更奇异。
+    </p>
+    <div class="scroll-hint">↓ 滚动开始下潜</div>
+  </header>
+
+  <!-- ======================= 蓝鲸 · 300 m ======================= -->
+  <section class="section" data-depth="300">
+    <div class="depth-tag reveal">水深 300 米 · 暮光带上缘</div>
+
+    <figure class="creature whale reveal" aria-label="蓝鲸剪影">
+      <svg viewBox="0 0 960 250" role="img">
+        <defs>
+          <linearGradient id="whaleGrad" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0" stop-color="#1c3c58"/>
+            <stop offset=".55" stop-color="#0d2236"/>
+            <stop offset="1" stop-color="#050d16"/>
+          </linearGradient>
+        </defs>
+        <path fill="url(#whaleGrad)" d="M30,132
+          C64,100 134,80 212,72
+          C340,60 480,62 608,80
+          L622,78
+          C632,60 646,54 660,57
+          C654,70 648,79 644,84
+          C700,92 756,100 800,104
+          C826,82 856,66 888,60
+          C876,88 868,102 862,114
+          L852,116
+          C864,128 876,144 884,166
+          C854,156 826,142 802,128
+          C740,142 660,158 566,166
+          C430,176 300,176 204,166
+          C130,158 66,148 30,132 Z"/>
+        <path fill="url(#whaleGrad)" d="M186,148 C226,158 262,174 286,198 C254,198 220,188 196,170 C186,162 182,154 186,148 Z"/>
+        <path fill="none" stroke="#2c597c" stroke-opacity=".5" stroke-width="1.5"
+          d="M58,142 C140,160 240,168 330,168 M62,148 C140,166 230,173 316,173"/>
+        <path fill="none" stroke="#0a1825" stroke-width="2" d="M34,134 C90,142 150,148 210,150"/>
+        <circle cx="100" cy="120" r="4.5" fill="#9fd4e8" opacity=".85"/>
+      </svg>
+    </figure>
+
+    <article class="card reveal">
+      <h2>蓝鲸<span class="latin">Balaenoptera musculus</span></h2>
+      <div class="stats">
+        <div><label>体长</label><b>24 – 33 米</b></div>
+        <div><label>体重</label><b>可达 180 吨</b></div>
+        <div><label>活动水层</label><b>0 – 500 米</b></div>
+      </div>
+      <p>
+        地球已知历史上最大的动物，比任何恐龙都重。它靠滤食磷虾为生，盛食季每天能吞下约
+        4 吨；觅食下潜通常在 100–300 米水层，一次闭气 10–20 分钟。
+        它的心脏重约 180 公斤，鸣声能传播数百公里——是海洋中最响亮的声音之一。
+      </p>
+      <div class="scale">
+        <div class="srow">
+          <span class="sname"><svg class="hico"><use href="#icon-human"/></svg>人类</span>
+          <div class="sbar human" style="--w:6.1%"></div><span class="sval">1.7 m</span>
+        </div>
+        <div class="srow">
+          <span class="sname">蓝鲸</span>
+          <div class="sbar" style="--w:100%"></div><span class="sval">≈28 m</span>
+        </div>
+        <p class="scap">同一比例下，一头蓝鲸约等于 16 个成年人首尾相连；仅舌头就接近一头大象的重量。</p>
+      </div>
+    </article>
+  </section>
+
+  <!-- ======================= 大王乌贼 · 800 m ======================= -->
+  <section class="section" data-depth="800">
+    <div class="depth-tag reveal">水深 800 米 · 暮光带深处</div>
+
+    <figure class="creature squid reveal" aria-label="大王乌贼剪影">
+      <svg viewBox="0 0 1100 320" role="img">
+        <defs>
+          <linearGradient id="sqGrad" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0" stop-color="#3c1620"/>
+            <stop offset=".5" stop-color="#240d14"/>
+            <stop offset="1" stop-color="#12060b"/>
+          </linearGradient>
+          <radialGradient id="sqEye" cx=".4" cy=".4" r=".75">
+            <stop offset="0" stop-color="#bfe9f2"/>
+            <stop offset=".55" stop-color="#5d96a8"/>
+            <stop offset="1" stop-color="#1a333f"/>
+          </radialGradient>
+        </defs>
+        <!-- 鳍 -->
+        <path fill="url(#sqGrad)" d="M40,156 C62,104 114,72 174,66 C146,98 102,134 54,162 Z"/>
+        <path fill="url(#sqGrad)" d="M40,164 C62,216 114,248 174,254 C146,222 102,186 54,158 Z"/>
+        <!-- 外套膜 -->
+        <path fill="url(#sqGrad)" d="M30,160 C80,118 170,96 290,98 C330,99 352,112 358,132 L358,188 C352,208 330,221 290,222 C170,224 80,202 30,160 Z"/>
+        <!-- 头部 -->
+        <path fill="url(#sqGrad)" d="M356,130 C386,122 404,122 420,131 L420,189 C404,198 386,198 356,190 Z"/>
+        <circle cx="396" cy="160" r="24" fill="url(#sqEye)"/>
+        <circle cx="399" cy="161" r="10" fill="#04070a"/>
+        <!-- 八条腕（示意五条） -->
+        <path fill="url(#sqGrad)" d="M418,128 C480,104 540,92 600,90 C540,102 482,116 422,140 Z"/>
+        <path fill="url(#sqGrad)" d="M420,138 C520,112 610,104 700,116 C612,124 524,134 426,152 Z"/>
+        <path fill="url(#sqGrad)" d="M424,150 C540,140 650,142 740,160 C648,164 540,160 426,162 Z"/>
+        <path fill="url(#sqGrad)" d="M424,168 C540,176 640,186 720,206 C632,206 532,192 422,178 Z"/>
+        <path fill="url(#sqGrad)" d="M420,180 C500,202 580,224 640,250 C560,242 480,216 418,192 Z"/>
+        <!-- 两条长触腕 -->
+        <path fill="none" stroke="#240d14" stroke-width="8" stroke-linecap="round" d="M428,156 C600,150 760,170 920,160"/>
+        <ellipse cx="948" cy="158" rx="42" ry="13" fill="url(#sqGrad)" transform="rotate(-4 948 158)"/>
+        <path fill="none" stroke="#240d14" stroke-width="7" stroke-linecap="round" d="M426,170 C590,190 740,226 880,238"/>
+        <ellipse cx="908" cy="243" rx="38" ry="12" fill="url(#sqGrad)" transform="rotate(8 908 243)"/>
+      </svg>
+    </figure>
+
+    <article class="card reveal">
+      <h2>大王乌贼<span class="latin">Architeuthis dux</span></h2>
+      <div class="stats">
+        <div><label>全长</label><b>可达 12 – 13 米</b></div>
+        <div><label>眼睛直径</label><b>约 27 厘米</b></div>
+        <div><label>栖息深度</label><b>300 – 1,000 米</b></div>
+      </div>
+      <p>
+        北欧海怪“克拉肯”传说的原型，直到 2004 年人类才首次在深海拍到活体。
+        它拥有动物界最大的眼睛之一——接近排球大小，用于在微光中提早察觉天敌抹香鲸的轮廓。
+        捕猎时，两条带吸盘锯齿的长触腕会像弹簧一样瞬间射出，缠住猎物拖回腕间。
+      </p>
+      <div class="scale">
+        <div class="srow">
+          <span class="sname"><svg class="hico"><use href="#icon-human"/></svg>人类</span>
+          <div class="sbar human" style="--w:14.2%"></div><span class="sval">1.7 m</span>
+        </div>
+        <div class="srow">
+          <span class="sname">大王乌贼</span>
+          <div class="sbar" style="--w:100%"></div><span class="sval">≈12 m</span>
+        </div>
+        <p class="scap">含触腕全长与一辆城市公交车相当；仅眼球就比人的拳头还大。</p>
+      </div>
+    </article>
+  </section>
+
+  <!-- ======================= 深海鮟鱇 · 2400 m ======================= -->
+  <section class="section" data-depth="2400">
+    <div class="depth-tag reveal">水深 2,400 米 · 午夜带</div>
+
+    <figure class="creature angler reveal" aria-label="深海鮟鱇剪影">
+      <svg viewBox="0 0 640 460" role="img">
+        <defs>
+          <linearGradient id="angGrad" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0" stop-color="#19202c"/>
+            <stop offset=".6" stop-color="#0b1019"/>
+            <stop offset="1" stop-color="#04060a"/>
+          </linearGradient>
+          <radialGradient id="escaCore" cx=".5" cy=".5" r=".5">
+            <stop offset="0" stop-color="#f2ffff"/>
+            <stop offset=".4" stop-color="#9ef2ff"/>
+            <stop offset="1" stop-color="#9ef2ff" stop-opacity="0"/>
+          </radialGradient>
+        </defs>
+        <!-- 钓竿 -->
+        <path fill="none" stroke="#5c707d" stroke-width="4" stroke-linecap="round" d="M268,128 C252,72 196,40 138,66"/>
+        <!-- 发光拟饵 -->
+        <g class="esca">
+          <circle cx="134" cy="70" r="26" fill="url(#escaCore)" opacity=".7"/>
+          <circle cx="134" cy="70" r="7" fill="#eaffff"/>
+        </g>
+        <!-- 身体 -->
+        <path fill="url(#angGrad)" d="M152,210
+          L216,252 L140,312
+          C172,338 232,366 322,368
+          C422,362 482,304 488,242
+          C482,172 422,120 322,120
+          C250,122 184,156 152,210 Z"/>
+        <!-- 尾鳍 / 胸鳍 -->
+        <path fill="url(#angGrad)" d="M488,242 C520,212 548,206 570,212 C556,234 556,252 568,274 C546,278 516,268 488,242 Z"/>
+        <path fill="url(#angGrad)" d="M390,332 C416,354 442,364 468,362 C446,378 414,376 392,360 Z"/>
+        <!-- 牙齿 -->
+        <g fill="#c8d6dd" opacity=".88">
+          <path d="M162,216 L173,236 L178,222 Z"/>
+          <path d="M180,228 L191,247 L196,233 Z"/>
+          <path d="M198,240 L208,257 L212,243 Z"/>
+          <path d="M150,304 L146,282 L160,294 Z"/>
+          <path d="M168,291 L166,269 L179,282 Z"/>
+          <path d="M186,278 L185,257 L198,270 Z"/>
+          <path d="M204,265 L203,246 L215,258 Z"/>
+        </g>
+        <circle cx="232" cy="200" r="10" fill="#b9d6e2" opacity=".9"/>
+        <circle cx="234" cy="201" r="5" fill="#0a0f14"/>
+      </svg>
+    </figure>
+
+    <article class="card reveal">
+      <h2>深海鮟鱇<span class="latin">Melanocetus johnsonii</span></h2>
+      <div class="stats">
+        <div><label>雌鱼体长</label><b>18 厘米 – 1.2 米*</b></div>
+        <div><label>雄鱼体长</label><b>仅 2 – 3 厘米</b></div>
+        <div><label>栖息深度</label><b>1,000 – 4,000 米</b></div>
+      </div>
+      <p>
+        午夜带的伏击猎手。雌鱼头顶的“钓竿”末端长着发光器，依靠共生发光细菌发出幽蓝的光点，
+        在彻底的黑暗中诱捕猎物；血盆大口与可扩张的胃，让它能吞下比自己还长的猎物。
+        雄鱼则只有指节大小，找到雌鱼后会咬住其腹部并永久融合，沦为提供精子的“寄生配偶”。
+      </p>
+      <div class="scale">
+        <div class="srow">
+          <span class="sname"><svg class="hico"><use href="#icon-human"/></svg>人类</span>
+          <div class="sbar human" style="--w:100%"></div><span class="sval">1.7 m</span>
+        </div>
+        <div class="srow">
+          <span class="sname">鮟鱇雌鱼</span>
+          <div class="sbar" style="--w:71%"></div><span class="sval">≤1.2 m</span>
+        </div>
+        <p class="scap">*疏棘鮟鱇通常只有拳头大小，最大的角鮟鱇类雌鱼可达 1.2 米——荧幕上的“深渊巨兽”，其实多数装得进背包。</p>
+      </div>
+    </article>
+  </section>
+
+  <!-- ======================= 冥河水母 · 3800 m ======================= -->
+  <section class="section" data-depth="3800">
+    <div class="depth-tag reveal">水深 3,800 米 · 午夜带底部</div>
+
+    <figure class="creature jelly reveal" aria-label="冥河水母剪影">
+      <svg viewBox="0 0 440 800" role="img">
+        <defs>
+          <linearGradient id="jellyGrad" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0" stop-color="#5a1c26"/>
+            <stop offset=".6" stop-color="#33101a"/>
+            <stop offset="1" stop-color="#1a060d"/>
+          </linearGradient>
+          <radialGradient id="jellyGlow" cx=".5" cy=".45" r=".6">
+            <stop offset="0" stop-color="#ff7a72" stop-opacity=".5"/>
+            <stop offset="1" stop-color="#ff7a72" stop-opacity="0"/>
+          </radialGradient>
+        </defs>
+        <!-- 口腕 -->
+        <g fill="url(#jellyGrad)">
+          <path class="jarm" style="animation-delay:.4s" d="M150,256 C118,370 158,470 128,580 C112,646 122,700 102,748 C134,716 146,650 154,580 C172,470 140,372 178,258 Z"/>
+          <path class="jarm" style="animation-delay:1.4s" d="M210,262 C196,390 232,500 208,610 C196,672 206,724 192,768 C222,734 228,668 234,608 C250,498 222,392 240,262 Z"/>
+          <path class="jarm" style="animation-delay:.9s" d="M268,258 C296,380 262,484 296,592 C312,652 304,706 322,752 C290,718 282,652 272,590 C252,482 286,378 250,260 Z"/>
+          <path class="jarm" opacity=".65" style="animation-delay:2s" d="M178,260 C168,330 186,400 174,470 C190,438 198,380 202,330 C206,295 198,272 198,260 Z"/>
+        </g>
+        <!-- 伞盖 -->
+        <g class="bell">
+          <path fill="url(#jellyGrad)" d="M64,206 C64,96 150,42 220,42 C290,42 376,96 376,206 C376,240 340,262 220,262 C100,262 64,240 64,206 Z"/>
+          <ellipse cx="220" cy="150" rx="112" ry="72" fill="url(#jellyGlow)"/>
+          <path fill="none" stroke="#7e3340" stroke-opacity=".55" stroke-width="2"
+            d="M120,70 C100,110 92,160 96,210 M220,48 C220,110 220,180 220,250 M320,70 C340,110 348,160 344,210"/>
+        </g>
+      </svg>
+    </figure>
+
+    <article class="card reveal">
+      <h2>冥河水母<span class="latin">Stygiomedusa gigantea</span></h2>
+      <div class="stats">
+        <div><label>伞盖直径</label><b>约 1 米</b></div>
+        <div><label>口腕长度</label><b>可达 10 米</b></div>
+        <div><label>目击深度</label><b>750 – 6,665 米</b></div>
+      </div>
+      <p>
+        以希腊神话冥河“斯堤克斯”命名，是已知体型最大的深海无脊椎捕食者之一。
+        它没有触手也不靠毒刺，伞盖后拖曳的四条口腕宽大如床单，
+        像幕布一样包裹住浮游动物与小鱼。自 1899 年首次采集以来，
+        人类的确认目击仅一百余次——它是深海中真正的“幽灵”。
+      </p>
+      <div class="scale">
+        <div class="srow">
+          <span class="sname"><svg class="hico"><use href="#icon-human"/></svg>人类</span>
+          <div class="sbar human" style="--w:17%"></div><span class="sval">1.7 m</span>
+        </div>
+        <div class="srow">
+          <span class="sname">冥河水母</span>
+          <div class="sbar" style="--w:100%"></div><span class="sval">≈10 m</span>
+        </div>
+        <p class="scap">口腕完全展开，相当于三层楼的高度从你头顶垂落。</p>
+      </div>
+    </article>
+  </section>
+
+  <!-- ======================= 巨型端足虫 · 7000 m ======================= -->
+  <section class="section far" data-depth="7000">
+    <div class="depth-tag reveal">水深 7,000 米 · 超深渊带（海沟）</div>
+
+    <figure class="creature amphi reveal" aria-label="巨型端足虫剪影">
+      <svg viewBox="0 0 560 320" role="img">
+        <defs>
+          <linearGradient id="amphiGrad" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0" stop-color="#efdfd2"/>
+            <stop offset=".6" stop-color="#cfb4a4"/>
+            <stop offset="1" stop-color="#9c8174"/>
+          </linearGradient>
+        </defs>
+        <!-- 触角 -->
+        <g fill="none" stroke="#cdb3a4" stroke-linecap="round">
+          <path stroke-width="4" d="M96,160 C64,160 36,170 14,188"/>
+          <path stroke-width="3.5" d="M98,148 C70,136 44,134 18,140"/>
+        </g>
+        <!-- 步足 -->
+        <g fill="none" stroke="#b89d8e" stroke-width="5" stroke-linecap="round">
+          <path d="M150,196 L138,242"/><path d="M178,202 L170,250"/>
+          <path d="M206,206 L202,256"/><path d="M234,208 L232,258"/>
+          <path d="M262,208 L264,256"/><path d="M290,206 L296,252"/>
+          <path d="M318,202 L328,246"/><path d="M346,196 L358,236"/>
+          <path d="M374,188 L388,224"/>
+          <path stroke-width="7" d="M118,182 C104,210 102,232 110,252"/>
+          <path d="M420,242 L440,268"/><path d="M408,250 L424,278"/>
+        </g>
+        <!-- 身体 -->
+        <path fill="url(#amphiGrad)" d="M92,170 C100,116 158,76 238,72 C330,68 404,108 434,176 C446,208 442,232 424,248 C414,234 406,220 394,206 C330,224 196,222 122,198 C102,190 90,180 92,170 Z"/>
+        <!-- 体节 -->
+        <g fill="none" stroke="#6e544a" stroke-opacity=".4" stroke-width="3">
+          <path d="M150,90 C146,120 146,150 152,180"/>
+          <path d="M200,76 C196,116 196,156 202,196"/>
+          <path d="M252,72 C250,114 250,158 256,202"/>
+          <path d="M304,76 C304,118 306,160 312,202"/>
+          <path d="M352,92 C356,128 360,164 366,196"/>
+          <path d="M396,122 C402,150 408,176 414,200"/>
+        </g>
+        <circle cx="112" cy="148" r="7" fill="#241318"/>
+      </svg>
+    </figure>
+
+    <article class="card reveal">
+      <h2>巨型端足虫<span class="latin">Alicella gigantea</span></h2>
+      <div class="stats">
+        <div><label>体长</label><b>可达 34 厘米</b></div>
+        <div><label>普通端足类</label><b>常不足 2 厘米</b></div>
+        <div><label>栖息深度</label><b>4,850 – 8,931 米</b></div>
+      </div>
+      <p>
+        端足类通常只有跳蚤到米粒大小，而它能长到 34 厘米——这种“深海巨大化”现象至今没有定论。
+        它是海沟里的头号清道夫：靠灵敏的化学感受器追踪从万米之上沉落的动物尸体，
+        数小时内蜂拥而至、将其啃食殆尽，承受着超过 800 个大气压的水压。
+        注意它的颜色——在永夜的海沟里，这身苍白只有在潜水器灯光下才第一次被“看见”。
+      </p>
+      <div class="scale">
+        <div class="srow">
+          <span class="sname"><svg class="hico"><use href="#icon-human"/></svg>人类</span>
+          <div class="sbar human" style="--w:100%"></div><span class="sval">1.7 m</span>
+        </div>
+        <div class="srow">
+          <span class="sname">巨型端足虫</span>
+          <div class="sbar" style="--w:20%"></div><span class="sval">0.34 m</span>
+        </div>
+        <p class="scap">约一条成人小臂的长度——放在端足类家族里，已是 20 倍于亲戚的巨人。</p>
+      </div>
+    </article>
+  </section>
+
+  <!-- ======================= 奋斗者号 · 10000 m ======================= -->
+  <section class="section far" data-depth="10000">
+    <div class="depth-tag reveal">水深 10,000 米 · 挑战者深渊上方</div>
+
+    <figure class="creature sub reveal" aria-label="奋斗者号潜水器">
+      <div class="beam b1"></div>
+      <div class="beam b2"></div>
+      <svg viewBox="0 0 820 460" role="img">
+        <defs>
+          <linearGradient id="subGrad" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0" stop-color="#3f8f72"/>
+            <stop offset=".55" stop-color="#1d4a3c"/>
+            <stop offset="1" stop-color="#0b1f1a"/>
+          </linearGradient>
+        </defs>
+        <!-- 围壳 -->
+        <path fill="#11302a" d="M348,128 C356,92 456,92 464,128 Z"/>
+        <!-- 主壳体 -->
+        <path fill="url(#subGrad)" d="M96,250 C104,168 220,122 408,122 C580,122 700,164 716,248 C700,322 580,358 408,358 C220,358 104,330 96,250 Z"/>
+        <path fill="#cfe8dc" opacity=".22" d="M104,238 C210,206 600,206 708,240 C600,226 210,226 104,238 Z"/>
+        <!-- 底部支架 -->
+        <path fill="#0c211c" d="M214,356 L334,356 L328,382 L222,382 Z"/>
+        <path fill="#0c211c" d="M452,356 L572,356 L564,382 L460,382 Z"/>
+        <!-- 尾部推进器 -->
+        <circle cx="742" cy="246" r="40" fill="none" stroke="#16382f" stroke-width="11"/>
+        <circle cx="742" cy="246" r="8" fill="#16382f"/>
+        <path stroke="#16382f" stroke-width="6" stroke-linecap="round" d="M742,214 L742,278 M714,246 L770,246"/>
+        <!-- 观察窗 -->
+        <circle cx="130" cy="230" r="13" fill="#bfeaff" stroke="#0c211c" stroke-width="5"/>
+        <circle cx="150" cy="276" r="11" fill="#9fd8f0" stroke="#0c211c" stroke-width="5"/>
+        <!-- 探照灯 -->
+        <circle cx="104" cy="206" r="8" fill="#fff7d6"/>
+        <circle cx="112" cy="296" r="8" fill="#fff7d6"/>
+        <!-- 机械臂 -->
+        <g fill="none" stroke="#1a3c33" stroke-linecap="round">
+          <path stroke-width="10" d="M156,316 C132,332 118,348 112,368"/>
+          <path stroke-width="8" d="M112,368 L84,394"/>
+          <path stroke-width="6" d="M84,394 L64,398 M84,394 L80,414"/>
+        </g>
+        <text x="408" y="262" font-size="36" text-anchor="middle" fill="#dff4ee" opacity=".9" letter-spacing="10" font-weight="600">奋斗者</text>
+        <text x="408" y="292" font-size="13" text-anchor="middle" fill="#9cc9b8" opacity=".75" letter-spacing="4">FENDOUZHE · 全海深载人潜水器</text>
+      </svg>
+    </figure>
+
+    <article class="card reveal">
+      <h2>“奋斗者”号<span class="latin">全海深载人潜水器 HOV</span></h2>
+      <div class="stats">
+        <div><label>极限深度</label><b>10,909 米</b></div>
+        <div><label>载员</label><b>3 名潜航员</b></div>
+        <div><label>载人舱</label><b>直径约 2 米 · 钛合金</b></div>
+      </div>
+      <p>
+        2020 年 11 月 10 日，中国“奋斗者”号坐底马里亚纳海沟，创下 10,909 米的载人深潜纪录。
+        在这里，每平方厘米的舱壁要扛住约 1.1 吨的水压——相当于在一枚指甲盖上停一辆小轿车。
+        三名潜航员蜷在直径约 2 米的钛合金球舱内连续工作数小时，
+        舱外机械臂在灯光所及的一小片海底采样：那是人类肉眼所能抵达的星球最深处。
+      </p>
+      <div class="scale">
+        <div class="srow">
+          <span class="sname"><svg class="hico"><use href="#icon-human"/></svg>人类</span>
+          <div class="sbar human" style="--w:85%"></div><span class="sval">1.7 m</span>
+        </div>
+        <div class="srow">
+          <span class="sname">载人球舱</span>
+          <div class="sbar" style="--w:100%"></div><span class="sval">≈2 m</span>
+        </div>
+        <p class="scap">整个“房间”只比一个人略高——却是地球上抗压能力最强的居所之一。</p>
+      </div>
+    </article>
+  </section>
+
+  <!-- ======================= 终点 ======================= -->
+  <footer class="section finale" data-depth="10909">
+    <h2>挑战者深渊 · 10,909 米</h2>
+    <div class="fsub">CHALLENGER DEEP · 此处为本次下潜终点</div>
+    <p>
+      这里比珠穆朗玛峰倒置还要深约两公里。终年漆黑、接近冰点、承受约 1,100 个大气压——
+      即便如此，端足类、狮子鱼与微生物依然在此繁衍生息。
+      迄今为止，抵达过这里的人类，比上过太空的人还少。
+    </p>
+    <div class="fstats">
+      <div><b>10,909 m</b><span>最大深度</span></div>
+      <div><b>≈1,100 atm</b><span>海底压强</span></div>
+      <div><b>23 → 2 ℃</b><span>全程水温</span></div>
+    </div>
+    <button id="toTop">↑ 返回海面</button>
+    <div class="foot-note">* 体型与深度均为代表性数值，不同个体与观测记录存在差异。</div>
+  </footer>
+
+</main>
+
+<script>
+/* ================================================================
+   深潜模拟器
+   - WebGL 片元着色器：水体颜色 / 丁达尔光束 / 焦散 / 海洋雪 / 生物发光
+   - 滚动 → 深度插值 → HUD + 标尺 + 着色器 uniform
+================================================================ */
+(function(){
+  'use strict';
+
+  /* ---------- 深度锚点：由各 section 的 data-depth 构建 ---------- */
+  var anchors = [];
+  function buildAnchors(){
+    anchors = [{y:0, d:0}];
+    var els = document.querySelectorAll('[data-depth]');
+    for(var i=0;i<els.length;i++){
+      var el = els[i];
+      anchors.push({ y: el.offsetTop + el.offsetHeight*0.5, d: parseFloat(el.getAttribute('data-depth')) });
+    }
+    anchors.sort(function(a,b){ return a.y-b.y; });
+  }
+  function depthAt(y){
+    if(y <= anchors[0].y) return anchors[0].d;
+    for(var i=1;i<anchors.length;i++){
+      if(y < anchors[i].y){
+        var a = anchors[i-1], b = anchors[i];
+        var t = (y - a.y) / (b.y - a.y);
+        t = t*t*(3-2*t); /* smoothstep，让深度变化更柔和 */
+        return a.d + (b.d - a.d)*t;
+      }
+    }
+    return anchors[anchors.length-1].d;
+  }
+
+  /* ---------- HUD ---------- */
+  var elDepth = document.getElementById('depthNum');
+  var elPress = document.getElementById('pressure');
+  var elTemp  = document.getElementById('temp');
+  var elLight = document.getElementById('light');
+  var elZone  = document.getElementById('zoneChip');
+  var elMark  = document.getElementById('rulerMarker');
+  var markLbl = elMark.querySelector('i');
+
+  var TEMP_PTS = [[0,23],[150,18],[400,9],[1000,4.4],[2000,3.0],[4000,1.8],[6000,1.6],[8000,1.8],[11000,2.1]];
+  function tempAt(d){
+    if(d<=TEMP_PTS[0][0]) return TEMP_PTS[0][1];
+    for(var i=1;i<TEMP_PTS.length;i++){
+      if(d < TEMP_PTS[i][0]){
+        var a=TEMP_PTS[i-1], b=TEMP_PTS[i];
+        return a[1] + (b[1]-a[1]) * (d-a[0])/(b[0]-a[0]);
+      }
+    }
+    return TEMP_PTS[TEMP_PTS.length-1][1];
+  }
+  var ZONES = [
+    [200,  '透光带 · EPIPELAGIC',    'z0'],
+    [1000, '暮光带 · MESOPELAGIC',   'z1'],
+    [4000, '午夜带 · BATHYPELAGIC',  'z2'],
+    [6000, '深渊带 · ABYSSOPELAGIC', 'z3'],
+    [1e9,  '超深渊带 · HADALPELAGIC','z4']
+  ];
+  var lastZone = '';
+  function updateHUD(d){
+    elDepth.textContent = Math.round(d).toLocaleString('en-US');
+    elPress.textContent = Math.round(1 + d/10).toLocaleString('en-US') + ' atm';
+    elTemp.textContent  = tempAt(d).toFixed(1) + ' ℃';
+
+    var pct = Math.exp(-d * 0.0231) * 100; /* 约 200 米处衰减至 1% */
+    if(d > 1000)        elLight.textContent = '0%（永夜）';
+    else if(pct >= 1)   elLight.textContent = pct.toFixed(0) + '%';
+    else if(pct >= 0.01)elLight.textContent = pct.toFixed(2) + '%';
+    else                elLight.textContent = '<0.01%';
+
+    for(var i=0;i<ZONES.length;i++){
+      if(d < ZONES[i][0]){
+        if(lastZone !== ZONES[i][2]){
+          lastZone = ZONES[i][2];
+          elZone.textContent = ZONES[i][1];
+          elZone.className = 'hud-zone ' + ZONES[i][2];
+        }
+        break;
+      }
+    }
+    var top = Math.min(d/11000, 1) * 100;
+    elMark.style.top = top + '%';
+    markLbl.textContent = Math.round(d).toLocaleString('en-US') + ' m';
+  }
+
+  /* ---------- 入场动画 ---------- */
+  var io = new IntersectionObserver(function(entries){
+    entries.forEach(function(e){ if(e.isIntersecting) e.target.classList.add('visible'); });
+  }, {threshold: 0.15});
+  document.querySelectorAll('.reveal').forEach(function(el){ io.observe(el); });
+
+  document.getElementById('toTop').addEventListener('click', function(){
+    window.scrollTo({top:0, behavior:'smooth'});
+  });
+
+  /* ---------- WebGL 海水着色器 ---------- */
+  var canvas = document.getElementById('ocean');
+  var gl = canvas.getContext('webgl', {antialias:false, depth:false, stencil:false, alpha:false})
+        || canvas.getContext('experimental-webgl', {antialias:false, depth:false, stencil:false, alpha:false});
+
+  var VERT = 'attribute vec2 a;void main(){gl_Position=vec4(a,0.0,1.0);}';
+
+  var FRAG = [
+  'precision highp float;',
+  'uniform vec2 u_res;',
+  'uniform float u_time;',
+  'uniform float u_depth;',   /* 当前深度（米） */
+  'uniform float u_scroll;',  /* 已滚动屏数（用于粒子视差） */
+  '',
+  'float hash21(vec2 p){',
+  '  p=fract(p*vec2(123.34,345.45));',
+  '  p+=dot(p,p+34.345);',
+  '  return fract(p.x*p.y);',
+  '}',
+  'float vnoise(vec2 p){',
+  '  vec2 i=floor(p),f=fract(p);',
+  '  f=f*f*(3.0-2.0*f);',
+  '  float a=hash21(i),b=hash21(i+vec2(1.0,0.0));',
+  '  float c=hash21(i+vec2(0.0,1.0)),d=hash21(i+vec2(1.0,1.0));',
+  '  return mix(mix(a,b,f.x),mix(c,d,f.x),f.y);',
+  '}',
+  'float fbm(vec2 p){',
+  '  float v=0.0,amp=0.5;',
+  '  for(int i=0;i<4;i++){v+=amp*vnoise(p);p*=2.03;amp*=0.5;}',
+  '  return v;',
+  '}',
+  '',
+  /* 海洋雪：下潜时向上掠过，自身缓慢下沉 */
+  'float snow(vec2 uv,float scale,float fall,float par,float t){',
+  '  vec2 q=vec2(uv.x*u_res.x/u_res.y,uv.y);',
+  '  q.y+=t*fall;',
+  '  q.y-=u_scroll*par;',
+  '  q*=scale;',
+  '  vec2 id=floor(q),f=fract(q);',
+  '  float h=hash21(id);',
+  '  float on=step(0.82,h);',
+  '  vec2 pp=0.15+0.7*vec2(fract(h*73.13),fract(h*157.7));',
+  '  pp.x+=0.08*sin(t*1.5+h*43.0);',
+  '  float dist=length(f-pp);',
+  '  float r=mix(0.02,0.055,fract(h*991.7));',
+  '  return on*smoothstep(r,0.0,dist);',
+  '}',
+  '',
+  /* 生物发光：深处偶发的脉动蓝点 */
+  'float biolum(vec2 uv,float t){',
+  '  vec2 q=vec2(uv.x*u_res.x/u_res.y,uv.y);',
+  '  q.y-=u_scroll*0.5;',
+  '  q*=6.0;',
+  '  vec2 id=floor(q),f=fract(q);',
+  '  float h=hash21(id+7.7);',
+  '  float on=step(0.93,h);',
+  '  vec2 pp=0.2+0.6*vec2(fract(h*91.3),fract(h*53.1));',
+  '  float dist=length(f-pp);',
+  '  float pulse=pow(0.5+0.5*sin(t*(0.6+h*1.5)+h*42.0),6.0);',
+  '  return on*pulse*smoothstep(0.07,0.0,dist);',
+  '}',
+  '',
+  'void main(){',
+  '  vec2 uv=gl_FragCoord.xy/u_res;',
+  '  float t=u_time;',
+  '  float d=u_depth;',
+  '',
+  '  float sun=exp(-d/160.0);',                /* 直射阳光 */
+  '  float twi=exp(-d/750.0);',                /* 残余暮光 */
+  '  float deepF=smoothstep(1000.0,3500.0,d);',
+  '',
+  /* 水体基色：随深度从青绿 → 湛蓝 → 墨黑 */
+  '  vec3 shTop=vec3(0.10,0.55,0.65),shBot=vec3(0.00,0.22,0.38);',
+  '  vec3 twTop=vec3(0.012,0.13,0.26),twBot=vec3(0.00,0.045,0.115);',
+  '  vec3 dpTop=vec3(0.008,0.020,0.045),dpBot=vec3(0.001,0.004,0.012);',
+  '  vec3 hdTop=vec3(0.004,0.008,0.020),hdBot=vec3(0.000,0.001,0.005);',
+  '  float s1=smoothstep(0.0,700.0,d);',
+  '  float s2=smoothstep(700.0,3000.0,d);',
+  '  float s3=smoothstep(5000.0,10000.0,d);',
+  '  vec3 cTop=mix(mix(mix(shTop,twTop,s1),dpTop,s2),hdTop,s3);',
+  '  vec3 cBot=mix(mix(mix(shBot,twBot,s1),dpBot,s2),hdBot,s3);',
+  '  vec3 col=mix(cBot,cTop,pow(uv.y,1.15));',
+  '',
+  /* 大尺度水团明暗起伏 */
+  '  float vol=fbm(uv*vec2(2.2,1.6)+vec2(t*0.02,-t*0.015)+vec2(0.0,-u_scroll*0.35));',
+  '  col*=0.82+0.36*vol;',
+  '',
+  /* 自上方倾泻的光束（丁达尔效应） */
+  '  vec2 rp=vec2(uv.x-0.5,1.35-uv.y);',
+  '  float ang=atan(rp.x,rp.y);',
+  '  float beams=vnoise(vec2(ang*7.0,t*0.10))*0.6+vnoise(vec2(ang*16.0+5.0,-t*0.07))*0.4;',
+  '  beams=pow(max(beams-0.25,0.0)*1.4,2.2);',
+  '  beams*=smoothstep(0.0,0.9,uv.y)*0.9+0.1;',
+  '  col+=beams*sun*vec3(0.35,0.75,0.80)*0.85;',
+  '',
+  /* 近海面的焦散闪烁 */
+  '  float ca=vnoise(uv*vec2(18.0,9.0)+vec2(t*0.45,t*0.2))*vnoise(uv*vec2(13.0,7.0)-vec2(t*0.3,t*0.1));',
+  '  ca=pow(ca,3.0);',
+  '  col+=ca*sun*pow(uv.y,4.0)*vec3(0.55,0.95,0.9)*2.2;',
+  '',
+  /* 海洋雪（三层视差） */
+  '  float sn=0.0;',
+  '  sn+=snow(uv,18.0,0.012,1.00,t)*0.9;',
+  '  sn+=snow(uv+13.7,11.0,0.008,0.55,t)*0.55;',
+  '  sn+=snow(uv+47.1,6.5,0.005,0.28,t)*0.3;',
+  '  float snowLit=0.35+0.65*twi+0.5*deepF;', /* 深处被"探照灯"打亮 */
+  '  col+=sn*snowLit*vec3(0.75,0.88,0.95);',
+  '',
+  /* 生物发光 */
+  '  float bl=biolum(uv,t)+biolum(uv*1.7+31.0,t*1.3)*0.7;',
+  '  col+=bl*smoothstep(600.0,1600.0,d)*vec3(0.25,0.9,1.0)*1.4;',
+  '',
+  /* 暗角 + 颗粒 + 色调 */
+  '  vec2 vc=uv-0.5;',
+  '  col*=clamp(1.0-dot(vc,vc)*0.9,0.0,1.0);',
+  '  float g=hash21(gl_FragCoord.xy+fract(t)*vec2(13.7,91.3));',
+  '  col+=(g-0.5)*0.025;',
+  '  col=pow(max(col,vec3(0.0)),vec3(0.92));',
+  '  gl_FragColor=vec4(col,1.0);',
+  '}'
+  ].join('\n');
+
+  var uTime, uDepth, uScroll, uRes;
+  function initGL(){
+    if(!gl) return false;
+    function sh(type, src){
+      var s = gl.createShader(type);
+      gl.shaderSource(s, src); gl.compileShader(s);
+      if(!gl.getShaderParameter(s, gl.COMPILE_STATUS)){
+        console.error('shader:', gl.getShaderInfoLog(s));
+        return null;
+      }
+      return s;
+    }
+    var vs = sh(gl.VERTEX_SHADER, VERT), fs = sh(gl.FRAGMENT_SHADER, FRAG);
+    if(!vs || !fs) return false;
+    var prog = gl.createProgram();
+    gl.attachShader(prog, vs); gl.attachShader(prog, fs); gl.linkProgram(prog);
+    if(!gl.getProgramParameter(prog, gl.LINK_STATUS)){
+      console.error('link:', gl.getProgramInfoLog(prog));
+      return false;
+    }
+    gl.useProgram(prog);
+    var buf = gl.createBuffer();
+    gl.bindBuffer(gl.ARRAY_BUFFER, buf);
+    gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([-1,-1, 1,-1, -1,1, 1,1]), gl.STATIC_DRAW);
+    var loc = gl.getAttribLocation(prog, 'a');
+    gl.enableVertexAttribArray(loc);
+    gl.vertexAttribPointer(loc, 2, gl.FLOAT, false, 0, 0);
+    uTime   = gl.getUniformLocation(prog, 'u_time');
+    uDepth  = gl.getUniformLocation(prog, 'u_depth');
+    uScroll = gl.getUniformLocation(prog, 'u_scroll');
+    uRes    = gl.getUniformLocation(prog, 'u_res');
+    return true;
+  }
+
+  var glOK = initGL();
+  if(!glOK) document.body.classList.add('no-webgl');
+
+  /* ---------- 无 WebGL 时的纯 CSS 渐变兜底 ---------- */
+  var fb = document.getElementById('fallback');
+  var FB_STOPS = [
+    [0,    [26,140,166],[0,56,97]],
+    [700,  [3,33,66],   [0,11,29]],
+    [3000, [2,5,11],    [0,1,3]],
+    [11000,[1,2,5],     [0,0,1]]
+  ];
+  function lerpC(a,b,t){ return [Math.round(a[0]+(b[0]-a[0])*t), Math.round(a[1]+(b[1]-a[1])*t), Math.round(a[2]+(b[2]-a[2])*t)]; }
+  function fbPaint(d){
+    var i=1;
+    while(i<FB_STOPS.length-1 && d>FB_STOPS[i][0]) i++;
+    var a=FB_STOPS[i-1], b=FB_STOPS[i];
+    var t=Math.min(Math.max((d-a[0])/(b[0]-a[0]),0),1);
+    var top=lerpC(a[1],b[1],t), bot=lerpC(a[2],b[2],t);
+    fb.style.background='linear-gradient(180deg, rgb('+top.join(',')+'), rgb('+bot.join(',')+'))';
+  }
+
+  /* ---------- 尺寸 ---------- */
+  function resize(){
+    var dpr = Math.min(window.devicePixelRatio || 1, 1.5);
+    canvas.width  = Math.round(window.innerWidth * dpr);
+    canvas.height = Math.round(window.innerHeight * dpr);
+    if(glOK){
+      gl.viewport(0, 0, canvas.width, canvas.height);
+      gl.uniform2f(uRes, canvas.width, canvas.height);
+    }
+    buildAnchors();
+  }
+  window.addEventListener('resize', resize);
+
+  /* ---------- 主循环 ---------- */
+  var curScroll = window.scrollY || 0;
+  function frame(now){
+    var t = now * 0.001;
+    var target = window.scrollY || 0;
+    curScroll += (target - curScroll) * 0.08; /* 惯性缓动，下潜更顺滑 */
+    if(Math.abs(target - curScroll) < 0.3) curScroll = target;
+
+    var center = curScroll + window.innerHeight * 0.5;
+    var d = depthAt(center);
+    updateHUD(d);
+
+    if(glOK){
+      gl.uniform1f(uTime, t);
+      gl.uniform1f(uDepth, d);
+      gl.uniform1f(uScroll, curScroll / window.innerHeight);
+      gl.drawArrays(gl.TRIANGLE_STRIP, 0, 4);
+    } else {
+      fbPaint(d);
+    }
+    requestAnimationFrame(frame);
+  }
+
+  /* 深度直达链接：#m=2400 直接跳到对应深度 */
+  function jumpToHash(){
+    var m = /[#&]m=(\d+)/.exec(location.hash);
+    if(!m) return;
+    var d = parseFloat(m[1]);
+    var yC = anchors[anchors.length-1].y;
+    for(var i=1;i<anchors.length;i++){
+      if(d <= anchors[i].d){
+        var a=anchors[i-1], b=anchors[i];
+        var t=(b.d===a.d)?0:(d-a.d)/(b.d-a.d);
+        yC = a.y + (b.y-a.y)*t;
+        break;
+      }
+    }
+    var y = Math.max(0, yC - window.innerHeight*0.5);
+    window.scrollTo(0, y);
+    curScroll = y; /* 跳过缓动，立即落位 */
+  }
+
+  /* 字体/布局就绪后再建锚点，避免 offsetTop 偏差 */
+  window.addEventListener('load', function(){ buildAnchors(); jumpToHash(); });
+  window.addEventListener('hashchange', function(){ buildAnchors(); jumpToHash(); });
+  resize();
+  requestAnimationFrame(frame);
+})();
+</script>
+</body>
+</html>

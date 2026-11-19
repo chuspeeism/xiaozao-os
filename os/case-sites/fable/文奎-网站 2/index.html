@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>BAKU is... — a WebGL tribute</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='80' font-size='80'>🌀</text></svg>">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Archivo:ital,wght@0,500;0,700;0,900;1,900&family=Zen+Kaku+Gothic+New:wght@500;700&family=Caveat:wght@600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+<script type="importmap">
+{
+  "imports": {
+    "three": "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js",
+    "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/"
+  }
+}
+</script>
+</head>
+<body>
+
+<div id="spacer"></div>
+<canvas id="gl"></canvas>
+
+<!-- ===== UI layer (mix-blend difference per element) ===== -->
+<div class="ui">
+
+  <header class="header">
+    <div class="logo blend" id="logo">BAKU<span class="logo-bang">!</span></div>
+    <div class="counter blend" id="counter">00 — INTRO</div>
+  </header>
+
+  <!-- section headlines -->
+  <section class="sec pos-center" data-i="0">
+    <p class="kicker blend">Baku is</p>
+    <h2 class="title blend" data-text="GRAPHIC.">GRAPHIC.</h2>
+    <p class="ja blend">線とかたちで、あそぶ。夢を食べて、未来を描く。</p>
+  </section>
+
+  <section class="sec pos-left" data-i="1">
+    <p class="kicker blend">Baku is</p>
+    <h2 class="title blend" data-text="FLEXIBLE.">FLEXIBLE.</h2>
+    <p class="ja blend">やわらかく、すきとおる。かたちは自由のまま。</p>
+  </section>
+
+  <section class="sec pos-right" data-i="2">
+    <p class="kicker blend">Baku is</p>
+    <h2 class="title blend" data-text="TECHNICAL.">TECHNICAL.</h2>
+    <p class="ja blend">テクノロジーで、夢を組み立てる。</p>
+  </section>
+
+  <section class="sec pos-center sec-team" data-i="3">
+    <p class="kicker blend">Baku is</p>
+    <h2 class="title blend" data-text="FRIENDLY.">FRIENDLY.</h2>
+    <p class="ja blend">ひとりじゃない。みんなでつくる。</p>
+  </section>
+
+  <section class="sec pos-center" data-i="4">
+    <p class="kicker blend">Baku is</p>
+    <h2 class="title blend" data-text="VISIONARY.">VISIONARY.</h2>
+    <p class="ja blend">まだ見ぬ未来を、まっすぐに見る。</p>
+  </section>
+
+  <section class="sec pos-center sec-next" data-i="5">
+    <h2 class="title title-next blend" data-text="NOW, LET'S START THE NEXT CHALLENGE!">NOW, LET'S START<br>THE NEXT CHALLENGE!</h2>
+    <p class="ja blend">さあ、次の夢へ。</p>
+    <button class="totop blend" id="totop">BACK TO TOP ↑</button>
+  </section>
+
+  <!-- marquee for section 2 -->
+  <div class="marquee blend" id="marquee">
+    <div class="marquee-row row-a"><span>FLEXIBLE — FLEXIBLE — FLEXIBLE — FLEXIBLE — FLEXIBLE — FLEXIBLE — </span><span>FLEXIBLE — FLEXIBLE — FLEXIBLE — FLEXIBLE — FLEXIBLE — FLEXIBLE — </span></div>
+    <div class="marquee-row row-b"><span>やわらかい — やわらかい — やわらかい — やわらかい — やわらかい — </span><span>やわらかい — やわらかい — やわらかい — やわらかい — やわらかい — </span></div>
+  </div>
+
+  <!-- big dim back text for section 3 -->
+  <div class="backtext blend" id="backtext">TECH<br>NOLOGY</div>
+
+  <footer class="footer">
+    <div class="sidelabel blend">BAKU — A WEBGL TRIBUTE ✳ 夢を食べて、未来を描く</div>
+    <div class="credit blend">TRIBUTE STUDY — inspired by <em>next.junni.co.jp</em> · 复刻练习 · not affiliated</div>
+    <div class="scrollhint blend" id="scrollhint">
+      <span>SCROLL</span>
+      <i class="scrollline"></i>
+    </div>
+    <div class="progress blend" id="progress"><i class="progress-dot"></i></div>
+  </footer>
+
+  <div class="handnote blend" id="handnote">click me!</div>
+</div>
+
+<!-- custom cursor -->
+<div class="cursor" id="cursor"><i class="cursor-dot"></i><i class="cursor-ring"></i></div>
+
+<!-- ===== loading ===== -->
+<div class="loading" id="loading">
+  <div class="loading-logo" id="loadingLogo">BAKU is...</div>
+  <div class="loading-pct" id="loadingPct">000</div>
+  <div class="loading-bar"><i id="loadingBar"></i></div>
+  <div class="loading-note">A WEBGL TRIBUTE — 夢を食べるバク</div>
+</div>
+
+<script type="module" src="js/main.js"></script>
+</body>
+</html>

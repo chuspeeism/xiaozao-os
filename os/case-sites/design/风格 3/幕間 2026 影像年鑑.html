@@ -1,0 +1,637 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8" />
+<title>幕間 — 2026 影像年鑑</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+TC:wght@400;500;700;900&family=Noto+Sans+TC:wght@300;400;500;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<script src="deck-stage.js"></script>
+<style>
+  :root{
+    --ink:#0a0b10;
+    --ink-2:#11131c;
+    --ivory:#f0ebe0;
+    --paper:#e9e3d5;
+    --blue:#1d3cff;
+    --blue-deep:#0c1f8a;
+    --vermillion:#e23a1c;
+    --gold:#b08a3e;
+    --mute:#8d8678;
+
+    --type-display: 220px;
+    --type-title: 84px;
+    --type-subtitle: 44px;
+    --type-body: 30px;
+    --type-small: 24px;
+    --type-mono: 22px;
+
+    --pad-x: 110px;
+    --pad-y: 96px;
+    --gap-title: 56px;
+    --gap-item: 28px;
+
+    --serif: "Noto Serif TC", "Songti TC", serif;
+    --sans:  "Noto Sans TC", system-ui, sans-serif;
+    --mono:  "JetBrains Mono", ui-monospace, monospace;
+  }
+
+  html,body{margin:0;background:#1a1a1a;}
+  deck-stage{font-family:var(--sans); color:var(--ivory);}
+
+  /* ---------- shared chrome ---------- */
+  section{
+    box-sizing:border-box;
+    overflow:hidden;
+    position:relative;
+  }
+  .frame{
+    position:absolute; inset:0;
+    padding: var(--pad-y) var(--pad-x);
+    box-sizing:border-box;
+    display:flex; flex-direction:column;
+  }
+  .corner-meta{
+    position:absolute;
+    font-family:var(--mono);
+    font-size: var(--type-mono);
+    letter-spacing:.04em;
+    color:var(--mute);
+  }
+  .corner-meta.tl{ top:48px; left:48px; }
+  .corner-meta.tr{ top:48px; right:48px; text-align:right; }
+  .corner-meta.bl{ bottom:48px; left:48px; }
+  .corner-meta.br{ bottom:48px; right:48px; text-align:right; }
+
+  .rule{
+    height:1px; background:currentColor; opacity:.35;
+  }
+
+  /* ---------- slide 1 — cover ---------- */
+  .s-cover{
+    background:
+      radial-gradient(ellipse 70% 55% at 28% 60%, #2545d6 0%, #0d1c6e 35%, #060823 70%, #04050f 100%);
+  }
+  .s-cover .brushwash{
+    position:absolute; inset:0;
+    background:
+      radial-gradient(ellipse 40% 28% at 60% 50%, rgba(255,255,255,.18), transparent 70%),
+      radial-gradient(ellipse 80% 30% at 30% 70%, rgba(0,0,0,.45), transparent 70%);
+    mix-blend-mode:screen;
+    pointer-events:none;
+  }
+  .s-cover .grain{
+    position:absolute; inset:0;
+    background-image: repeating-linear-gradient(112deg, rgba(255,255,255,.04) 0 1px, transparent 1px 5px);
+    mix-blend-mode:overlay;
+    opacity:.5;
+  }
+  .cover-title{
+    position:absolute;
+    top: 130px; right: 180px;
+    text-align:center;
+    color: var(--vermillion);
+    font-family: var(--serif);
+    font-weight:900;
+    line-height:.95;
+    letter-spacing:.02em;
+  }
+  .cover-title .ch{
+    display:block;
+    font-size: 168px;
+  }
+  .cover-title .en{
+    display:block;
+    margin-top: 20px;
+    font-family: var(--mono);
+    font-size: 22px;
+    letter-spacing:.32em;
+    color: var(--vermillion);
+    font-weight:500;
+  }
+  .cover-num{
+    position:absolute;
+    left: 110px; top: 250px;
+    color: var(--ivory);
+    font-family: var(--serif);
+    font-weight:900;
+    font-size: 560px;
+    line-height:.78;
+    opacity:.92;
+    letter-spacing:-.02em;
+    text-shadow: 0 8px 60px rgba(0,0,0,.4);
+  }
+  .cover-foot{
+    position:absolute;
+    right: 180px; bottom: 130px;
+    color: var(--vermillion);
+    text-align:right;
+    font-family: var(--serif);
+    line-height:1.4;
+    font-size: 26px;
+  }
+  .cover-foot .lead{
+    font-family:var(--mono);
+    font-size:20px;
+    letter-spacing:.18em;
+    color: var(--vermillion);
+    opacity:.9;
+    margin-bottom:6px;
+    display:block;
+  }
+
+  /* ---------- slide 2 — manifesto ---------- */
+  .s-manifesto{ background:var(--ivory); color:var(--ink); }
+  .s-manifesto .frame{ padding: 110px 140px 90px; }
+  .quote-mark{
+    font-family:var(--serif);
+    font-size:340px;
+    line-height:.6;
+    color: var(--vermillion);
+    position:absolute;
+    top: 90px; left: 110px;
+    font-weight:900;
+  }
+  .pull{
+    margin-top: 220px;
+    font-family: var(--serif);
+    font-weight:500;
+    font-size: 96px;
+    line-height: 1.32;
+    color: var(--ink);
+    max-width: 1500px;
+    letter-spacing:.01em;
+  }
+  .pull em{
+    font-style:normal;
+    color: var(--vermillion);
+    font-weight:700;
+  }
+  .pull .stroke{
+    background: linear-gradient(transparent 70%, rgba(29,60,255,.18) 70%);
+    padding: 0 .05em;
+  }
+  .attrib{
+    position:absolute;
+    bottom: 120px; right: 140px;
+    text-align:right;
+    font-family:var(--serif);
+    font-size: 28px;
+    color: var(--ink);
+    line-height:1.5;
+  }
+  .attrib .name{ font-weight:700; font-size:34px; }
+  .attrib .role{ color: #6a6558; font-size:24px; font-family:var(--mono); letter-spacing:.06em; margin-top:6px;}
+
+  /* ---------- slide 3 — data ---------- */
+  .s-data{ background: var(--ink); color: var(--ivory); }
+  .data-head{
+    display:flex; justify-content:space-between; align-items:flex-end;
+    margin-top: 30px;
+  }
+  .data-head h2{
+    font-family:var(--serif); font-weight:700;
+    font-size: 78px; margin:0; line-height:1.1;
+    letter-spacing:.02em;
+  }
+  .data-head h2 .accent{ color: var(--vermillion); }
+  .data-head .meta{
+    font-family:var(--mono); font-size:22px; color:var(--mute);
+    text-align:right; letter-spacing:.06em; line-height:1.6;
+  }
+  .data-sub{
+    margin-top: 18px;
+    font-family:var(--serif);
+    font-size: 28px; color:#bdb6a4;
+    max-width: 1100px;
+    line-height:1.5;
+  }
+  .chart{
+    flex:1;
+    margin-top: 56px;
+    display:grid;
+    grid-template-columns: 220px 1fr 200px;
+    gap: 18px 28px;
+    align-content: start;
+    align-items: center;
+    font-family:var(--sans);
+    font-size: 26px;
+  }
+  .chart .label{ color: var(--ivory); font-weight:500;}
+  .chart .label .en{ display:block; font-family:var(--mono); font-size:18px; color: var(--mute); letter-spacing:.06em; margin-top:4px; }
+  .chart .bar-wrap{ height:54px; position:relative; background: rgba(255,255,255,.04); border-left: 1px solid rgba(255,255,255,.18);}
+  .chart .bar{
+    height:100%;
+    background: var(--blue);
+    position:relative;
+    box-shadow: inset 0 0 0 1px rgba(255,255,255,.08);
+  }
+  .chart .bar.alt{ background: var(--vermillion); }
+  .chart .bar.dim{ background: #2a3160; }
+  .chart .num{
+    font-family:var(--serif);
+    font-weight:700;
+    font-size: 38px;
+  }
+  .chart .num .delta{
+    font-family:var(--mono);
+    font-size: 18px;
+    color: var(--vermillion);
+    margin-left: 10px;
+    letter-spacing:.04em;
+  }
+  .chart .num .delta.down{ color: #6c8cff; }
+
+  .data-foot{
+    display:flex; justify-content:space-between; align-items:flex-end;
+    margin-top: auto;
+    padding-top: 30px;
+    border-top: 1px solid rgba(255,255,255,.12);
+    font-family:var(--mono);
+    font-size: 20px;
+    color: var(--mute);
+    letter-spacing:.06em;
+  }
+  .data-foot .takeaway{
+    font-family:var(--serif); color: var(--ivory);
+    font-size: 30px; max-width: 900px; letter-spacing:.02em;
+  }
+  .data-foot .takeaway b{ color: var(--vermillion); }
+
+  /* ---------- slide 4 — editorial ---------- */
+  .s-editorial{ background: var(--paper); color: var(--ink); }
+  .ed-top{
+    display:flex; justify-content:space-between; align-items:flex-start;
+    margin-bottom: 30px;
+  }
+  .ed-kicker{
+    font-family:var(--mono); font-size:22px; letter-spacing:.32em;
+    color: var(--vermillion);
+  }
+  .ed-page{
+    font-family:var(--mono); font-size:22px; color:#6a6558; letter-spacing:.04em;
+  }
+  .ed-title{
+    font-family:var(--serif); font-weight:700;
+    font-size: 76px; line-height:1.1;
+    color: var(--ink);
+    margin: 6px 0 22px;
+    letter-spacing:.02em;
+  }
+  .ed-title .blue{ color: var(--blue); }
+  .ed-lede{
+    font-family:var(--serif);
+    font-size: 26px;
+    line-height:1.6;
+    color: #2a2820;
+    max-width: 1700px;
+    column-count: 2;
+    column-gap: 80px;
+    margin-bottom: 36px;
+  }
+  .ed-lede .drop{
+    float:left;
+    font-family:var(--serif); font-weight:900;
+    font-size: 110px; line-height:.85;
+    color: var(--vermillion);
+    margin: 6px 12px -8px 0;
+  }
+  .ed-cols{
+    flex:1;
+    display:grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 56px;
+    border-top: 2px solid var(--ink);
+    padding-top: 28px;
+  }
+  .ed-col{ display:flex; flex-direction:column; gap:14px;}
+  .ed-col .num{
+    font-family:var(--serif); font-weight:900;
+    font-size: 110px; line-height:.85;
+    color: var(--ink);
+  }
+  .ed-col .num small{
+    font-family:var(--mono); font-weight:500;
+    font-size: 22px; vertical-align: top; margin-left: 8px;
+    color: var(--vermillion); letter-spacing:.1em;
+  }
+  .ed-col h3{
+    font-family:var(--serif); font-weight:700;
+    margin:0; font-size: 34px;
+    color: var(--ink); line-height:1.25;
+    letter-spacing:.02em;
+  }
+  .ed-col p{
+    margin:0;
+    font-family:var(--sans);
+    font-size: 21px; line-height:1.65;
+    color: #2a2820;
+  }
+  .ed-col .pin{
+    margin-top:auto;
+    font-family:var(--mono); font-size:18px;
+    letter-spacing:.06em; color: var(--blue);
+    border-top: 1px solid #b9b1a0; padding-top:12px;
+  }
+
+  /* ---------- slide 5 — full-bleed visual ---------- */
+  .s-visual{
+    background: var(--ink);
+    color: var(--ivory);
+  }
+  .s-visual .canvas{
+    position:absolute; inset: 80px 80px 80px 720px;
+    background:
+      linear-gradient(180deg, rgba(0,0,0,.45), rgba(0,0,0,0) 30%, rgba(0,0,0,.6)),
+      repeating-linear-gradient(45deg, #1a2138 0 18px, #141a2c 18px 36px);
+    overflow:hidden;
+  }
+  .s-visual .canvas::before{
+    content:""; position:absolute; inset:0;
+    background:
+      radial-gradient(ellipse 60% 40% at 70% 30%, rgba(226,58,28,.6), transparent 60%),
+      radial-gradient(ellipse 55% 50% at 30% 70%, rgba(29,60,255,.55), transparent 65%);
+    mix-blend-mode:screen;
+  }
+  .s-visual .placeholder-tag{
+    position:absolute; left:24px; bottom:24px;
+    font-family:var(--mono); font-size:18px;
+    color: rgba(240,235,224,.7);
+    letter-spacing:.12em;
+    background: rgba(0,0,0,.4);
+    padding: 8px 14px;
+    border:1px solid rgba(240,235,224,.25);
+  }
+  .s-visual .vstack{
+    position:absolute; left: 110px; top: 140px;
+    width: 560px;
+    display:flex; flex-direction:column; gap: 36px;
+  }
+  .s-visual .ch-vert{
+    font-family:var(--serif); font-weight:900;
+    font-size: 200px;
+    line-height:.95;
+    color: var(--vermillion);
+    writing-mode: vertical-rl;
+    letter-spacing:.06em;
+  }
+  .s-visual .vstack .kicker{
+    font-family:var(--mono); font-size:22px; color: var(--mute);
+    letter-spacing:.32em;
+  }
+  .s-visual .vstack .lead{
+    font-family:var(--serif); font-size:36px; line-height:1.5;
+    color: var(--ivory); max-width: 520px;
+  }
+  .s-visual .vstack .lead em{ color: var(--vermillion); font-style:normal; }
+  .s-visual .vstack .by{
+    font-family:var(--mono); font-size:18px; letter-spacing:.06em;
+    color: var(--mute); margin-top: 14px;
+  }
+
+  /* ---------- slide 6 — closing ---------- */
+  .s-end{
+    background: var(--ink-2);
+    color: var(--ivory);
+  }
+  .s-end .wash{
+    position:absolute; inset:0;
+    background:
+      radial-gradient(ellipse 60% 50% at 80% 50%, rgba(29,60,255,.35), transparent 65%),
+      linear-gradient(120deg, rgba(226,58,28,.18), transparent 45%);
+  }
+  .end-mark{
+    font-family:var(--serif); font-weight:900;
+    font-size: 320px; line-height:.85;
+    color: var(--ivory);
+    margin: 30px 0 40px;
+    letter-spacing:.04em;
+  }
+  .end-mark .accent{ color: var(--vermillion); }
+  .end-rule{ width: 220px; height: 4px; background: var(--vermillion); margin-bottom: 30px;}
+  .end-tagline{
+    font-family:var(--serif); font-size:38px;
+    color: var(--ivory); line-height:1.5;
+    max-width: 900px;
+  }
+  .end-credits{
+    position:absolute; right: 110px; top: 110px;
+    width: 540px;
+    font-family:var(--mono); font-size: 20px;
+    color: rgba(240,235,224,.78);
+    letter-spacing:.04em; line-height: 2;
+  }
+  .end-credits dt{
+    color: var(--mute); font-size: 16px; letter-spacing:.18em;
+    margin-top: 14px;
+  }
+  .end-credits dd{ margin: 2px 0 0; color: var(--ivory); font-size:22px;}
+  .end-foot{
+    position:absolute; left:110px; bottom: 100px;
+    font-family:var(--mono); font-size: 20px;
+    color: var(--mute); letter-spacing:.16em;
+  }
+  .end-foot b{ color: var(--vermillion); font-weight:500;}
+
+</style>
+</head>
+<body>
+<deck-stage width="1920" height="1080">
+
+  <!-- =================== SLIDE 1 — COVER =================== -->
+  <section class="s-cover" data-label="01 封面">
+    <div class="brushwash"></div>
+    <div class="grain"></div>
+
+    <div class="corner-meta tl">幕間 / INTERMISSION</div>
+    <div class="corner-meta tr">VOL. 06 — 2026</div>
+
+    <div class="cover-num">06</div>
+
+    <div class="cover-title">
+      <span class="ch">幕間</span>
+      <span class="en">INTERMISSION · 影像年鑑</span>
+    </div>
+
+    <div class="cover-foot">
+      <span class="lead">2026 ANNUAL REPORT</span>
+      <span>二〇二六　年度影像觀察</span><br>
+      <span>編號 第六輯　／　二月發行</span>
+    </div>
+
+    <div class="corner-meta bl">編輯部・台北 — 京都 — 香港</div>
+    <div class="corner-meta br">非賣品 · NOT FOR SALE</div>
+  </section>
+
+  <!-- =================== SLIDE 2 — MANIFESTO =================== -->
+  <section class="s-manifesto" data-label="02 引言">
+    <div class="corner-meta tl" style="color:#6a6558">02 — 引言　PREFACE</div>
+    <div class="corner-meta tr" style="color:#6a6558">幕間 / 2026</div>
+
+    <div class="frame">
+      <div class="quote-mark" style="opacity: 0">「</div>
+
+      <p class="pull">
+        我們不再只是<em>觀看影像</em>，<br>
+        而是在影像之中<span class="stroke">緩慢地、</span>習慣性地<br>
+        <span class="stroke">棲居下來</span>。
+      </p>
+
+      <div class="attrib">
+        <div class="name">陳維安</div>
+        <div class="role">EDITOR-IN-CHIEF · 主編</div>
+      </div>
+    </div>
+
+    <div class="corner-meta bl" style="color:#6a6558">P. 002 / 048</div>
+    <div class="corner-meta br" style="color:#6a6558">— 序　言　—</div>
+  </section>
+
+  <!-- =================== SLIDE 3 — DATA =================== -->
+  <section class="s-data" data-label="03 數據">
+    <div class="corner-meta tl">03 — 數據　DATA</div>
+    <div class="corner-meta tr">FIG. 03.1</div>
+
+    <div class="frame">
+      <div class="data-head">
+        <h2>影像消費的<span class="accent">五種去處</span></h2>
+        <div class="meta">
+          樣本：14,820 名受訪者<br>
+          區域：兩岸三地 + 日韓<br>
+          採集：2025.06 — 2025.12
+        </div>
+      </div>
+      <div class="data-sub">
+        每人每週平均影像消費時長 23.4 小時，較 2024 年增長 11.6%。下圖為各場景時長占比。
+      </div>
+
+      <div class="chart">
+        <div class="label">短影音平台<span class="en">SHORT-FORM</span></div>
+        <div class="bar-wrap"><div class="bar alt" style="width:84%"></div></div>
+        <div class="num">8.6h<span class="delta">+18%</span></div>
+
+        <div class="label">串流長片<span class="en">STREAMING</span></div>
+        <div class="bar-wrap"><div class="bar" style="width:66%"></div></div>
+        <div class="num">6.7h<span class="delta">+09%</span></div>
+
+        <div class="label">直播<span class="en">LIVE</span></div>
+        <div class="bar-wrap"><div class="bar" style="width:38%"></div></div>
+        <div class="num">3.9h<span class="delta">+22%</span></div>
+
+        <div class="label">影院觀影<span class="en">CINEMA</span></div>
+        <div class="bar-wrap"><div class="bar dim" style="width:24%"></div></div>
+        <div class="num">2.4h<span class="delta down">−14%</span></div>
+
+        <div class="label">電視 / 其他<span class="en">TV / OTHER</span></div>
+        <div class="bar-wrap"><div class="bar dim" style="width:18%"></div></div>
+        <div class="num">1.8h<span class="delta down">−07%</span></div>
+      </div>
+
+      <div class="data-foot">
+        <div class="takeaway">
+          短影音與直播合計占去 <b>53%</b> 注意力——影院首次跌破日均 0.4 小時。
+        </div>
+        <div>來源：幕間編輯部　／　INTERMISSION DATA LAB</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- =================== SLIDE 4 — EDITORIAL =================== -->
+  <section class="s-editorial" data-label="04 文章">
+    <div class="frame">
+      <div class="ed-top">
+        <div>
+          <div class="ed-kicker">04 — 主題報導　FEATURE</div>
+          <h1 class="ed-title">三種<span class="blue">取景視角</span>，<br>正在重寫鏡頭語言。</h1>
+        </div>
+        <div class="ed-page">P. 014 — 015<br>February · 2026</div>
+      </div>
+
+      <div class="ed-lede">
+        <p style="margin:0 0 1em;">
+          <span class="drop">過</span>去十年間，鏡頭的位置一直由攝影機決定；如今，它由演算法、無人機與觀眾的指尖共同決定。我們挑出三個正在改變影像語法的取景視角，試圖回答一個問題——當任何人都能成為攝影機時，「畫面」這件事還剩下什麼。
+        </p>
+        <p style="margin:0;">
+          這不是一份完整的清單，而是一份可以爭辯的觀察。三段短文之後，我們把判斷留給讀者；讀者也許正坐在某個鏡頭之外，也許正坐在某個鏡頭之內。
+        </p>
+      </div>
+
+      <div class="ed-cols">
+        <div class="ed-col">
+          <div class="num">01<small>VIEW</small></div>
+          <h3>俯瞰，但不再上帝</h3>
+          <p>無人機鏡頭從奇觀工具退為敘事配料。導演們開始用它代替空鏡，讓城市從「景觀」變回「背景」——一種被刻意降溫的鳥瞰。</p>
+          <div class="pin">— 俯瞰 / OVERHEAD</div>
+        </div>
+        <div class="ed-col">
+          <div class="num">02<small>VIEW</small></div>
+          <h3>第一人稱，被身體接管</h3>
+          <p>POV 不再屬於 GoPro 與電玩，而屬於演員的呼吸。當鏡頭跟著肩膀起伏，觀眾被迫承擔身體的重量，影像因此第一次接近散文。</p>
+          <div class="pin">— 主觀 / POV</div>
+        </div>
+        <div class="ed-col">
+          <div class="num">03<small>VIEW</small></div>
+          <h3>側面，由演算法挑選</h3>
+          <p>多機位直播讓觀眾自選視角，演算法則默默替沉默的觀眾選好下一個畫面。導演的權力被分割，剪接從後期搬到了現場。</p>
+          <div class="pin">— 側拍 / SIDE</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- =================== SLIDE 5 — VISUAL CHAPTER =================== -->
+  <section class="s-visual" data-label="05 視覺">
+    <div class="corner-meta tl">05 — 章節　CHAPTER</div>
+    <div class="corner-meta tr">PLATE V</div>
+
+    <div class="vstack">
+      <div class="kicker">— PART V —</div>
+      <div class="ch-vert">夜　行</div>
+      <div class="lead">
+        關於<em>夜晚</em>的影像愈來愈多，<br>
+        而真正能在夜裡<em>被看見</em>的人，<br>
+        卻愈來愈少。
+      </div>
+      <div class="by">章節作者　LIN, J. — 撰文 / 王知衡 — 攝影</div>
+    </div>
+
+    <div class="canvas">
+      <div class="placeholder-tag">[ PLATE 05 — 夜行 / 攝影圖版 1920×1080 ]</div>
+    </div>
+
+    <div class="corner-meta bl">P. 028 / 048</div>
+    <div class="corner-meta br">章節之五</div>
+  </section>
+
+  <!-- =================== SLIDE 6 — CLOSING =================== -->
+  <section class="s-end" data-label="06 謝幕">
+    <div class="wash"></div>
+    <div class="corner-meta tl">06 — 謝幕　END</div>
+    <div class="corner-meta tr">— FIN —</div>
+
+    <div class="frame">
+      <div style="font-family:var(--mono); font-size:22px; letter-spacing:.32em; color:var(--vermillion);">— THE END —</div>
+      <div class="end-mark">謝<span class="accent">幕</span></div>
+      <div class="end-rule"></div>
+      <div class="end-tagline">
+        影像散場之後，<br>
+        我們在<em style="color:var(--vermillion); font-style:normal;">幕間</em>相見——下一輯，二〇二七年二月。
+      </div>
+    </div>
+
+    <dl class="end-credits">
+      <dt>主編　EDITOR</dt><dd>陳維安</dd>
+      <dt>視覺　ART DIRECTION</dt><dd>幕間設計組</dd>
+      <dt>數據　DATA</dt><dd>INTERMISSION DATA LAB</dd>
+      <dt>發行　PUBLISHER</dt><dd>幕間出版　TAIPEI</dd>
+      <dt>下一輯　NEXT</dt><dd>VOL. 07 / 2027.02</dd>
+    </dl>
+
+    <div class="end-foot">
+      INTERMISSION&nbsp;&nbsp;·&nbsp;&nbsp;<b>VOL. 06</b>&nbsp;&nbsp;·&nbsp;&nbsp;2026 ANNUAL REPORT&nbsp;&nbsp;·&nbsp;&nbsp;非賣品
+    </div>
+  </section>
+
+</deck-stage>
+</body>
+</html>

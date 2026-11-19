@@ -1,0 +1,362 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>NEXBOT — Concept N°07</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=JetBrains+Mono:wght@300;400;500&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#0a0a0a;
+    --ink:#f2efe7;
+    --dim:#7a7a72;
+    --line:rgba(242,239,231,.14);
+    --accent:#ff5722;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html,body{background:var(--bg);color:var(--ink);font-family:'Inter',sans-serif;-webkit-font-smoothing:antialiased;overflow-x:hidden}
+  body{min-height:100vh;position:relative}
+
+  /* film grain */
+  body::after{
+    content:"";position:fixed;inset:0;pointer-events:none;z-index:50;
+    background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='160' height='160'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 1  0 0 0 0 1  0 0 0 0 1  0 0 0 0.08 0'/></filter><rect width='100%' height='100%' filter='url(%23n)'/></svg>");
+    mix-blend-mode:overlay;opacity:.6;
+  }
+
+  .frame{
+    position:relative;
+    min-height:100vh;
+    padding:28px 40px 36px;
+    display:grid;
+    grid-template-rows:auto 1fr auto;
+    gap:24px;
+  }
+
+  /* ── HEADER ─────────────────────────────────────────── */
+  header{
+    display:grid;
+    grid-template-columns:1fr auto 1fr;
+    align-items:center;
+    padding-bottom:18px;
+    border-bottom:1px solid var(--line);
+    font-family:'JetBrains Mono',monospace;
+    font-size:11px;
+    letter-spacing:.08em;
+    text-transform:uppercase;
+    color:var(--dim);
+  }
+  header .brand{
+    display:flex;align-items:center;gap:10px;color:var(--ink);
+  }
+  header .brand .dot{
+    width:8px;height:8px;border-radius:50%;background:var(--accent);
+    box-shadow:0 0 12px var(--accent);
+  }
+  header nav{display:flex;gap:28px;justify-content:center}
+  header nav a{color:var(--dim);text-decoration:none;transition:color .2s}
+  header nav a:hover{color:var(--ink)}
+  header nav a.active{color:var(--ink)}
+  header .meta{display:flex;gap:18px;justify-content:flex-end}
+  header .meta span:last-child{color:var(--ink)}
+
+  /* ── STAGE ──────────────────────────────────────────── */
+  .stage{
+    position:relative;
+    display:grid;
+    grid-template-columns:minmax(260px,1.1fr) minmax(0,2.4fr) minmax(220px,1fr);
+    gap:32px;
+    align-items:stretch;
+  }
+
+  /* left rail */
+  .rail-l{
+    display:flex;flex-direction:column;justify-content:space-between;
+    padding-top:6px;
+  }
+  .eyebrow{
+    font-family:'JetBrains Mono',monospace;font-size:11px;
+    letter-spacing:.18em;text-transform:uppercase;color:var(--dim);
+    display:flex;align-items:center;gap:10px;margin-bottom:22px;
+  }
+  .eyebrow::before{
+    content:"";width:24px;height:1px;background:var(--accent);
+  }
+  .lede{
+    font-family:'Instrument Serif',serif;
+    font-style:italic;
+    font-size:22px;line-height:1.35;
+    color:var(--ink);
+    max-width:32ch;
+    text-wrap:pretty;
+  }
+  .lede em{color:var(--accent);font-style:italic}
+
+  .specs{
+    margin-top:auto;
+    font-family:'JetBrains Mono',monospace;
+    font-size:11px;color:var(--dim);
+    display:grid;gap:10px;
+    border-top:1px solid var(--line);padding-top:18px;
+  }
+  .specs .row{display:flex;justify-content:space-between;gap:18px}
+  .specs .row span:last-child{color:var(--ink)}
+
+  /* center stage with iframe */
+  .canvas{
+    position:relative;
+    background:#000;
+    border:1px solid var(--line);
+    overflow:hidden;
+    min-height:560px;
+    aspect-ratio: 4 / 5;
+  }
+  .canvas iframe{
+    position:absolute;inset:0;
+    width:100%;height:100%;
+    border:0;
+    display:block;
+  }
+  /* corner ticks */
+  .tick{position:absolute;width:14px;height:14px;border:1px solid var(--ink);opacity:.75;z-index:3}
+  .tick.tl{top:10px;left:10px;border-right:0;border-bottom:0}
+  .tick.tr{top:10px;right:10px;border-left:0;border-bottom:0}
+  .tick.bl{bottom:10px;left:10px;border-right:0;border-top:0}
+  .tick.br{bottom:10px;right:10px;border-left:0;border-top:0}
+
+  .canvas-meta{
+    position:absolute;left:18px;bottom:18px;z-index:3;
+    font-family:'JetBrains Mono',monospace;font-size:10px;
+    letter-spacing:.16em;text-transform:uppercase;color:var(--ink);
+    display:flex;gap:14px;align-items:center;
+    background:rgba(10,10,10,.55);backdrop-filter:blur(6px);
+    padding:8px 12px;border:1px solid var(--line);
+  }
+  .canvas-meta .rec{
+    width:8px;height:8px;border-radius:50%;background:var(--accent);
+    animation:pulse 1.4s infinite;
+  }
+  @keyframes pulse{
+    0%,100%{opacity:1;box-shadow:0 0 0 0 rgba(255,87,34,.7)}
+    70%{opacity:.6;box-shadow:0 0 0 8px rgba(255,87,34,0)}
+  }
+  .canvas-coords{
+    position:absolute;right:18px;bottom:18px;z-index:3;
+    font-family:'JetBrains Mono',monospace;font-size:10px;
+    letter-spacing:.14em;color:var(--dim);text-align:right;line-height:1.6;
+  }
+  .canvas-coords b{color:var(--ink);font-weight:500}
+
+  /* right rail */
+  .rail-r{display:flex;flex-direction:column;gap:24px;padding-top:6px}
+  .rail-r h4{
+    font-family:'JetBrains Mono',monospace;font-size:11px;
+    letter-spacing:.18em;text-transform:uppercase;color:var(--dim);
+    margin-bottom:10px;font-weight:400;
+  }
+  .rail-r p{font-size:13px;line-height:1.55;color:var(--ink);max-width:30ch;text-wrap:pretty}
+  .modules{display:grid;gap:8px}
+  .module{
+    display:grid;grid-template-columns:auto 1fr auto;align-items:center;
+    gap:12px;padding:10px 0;border-top:1px solid var(--line);
+    font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--ink);
+    letter-spacing:.04em;
+  }
+  .module:last-child{border-bottom:1px solid var(--line)}
+  .module .id{color:var(--dim)}
+  .module .status{color:var(--accent);font-size:9px;letter-spacing:.2em;text-transform:uppercase}
+  .module .status.idle{color:var(--dim)}
+
+  /* ── HERO TYPE OVER STAGE ──────────────────────────── */
+  .hero-type{
+    position:absolute;left:0;right:0;top:0;
+    pointer-events:none;
+    display:flex;justify-content:center;
+    z-index:2;
+    mix-blend-mode:difference;
+  }
+  .hero-type h1{
+    font-family:'Instrument Serif',serif;
+    font-weight:400;
+    font-size:clamp(120px,18vw,260px);
+    line-height:.85;
+    letter-spacing:-.04em;
+    color:#fff;
+    text-align:center;
+    margin-top:-14px;
+    white-space:nowrap;
+  }
+  .hero-type h1 .it{font-style:italic;color:#fff}
+
+  /* ── FOOTER ────────────────────────────────────────── */
+  footer{
+    display:grid;
+    grid-template-columns:1fr 1fr 1fr 1fr;
+    gap:24px;
+    padding-top:18px;
+    border-top:1px solid var(--line);
+    font-family:'JetBrains Mono',monospace;
+    font-size:11px;
+    color:var(--dim);
+    letter-spacing:.06em;
+    text-transform:uppercase;
+  }
+  footer b{color:var(--ink);font-weight:500;display:block;margin-bottom:4px;letter-spacing:.14em}
+  footer .marquee{
+    grid-column:1/-1;
+    margin-top:6px;
+    overflow:hidden;
+    border-top:1px dashed var(--line);
+    padding-top:14px;
+  }
+  .marquee-track{
+    display:flex;gap:48px;white-space:nowrap;
+    animation:scroll 40s linear infinite;
+    font-size:11px;color:var(--dim);
+  }
+  .marquee-track span{display:inline-flex;align-items:center;gap:14px}
+  .marquee-track span::after{content:"◆";color:var(--accent);font-size:8px}
+  @keyframes scroll{
+    from{transform:translateX(0)}
+    to{transform:translateX(-50%)}
+  }
+
+  /* responsive */
+  @media (max-width:1100px){
+    .stage{grid-template-columns:1fr;gap:24px}
+    .hero-type h1{font-size:clamp(80px,22vw,180px);margin-top:0}
+    .canvas{aspect-ratio:4/5;min-height:520px}
+    header nav{display:none}
+    header{grid-template-columns:1fr auto}
+  }
+  @media (max-width:600px){
+    .frame{padding:18px 18px 24px}
+    footer{grid-template-columns:1fr 1fr}
+  }
+</style>
+</head>
+<body>
+  <div class="frame">
+
+    <!-- HEADER -->
+    <header>
+      <div class="brand">
+        <span class="dot"></span>
+        <span>Nexbot&nbsp;/&nbsp;Atelier</span>
+      </div>
+      <nav>
+        <a href="#" class="active">Concept</a>
+        <a href="#">Lab</a>
+        <a href="#">Index</a>
+        <a href="#">Contact</a>
+      </nav>
+      <div class="meta">
+        <span>N°07 / XII</span>
+        <span>EST. 2049</span>
+      </div>
+    </header>
+
+    <!-- STAGE -->
+    <section class="stage">
+
+      <!-- LEFT RAIL -->
+      <aside class="rail-l">
+        <div>
+          <div class="eyebrow">Character Concept · Series 07</div>
+          <p class="lede">
+            A study of synthetic <em>presence</em> — soft geometry,
+            quiet motion, and the faint hum of something
+            almost alive.
+          </p>
+        </div>
+        <div class="specs">
+          <div class="row"><span>Subject</span><span>NX-07 / Bot</span></div>
+          <div class="row"><span>Material</span><span>Polycarbon</span></div>
+          <div class="row"><span>Height</span><span>168 cm</span></div>
+          <div class="row"><span>Mass</span><span>42.6 kg</span></div>
+          <div class="row"><span>Frame</span><span>Live · 60 fps</span></div>
+        </div>
+      </aside>
+
+      <!-- CENTER CANVAS -->
+      <div class="canvas">
+        <span class="tick tl"></span>
+        <span class="tick tr"></span>
+        <span class="tick bl"></span>
+        <span class="tick br"></span>
+
+        <iframe src="https://my.spline.design/nexbotrobotcharacterconcept-InaUtHzcHBpSNf4h2hEp7Kge/" frameborder="0" width="100%" height="100%" title="Nexbot 3D"></iframe>
+
+        <div class="canvas-meta">
+          <span class="rec"></span>
+          <span>Live capture · Cam 03</span>
+        </div>
+        <div class="canvas-coords">
+          <b>+ 048.21° N</b><br>
+          − 122.39° W<br>
+          T &nbsp; 23:48:11
+        </div>
+      </div>
+
+      <!-- RIGHT RAIL -->
+      <aside class="rail-r">
+        <div>
+          <h4>— Brief</h4>
+          <p>Drag, rotate, observe. The model responds to gesture and gaze, a small choreography of curiosity.</p>
+        </div>
+
+        <div>
+          <h4>— Modules</h4>
+          <div class="modules">
+            <div class="module"><span class="id">01</span><span>Optical core</span><span class="status">on</span></div>
+            <div class="module"><span class="id">02</span><span>Gesture mesh</span><span class="status">on</span></div>
+            <div class="module"><span class="id">03</span><span>Ambient sensor</span><span class="status idle">idle</span></div>
+            <div class="module"><span class="id">04</span><span>Voice ring</span><span class="status idle">idle</span></div>
+          </div>
+        </div>
+
+        <div>
+          <h4>— Edition</h4>
+          <p style="font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--dim);letter-spacing:.08em">
+            Open study. Not for resale.<br>
+            Built in collaboration with the Spline community.
+          </p>
+        </div>
+      </aside>
+
+      <!-- BIG OVERLAY TYPE -->
+      <div class="hero-type">
+        <h1>NEX<span class="it">bot</span></h1>
+      </div>
+    </section>
+
+    <!-- FOOTER -->
+    <footer>
+      <div><b>File</b>nexbot.concept.07</div>
+      <div><b>Engine</b>Spline · WebGL</div>
+      <div><b>Author</b>Atelier Nex</div>
+      <div><b>Release</b>v0.7 — Beta</div>
+
+      <div class="marquee">
+        <div class="marquee-track">
+          <span>Concept N°07</span>
+          <span>Synthetic presence</span>
+          <span>Move the cursor</span>
+          <span>Drag to orbit</span>
+          <span>A quiet machine</span>
+          <span>Atelier Nex · 2049</span>
+          <span>Concept N°07</span>
+          <span>Synthetic presence</span>
+          <span>Move the cursor</span>
+          <span>Drag to orbit</span>
+          <span>A quiet machine</span>
+          <span>Atelier Nex · 2049</span>
+        </div>
+      </div>
+    </footer>
+
+  </div>
+</body>
+</html>

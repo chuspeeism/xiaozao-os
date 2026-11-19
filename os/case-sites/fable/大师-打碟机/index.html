@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>DJ Loop Battle · 名曲演奏版</title>
+<link rel="stylesheet" href="style.css"/>
+</head>
+<body data-style="cyber">
+
+<div id="scene" aria-hidden="true">
+  <div class="sc sky"></div>
+  <div class="sc deco d1"></div>
+  <div class="sc deco d2"></div>
+  <div class="sc deco d3"></div>
+  <div class="sc ground"></div>
+  <div class="beams"><i></i><i></i><i></i><i></i><i></i><i></i></div>
+  <div class="crowd"></div>
+  <div class="haze"></div>
+</div>
+
+<header id="topbar">
+  <div class="brand">
+    <span class="logo-dot"></span>
+    <h1>LOOP<b>BATTLE</b></h1>
+    <span class="sub" id="styleName">CYBERPUNK</span>
+  </div>
+
+  <div class="morph-wrap">
+    <button id="morphBtn" title="一键切换曲风（8-bit / 赛博朋克 / 国风电子 / 虚拟歌姬）">
+      <span class="morph-ring"></span>
+      <span class="morph-core">STYLE<br>MORPH</span>
+    </button>
+    <div class="morph-dots">
+      <i data-s="bit8"></i><i data-s="cyber"></i><i data-s="guofeng"></i><i data-s="idol"></i>
+    </div>
+  </div>
+
+  <div class="master-ctl">
+    <div class="song-box">
+      <select id="songSel" class="fxsel">
+        <option value="">自由 LOOP 模式</option>
+        <option value="pvz">植物大战僵尸 Grasswalk</option>
+        <option value="hfh">男儿当自强（黄飞鸿）</option>
+        <option value="ygxy">云宫迅音（西游记）</option>
+        <option value="molihua">茉莉花</option>
+        <option value="saima">赛马</option>
+      </select>
+      <span class="tag">曲目 SONG</span>
+    </div>
+    <div class="bpm-box">
+      <button id="bpmDown">−</button>
+      <div class="lcd" id="bpmLcd">128.0</div>
+      <button id="bpmUp">+</button>
+      <span class="tag">MASTER BPM</span>
+    </div>
+    <div class="beatled" id="beatLeds"><i></i><i></i><i></i><i></i></div>
+    <button id="recBtn" class="rec-btn">● REC</button>
+    <a id="dlBtn" class="dl-btn" hidden download="dj-loop-battle.webm">⬇ 导出</a>
+    <div class="cuemix">
+      <div class="knob mini" id="cueMixKnob" data-min="0" data-max="1" data-val="1"><div class="cap"></div></div>
+      <span class="tag">CUE⇄MIX</span>
+    </div>
+  </div>
+
+  <div class="score-zone">
+    <div class="score-lcd"><span id="scoreVal">0</span><em>SCORE</em></div>
+    <div class="combo" id="comboVal">×0 COMBO</div>
+  </div>
+</header>
+
+<main id="console">
+  <section class="deck" id="deckA" data-side="A"></section>
+  <section class="mixer" id="mixer"></section>
+  <section class="deck" id="deckB" data-side="B"></section>
+</main>
+
+<div id="boot">
+  <button id="bootBtn"><b>⏻</b><span>启动 DJ 引擎</span><em>点击解锁音频 · 建议佩戴耳机</em></button>
+</div>
+
+<script src="app.js"></script>
+</body>
+</html>

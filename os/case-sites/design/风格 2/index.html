@@ -1,0 +1,1087 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8" />
+<title>2026 潮流色彩报告 · 果冻研究所</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@400;500;700;900&family=Noto+Serif+SC:wght@400;700;900&family=Plus+Jakarta+Sans:wght@400;500;700;800&family=Instrument+Serif:ital@0;1&display=swap" rel="stylesheet" />
+<style>
+  :root {
+    --type-display: 180px;
+    --type-title: 110px;
+    --type-h2: 72px;
+    --type-subtitle: 48px;
+    --type-body: 32px;
+    --type-label: 26px;
+    --type-tiny: 22px;
+
+    --pad-x: 100px;
+    --pad-y: 90px;
+    --gap-title: 56px;
+    --gap-item: 28px;
+
+    --pink: #FF3DC0;
+    --cyan: #4DBFFF;
+    --lime: #7AE040;
+    --orange: #FF8B3D;
+    --purple: #A87FFF;
+    --ink: #111113;
+    --paper: #F2EFE8;
+    --paper-2: #ECE8DE;
+
+    --serif-cn: "Noto Serif SC", "Songti SC", serif;
+    --sans-cn: "Noto Sans SC", "PingFang SC", sans-serif;
+    --sans-en: "Plus Jakarta Sans", "Inter", system-ui, sans-serif;
+    --serif-en: "Instrument Serif", "Times New Roman", serif;
+  }
+
+  html, body {
+    margin: 0;
+    padding: 0;
+    background: #1a1a1c;
+    font-family: var(--sans-cn);
+    color: var(--ink);
+    -webkit-font-smoothing: antialiased;
+  }
+
+  deck-stage section {
+    overflow: hidden;
+    box-sizing: border-box;
+  }
+
+  /* ===== 通用 ===== */
+  .wordmark {
+    display: inline-flex;
+    align-items: center;
+    gap: 14px;
+    font-family: var(--serif-cn);
+    font-weight: 700;
+    font-size: 28px;
+    color: var(--ink);
+    letter-spacing: 0.02em;
+  }
+  .wordmark .mark {
+    width: 38px; height: 38px;
+    display: inline-block;
+  }
+  .wordmark.invert { color: var(--paper); }
+
+  .corner {
+    position: absolute;
+    font-family: var(--sans-en);
+    font-size: var(--type-tiny);
+    font-weight: 500;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--ink);
+  }
+  .corner.invert { color: var(--paper); }
+
+  /* ===== 光晕背景（径向同心环） ===== */
+  .aura {
+    position: absolute; inset: 0;
+    z-index: 0;
+  }
+  .aura.cyan {
+    background:
+      radial-gradient(circle at 50% 50%,
+        #ffffff 0%, #ffffff 8%,
+        #d6efff 13%, #8fd6ff 22%,
+        #c2e6ff 30%, #6ec9ff 40%,
+        #aeddff 50%, #5cc1ff 62%,
+        #93d4ff 74%, #4dbfff 88%,
+        #4dbfff 100%);
+    filter: blur(14px);
+  }
+  .aura.pink-soft {
+    background:
+      radial-gradient(circle at 50% 50%,
+        #ffffff 0%, #ffffff 6%,
+        #ffd9f1 12%, #ff7ed7 22%,
+        #ffb6e6 32%, #ff58c8 44%,
+        #ff95dc 58%, #ff3dc0 76%,
+        #ff3dc0 100%);
+    filter: blur(16px);
+  }
+
+  /* 网格底纹 */
+  .grid-bg {
+    position: absolute; inset: 0;
+    background-image:
+      linear-gradient(to right, rgba(0,0,0,0.05) 1px, transparent 1px),
+      linear-gradient(to bottom, rgba(0,0,0,0.05) 1px, transparent 1px);
+    background-size: 60px 60px;
+    z-index: 0;
+  }
+
+  /* ===== SLIDE 01 · 封面 ===== */
+  .s-cover {
+    background: var(--cyan);
+    position: relative;
+    color: var(--ink);
+  }
+  .s-cover .aura-wrap {
+    position: absolute;
+    inset: -8% -8% -8% -8%;
+    z-index: 0;
+  }
+  .s-cover .cover-content {
+    position: absolute; inset: 0;
+    z-index: 2;
+    padding: var(--pad-y) var(--pad-x);
+    display: flex; flex-direction: column;
+    justify-content: space-between;
+  }
+  .s-cover .top-row {
+    display: flex; justify-content: space-between; align-items: flex-start;
+  }
+  .s-cover .center-block {
+    text-align: center;
+  }
+  .s-cover .eyebrow {
+    font-family: var(--sans-en);
+    font-size: var(--type-tiny);
+    letter-spacing: 0.32em;
+    text-transform: uppercase;
+    font-weight: 600;
+    color: rgba(17,17,19,0.72);
+    margin-bottom: 28px;
+  }
+  .s-cover h1 {
+    font-family: var(--serif-cn);
+    font-weight: 900;
+    font-size: 168px;
+    line-height: 0.95;
+    letter-spacing: -0.01em;
+    margin: 0;
+    color: var(--ink);
+  }
+  .s-cover h1 .it {
+    font-family: var(--serif-en);
+    font-style: italic;
+    font-weight: 400;
+    color: var(--ink);
+  }
+  .s-cover .sub {
+    margin-top: 36px;
+    font-family: var(--sans-en);
+    font-size: var(--type-subtitle);
+    font-weight: 500;
+    color: rgba(17,17,19,0.78);
+  }
+  .s-cover .bottom-row {
+    display: flex; justify-content: space-between; align-items: flex-end;
+    font-family: var(--sans-en);
+    font-size: var(--type-label);
+    font-weight: 500;
+    letter-spacing: 0.06em;
+  }
+  .s-cover .bottom-row .left { display: flex; gap: 64px; align-items: center; }
+  .s-cover .characters-row {
+    display: flex; gap: 20px; align-items: center;
+  }
+  .s-cover .characters-row svg { width: 64px; height: 64px; }
+
+  /* ===== SLIDE 02 · 数据 ===== */
+  .s-data {
+    background: var(--paper);
+    position: relative;
+    padding: var(--pad-y) var(--pad-x);
+  }
+  .s-data .header {
+    display: flex; justify-content: space-between; align-items: flex-start;
+    margin-bottom: 60px;
+    position: relative; z-index: 2;
+  }
+  .s-data .heading {
+    font-family: var(--serif-cn);
+    font-weight: 900;
+    font-size: var(--type-h2);
+    line-height: 1.05;
+    margin: 0;
+    color: var(--ink);
+    max-width: 1100px;
+  }
+  .s-data .heading .accent {
+    font-family: var(--serif-en);
+    font-style: italic;
+    font-weight: 400;
+  }
+  .s-data .meta {
+    font-family: var(--sans-en);
+    font-size: var(--type-tiny);
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: rgba(17,17,19,0.6);
+    text-align: right;
+    line-height: 1.6;
+  }
+  .s-data .chart {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 36px;
+    align-items: end;
+    height: 620px;
+    position: relative; z-index: 2;
+  }
+  .s-data .col {
+    display: flex; flex-direction: column;
+    align-items: center; justify-content: flex-end;
+    height: 100%;
+  }
+  .s-data .col .mascot {
+    width: 90px; height: 90px;
+    margin-bottom: 18px;
+  }
+  .s-data .col .pct {
+    font-family: var(--sans-en);
+    font-weight: 800;
+    font-size: 64px;
+    line-height: 1;
+    margin-bottom: 14px;
+    color: var(--ink);
+  }
+  .s-data .col .bar {
+    width: 100%;
+    border-radius: 28px 28px 0 0;
+    position: relative;
+  }
+  .s-data .col .name {
+    margin-top: 22px;
+    font-family: var(--serif-cn);
+    font-weight: 700;
+    font-size: 30px;
+    color: var(--ink);
+  }
+  .s-data .col .name-en {
+    margin-top: 6px;
+    font-family: var(--sans-en);
+    font-size: 18px;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: rgba(17,17,19,0.55);
+  }
+  .s-data .baseline {
+    height: 2px;
+    background: var(--ink);
+    margin-top: 0;
+    position: relative; z-index: 2;
+  }
+  .s-data .footnote {
+    margin-top: 28px;
+    display: flex; justify-content: space-between; align-items: center;
+    font-family: var(--sans-en);
+    font-size: var(--type-tiny);
+    color: rgba(17,17,19,0.55);
+    letter-spacing: 0.04em;
+    position: relative; z-index: 2;
+  }
+
+  /* ===== SLIDE 03 · 复杂排版 ===== */
+  .s-type {
+    background: var(--paper);
+    position: relative;
+    padding: var(--pad-y) var(--pad-x);
+    color: var(--ink);
+  }
+  .s-type .header {
+    display: flex; justify-content: space-between; align-items: flex-start;
+    position: relative; z-index: 2;
+  }
+  .s-type .label-block {
+    font-family: var(--sans-en);
+    font-size: var(--type-tiny);
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: rgba(17,17,19,0.55);
+    line-height: 1.7;
+    text-align: right;
+  }
+  .s-type .body {
+    position: relative; z-index: 2;
+    margin-top: 30px;
+    display: grid;
+    grid-template-columns: 1.15fr 1fr;
+    gap: 80px;
+    align-items: start;
+  }
+  .s-type .names {
+    font-family: var(--serif-cn);
+    font-weight: 900;
+    font-size: 132px;
+    line-height: 1.02;
+    letter-spacing: -0.01em;
+  }
+  .s-type .names .row {
+    display: flex; align-items: center; gap: 20px;
+    white-space: nowrap;
+  }
+  .s-type .names .row.r2 { padding-left: 90px; }
+  .s-type .names .row.r3 { padding-left: 30px; }
+  .s-type .names .row.r4 { padding-left: 160px; }
+  .s-type .names .row.r5 { padding-left: 60px; }
+  .s-type .names .it {
+    font-family: var(--serif-en);
+    font-style: italic;
+    font-weight: 400;
+  }
+  .s-type .names svg.inline {
+    width: 96px; height: 96px;
+    flex-shrink: 0;
+  }
+  .s-type .right-col {
+    padding-top: 60px;
+    display: flex; flex-direction: column; gap: 40px;
+  }
+  .s-type .quote {
+    font-family: var(--serif-cn);
+    font-weight: 400;
+    font-size: 38px;
+    line-height: 1.5;
+    color: var(--ink);
+  }
+  .s-type .quote .em {
+    font-family: var(--serif-en);
+    font-style: italic;
+    font-size: 44px;
+  }
+  .s-type .meta-grid {
+    display: grid; grid-template-columns: 1fr 1fr; gap: 24px 32px;
+    border-top: 2px solid var(--ink);
+    padding-top: 24px;
+  }
+  .s-type .meta-grid .k {
+    font-family: var(--sans-en);
+    font-size: 16px;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: rgba(17,17,19,0.5);
+    margin-bottom: 6px;
+  }
+  .s-type .meta-grid .v {
+    font-family: var(--serif-cn);
+    font-weight: 700;
+    font-size: 26px;
+    color: var(--ink);
+  }
+  .s-type .signature {
+    margin-top: 8px;
+    font-family: var(--serif-en);
+    font-style: italic;
+    font-size: 38px;
+    color: var(--ink);
+  }
+  .s-type .signature .by {
+    font-family: var(--sans-en);
+    font-style: normal;
+    font-size: 16px;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: rgba(17,17,19,0.5);
+    display: block;
+    margin-bottom: 6px;
+  }
+
+  /* ===== SLIDE 04 · 品牌矩阵 ===== */
+  .s-brand {
+    background: var(--ink);
+    position: relative;
+    color: var(--paper);
+    padding: var(--pad-y) var(--pad-x);
+    overflow: hidden;
+  }
+  .s-brand .header {
+    display: flex; justify-content: space-between; align-items: flex-start;
+    position: relative; z-index: 2;
+  }
+  .s-brand .heading {
+    font-family: var(--serif-cn);
+    font-weight: 900;
+    font-size: var(--type-h2);
+    line-height: 1.05;
+    margin: 0;
+    max-width: 900px;
+  }
+  .s-brand .heading .it {
+    font-family: var(--serif-en);
+    font-style: italic;
+    font-weight: 400;
+  }
+  .s-brand .meta {
+    font-family: var(--sans-en);
+    font-size: var(--type-tiny);
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: rgba(242,239,232,0.55);
+    text-align: right;
+    line-height: 1.7;
+  }
+  .s-brand .chip-grid {
+    margin-top: 50px;
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    grid-auto-rows: 150px;
+    gap: 22px;
+    position: relative; z-index: 2;
+  }
+  .chip {
+    border-radius: 28px;
+    display: flex; align-items: center; justify-content: center;
+    font-family: var(--serif-cn);
+    font-weight: 900;
+    font-size: 76px;
+    color: var(--paper);
+    letter-spacing: -0.01em;
+    position: relative;
+    box-shadow:
+      inset 0 -10px 30px rgba(0,0,0,0.18),
+      inset 0 10px 24px rgba(255,255,255,0.28);
+  }
+  .chip.italic {
+    font-family: var(--serif-en);
+    font-style: italic;
+    font-weight: 400;
+    font-size: 84px;
+  }
+  .chip.en {
+    font-family: var(--sans-en);
+    font-weight: 800;
+    font-size: 56px;
+    letter-spacing: -0.02em;
+    text-transform: uppercase;
+  }
+  .chip.dark { color: var(--ink); box-shadow: inset 0 -10px 30px rgba(0,0,0,0.12), inset 0 10px 24px rgba(255,255,255,0.45); }
+  .chip.wide { grid-column: span 2; }
+  .chip.tall { grid-row: span 2; font-size: 110px; }
+
+  .s-brand .footer-row {
+    margin-top: 36px;
+    display: flex; justify-content: space-between; align-items: center;
+    font-family: var(--sans-en);
+    font-size: var(--type-tiny);
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: rgba(242,239,232,0.6);
+    position: relative; z-index: 2;
+  }
+
+  /* ===== SLIDE 05 · 角色合影 ===== */
+  .s-cast {
+    background: var(--ink);
+    color: var(--paper);
+    padding: var(--pad-y) var(--pad-x);
+    position: relative;
+    overflow: hidden;
+  }
+  .s-cast .header {
+    display: flex; justify-content: space-between; align-items: flex-start;
+    position: relative; z-index: 2;
+  }
+  .s-cast .eyebrow {
+    font-family: var(--sans-en);
+    font-size: var(--type-tiny);
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    color: rgba(242,239,232,0.55);
+  }
+  .s-cast .heading {
+    margin: 18px 0 0 0;
+    font-family: var(--serif-cn);
+    font-weight: 900;
+    font-size: var(--type-h2);
+    line-height: 1.05;
+    max-width: 1000px;
+  }
+  .s-cast .heading .it {
+    font-family: var(--serif-en);
+    font-style: italic;
+    font-weight: 400;
+  }
+  .s-cast .meta {
+    font-family: var(--sans-en);
+    font-size: var(--type-tiny);
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: rgba(242,239,232,0.55);
+    text-align: right;
+    line-height: 1.7;
+  }
+  .s-cast .lineup {
+    margin-top: 60px;
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 32px;
+    position: relative; z-index: 2;
+  }
+  .s-cast .card {
+    display: flex; flex-direction: column; align-items: center;
+    text-align: center;
+  }
+  .s-cast .card .stage {
+    width: 100%;
+    aspect-ratio: 1 / 1;
+    border-radius: 32px;
+    display: flex; align-items: center; justify-content: center;
+    background: rgba(242,239,232,0.05);
+    border: 1px solid rgba(242,239,232,0.08);
+    position: relative;
+  }
+  .s-cast .card .stage svg { width: 70%; height: 70%; }
+  .s-cast .card .num {
+    position: absolute;
+    top: 18px; left: 22px;
+    font-family: var(--sans-en);
+    font-size: 18px;
+    letter-spacing: 0.18em;
+    color: rgba(242,239,232,0.5);
+    font-weight: 600;
+  }
+  .s-cast .card .cn {
+    margin-top: 28px;
+    font-family: var(--serif-cn);
+    font-weight: 900;
+    font-size: 44px;
+    color: var(--paper);
+  }
+  .s-cast .card .en {
+    margin-top: 6px;
+    font-family: var(--serif-en);
+    font-style: italic;
+    font-size: 26px;
+    color: rgba(242,239,232,0.6);
+  }
+  .s-cast .card .hex {
+    margin-top: 16px;
+    font-family: var(--sans-en);
+    font-size: 16px;
+    letter-spacing: 0.22em;
+    color: rgba(242,239,232,0.45);
+  }
+  .s-cast .footer-row {
+    margin-top: 50px;
+    display: flex; justify-content: space-between; align-items: center;
+    font-family: var(--sans-en);
+    font-size: var(--type-tiny);
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: rgba(242,239,232,0.55);
+    position: relative; z-index: 2;
+  }
+
+  /* ===== SLIDE 06 · 结语 ===== */
+  .s-end {
+    background: var(--pink);
+    position: relative;
+    color: var(--ink);
+    overflow: hidden;
+  }
+  .s-end .aura-wrap {
+    position: absolute;
+    inset: -8%;
+    z-index: 0;
+  }
+  .s-end .end-content {
+    position: absolute; inset: 0;
+    z-index: 2;
+    padding: var(--pad-y) var(--pad-x);
+    display: flex; flex-direction: column;
+    justify-content: space-between;
+  }
+  .s-end .top-row {
+    display: flex; justify-content: space-between; align-items: flex-start;
+  }
+  .s-end .center {
+    text-align: center;
+  }
+  .s-end .eyebrow {
+    font-family: var(--sans-en);
+    font-size: var(--type-tiny);
+    letter-spacing: 0.32em;
+    text-transform: uppercase;
+    font-weight: 600;
+    color: rgba(17,17,19,0.7);
+    margin-bottom: 30px;
+  }
+  .s-end h1 {
+    margin: 0;
+    font-family: var(--serif-cn);
+    font-weight: 900;
+    font-size: 168px;
+    line-height: 0.96;
+    letter-spacing: -0.01em;
+    color: var(--ink);
+  }
+  .s-end h1 .it {
+    font-family: var(--serif-en);
+    font-style: italic;
+    font-weight: 400;
+  }
+  .s-end .sub {
+    margin-top: 36px;
+    font-family: var(--sans-en);
+    font-size: var(--type-subtitle);
+    font-weight: 500;
+    color: rgba(17,17,19,0.78);
+  }
+  .s-end .bottom-row {
+    display: flex; justify-content: space-between; align-items: flex-end;
+    font-family: var(--sans-en);
+    font-size: var(--type-label);
+    font-weight: 500;
+  }
+  .s-end .contact {
+    display: flex; gap: 64px;
+  }
+  .s-end .contact .k {
+    font-size: 16px;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    color: rgba(17,17,19,0.55);
+    margin-bottom: 6px;
+  }
+  .s-end .contact .v {
+    font-family: var(--serif-cn);
+    font-weight: 700;
+    font-size: 28px;
+    color: var(--ink);
+  }
+  .s-end .contact .v.en {
+    font-family: var(--sans-en);
+    font-weight: 600;
+  }
+</style>
+</head>
+<body>
+
+<!-- 角色 SVG sprites（原创：云朵、水滴、星、心、波浪圆） -->
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <defs>
+    <!-- 云朵 -->
+    <symbol id="m-cloud" viewBox="0 0 100 100">
+      <path d="M22 62
+               C 8 62, 8 42, 22 40
+               C 18 22, 42 14, 50 28
+               C 58 14, 82 22, 78 40
+               C 92 42, 92 62, 78 62
+               Z"
+            fill="currentColor"/>
+      <ellipse cx="40" cy="44" rx="6" ry="7" fill="#fff"/>
+      <ellipse cx="60" cy="44" rx="6" ry="7" fill="#fff"/>
+      <ellipse cx="41" cy="46" rx="2.6" ry="3.2" fill="#111113"/>
+      <ellipse cx="61" cy="46" rx="2.6" ry="3.2" fill="#111113"/>
+    </symbol>
+    <!-- 水滴 -->
+    <symbol id="m-drop" viewBox="0 0 100 100">
+      <path d="M50 8
+               C 30 36, 18 52, 18 68
+               C 18 84, 32 94, 50 94
+               C 68 94, 82 84, 82 68
+               C 82 52, 70 36, 50 8 Z"
+            fill="currentColor"/>
+      <ellipse cx="40" cy="60" rx="6" ry="7" fill="#fff"/>
+      <ellipse cx="60" cy="60" rx="6" ry="7" fill="#fff"/>
+      <ellipse cx="41" cy="62" rx="2.6" ry="3.2" fill="#111113"/>
+      <ellipse cx="61" cy="62" rx="2.6" ry="3.2" fill="#111113"/>
+    </symbol>
+    <!-- 星 -->
+    <symbol id="m-star" viewBox="0 0 100 100">
+      <path d="M50 8
+               C 54 30, 60 36, 82 40
+               C 60 44, 54 50, 50 72
+               C 46 50, 40 44, 18 40
+               C 40 36, 46 30, 50 8 Z
+               M 86 70
+               C 74 72, 70 76, 68 88
+               C 66 76, 62 72, 50 70
+               C 62 68, 66 64, 68 52
+               C 70 64, 74 68, 86 70 Z"
+            fill="currentColor"/>
+      <ellipse cx="44" cy="38" rx="5" ry="6" fill="#fff"/>
+      <ellipse cx="58" cy="38" rx="5" ry="6" fill="#fff"/>
+      <ellipse cx="45" cy="39" rx="2.2" ry="2.8" fill="#111113"/>
+      <ellipse cx="59" cy="39" rx="2.2" ry="2.8" fill="#111113"/>
+    </symbol>
+    <!-- 心 -->
+    <symbol id="m-heart" viewBox="0 0 100 100">
+      <path d="M50 86
+               C 22 68, 8 52, 8 34
+               C 8 20, 20 10, 32 10
+               C 40 10, 46 14, 50 22
+               C 54 14, 60 10, 68 10
+               C 80 10, 92 20, 92 34
+               C 92 52, 78 68, 50 86 Z"
+            fill="currentColor"/>
+      <ellipse cx="40" cy="38" rx="6" ry="7" fill="#fff"/>
+      <ellipse cx="60" cy="38" rx="6" ry="7" fill="#fff"/>
+      <ellipse cx="41" cy="40" rx="2.6" ry="3.2" fill="#111113"/>
+      <ellipse cx="61" cy="40" rx="2.6" ry="3.2" fill="#111113"/>
+    </symbol>
+    <!-- 波浪圆（花朵） -->
+    <symbol id="m-flower" viewBox="0 0 100 100">
+      <path d="M50 6
+               C 60 6, 64 14, 70 14
+               C 78 14, 86 22, 86 30
+               C 86 36, 94 40, 94 50
+               C 94 60, 86 64, 86 70
+               C 86 78, 78 86, 70 86
+               C 64 86, 60 94, 50 94
+               C 40 94, 36 86, 30 86
+               C 22 86, 14 78, 14 70
+               C 14 64, 6 60, 6 50
+               C 6 40, 14 36, 14 30
+               C 14 22, 22 14, 30 14
+               C 36 14, 40 6, 50 6 Z"
+            fill="currentColor"/>
+      <ellipse cx="40" cy="46" rx="6" ry="7" fill="#fff"/>
+      <ellipse cx="60" cy="46" rx="6" ry="7" fill="#fff"/>
+      <ellipse cx="41" cy="48" rx="2.6" ry="3.2" fill="#111113"/>
+      <ellipse cx="61" cy="48" rx="2.6" ry="3.2" fill="#111113"/>
+    </symbol>
+
+    <!-- 品牌 mark：果冻字 J 形小光晕（不要文字） -->
+    <symbol id="logomark" viewBox="0 0 100 100">
+      <path d="M50 8
+               C 64 8, 78 14, 84 28
+               C 94 32, 94 56, 84 60
+               C 78 78, 60 86, 50 86
+               C 36 86, 22 78, 16 60
+               C 6 56, 6 32, 16 28
+               C 22 14, 36 8, 50 8 Z"
+            fill="currentColor"/>
+      <text x="50" y="60" text-anchor="middle"
+            font-family="Noto Serif SC, serif"
+            font-weight="900"
+            font-size="48"
+            fill="#F2EFE8">果</text>
+    </symbol>
+  </defs>
+</svg>
+
+<deck-stage width="1920" height="1080">
+
+  <!-- ====== SLIDE 01 · 封面 ====== -->
+  <section data-label="01 封面" class="s-cover">
+    <div class="aura-wrap"><div class="aura cyan"></div></div>
+
+    <div class="cover-content">
+      <div class="top-row">
+        <div class="wordmark">
+          <svg class="mark" viewBox="0 0 100 100" style="color: var(--ink)"><use href="#logomark"/></svg>
+          <span>果冻研究所</span>
+        </div>
+        <div style="font-family: var(--sans-en); font-size: var(--type-tiny); letter-spacing: 0.22em; text-transform: uppercase; font-weight: 500; color: rgba(17,17,19,0.7); text-align: right; line-height: 1.7;">
+          Vol. 04 · MMXXVI<br/>Jelly Lab Report
+        </div>
+      </div>
+
+      <div class="center-block">
+        <div class="eyebrow">2026 · COLOR TREND REPORT</div>
+        <h1>潮流<span class="it">color</span>报告</h1>
+        <div class="sub">五种颜色，五种心情。</div>
+      </div>
+
+      <div class="bottom-row">
+        <div class="left">
+          <span style="letter-spacing:0.2em; text-transform: uppercase;">果冻研究所 出品</span>
+          <span style="opacity:0.55;">·</span>
+          <span style="letter-spacing:0.2em; text-transform: uppercase;">Issue 04</span>
+        </div>
+        <div class="characters-row">
+          <svg viewBox="0 0 100 100" style="color: var(--pink)"><use href="#m-cloud"/></svg>
+          <svg viewBox="0 0 100 100" style="color: var(--orange)"><use href="#m-drop"/></svg>
+          <svg viewBox="0 0 100 100" style="color: var(--lime)"><use href="#m-flower"/></svg>
+          <svg viewBox="0 0 100 100" style="color: var(--purple)"><use href="#m-heart"/></svg>
+          <svg viewBox="0 0 100 100" style="color: var(--ink)"><use href="#m-star"/></svg>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ====== SLIDE 02 · 数据图表 ====== -->
+  <section data-label="02 数据" class="s-data">
+    <div class="grid-bg"></div>
+
+    <div class="header">
+      <h2 class="heading">设计师最常使用的<br/>五种<span class="accent">color</span>。</h2>
+      <div class="meta">
+        n = 2,847 设计师<br/>
+        2026 / Q1 调研<br/>
+        Source · Jelly Lab
+      </div>
+    </div>
+
+    <div class="chart">
+      <div class="col">
+        <svg class="mascot" viewBox="0 0 100 100" style="color: var(--cyan)"><use href="#m-cloud"/></svg>
+        <div class="pct">49%</div>
+        <div class="bar" style="background: var(--cyan); height: 49%;"></div>
+        <div class="name">电光青</div>
+        <div class="name-en">Electric Cyan</div>
+      </div>
+      <div class="col">
+        <svg class="mascot" viewBox="0 0 100 100" style="color: var(--pink)"><use href="#m-heart"/></svg>
+        <div class="pct">38%</div>
+        <div class="bar" style="background: var(--pink); height: 38%;"></div>
+        <div class="name">果冻粉</div>
+        <div class="name-en">Jelly Pink</div>
+      </div>
+      <div class="col">
+        <svg class="mascot" viewBox="0 0 100 100" style="color: var(--lime)"><use href="#m-flower"/></svg>
+        <div class="pct">31%</div>
+        <div class="bar" style="background: var(--lime); height: 31%;"></div>
+        <div class="name">草坪绿</div>
+        <div class="name-en">Lawn Green</div>
+      </div>
+      <div class="col">
+        <svg class="mascot" viewBox="0 0 100 100" style="color: var(--orange)"><use href="#m-drop"/></svg>
+        <div class="pct">24%</div>
+        <div class="bar" style="background: var(--orange); height: 24%;"></div>
+        <div class="name">落日橙</div>
+        <div class="name-en">Sunset Orange</div>
+      </div>
+      <div class="col">
+        <svg class="mascot" viewBox="0 0 100 100" style="color: var(--purple)"><use href="#m-star"/></svg>
+        <div class="pct">18%</div>
+        <div class="bar" style="background: var(--purple); height: 18%;"></div>
+        <div class="name">葡萄紫</div>
+        <div class="name-en">Grape Purple</div>
+      </div>
+    </div>
+
+    <div class="baseline"></div>
+
+    <div class="footnote">
+      <span>Fig. 01 · 多选题，受访者可选 1-3 项</span>
+      <span>果冻研究所 / 2026 潮流色彩报告 · 02</span>
+    </div>
+  </section>
+
+  <!-- ====== SLIDE 03 · 复杂排版 ====== -->
+  <section data-label="03 命名" class="s-type">
+    <div class="grid-bg"></div>
+
+    <div class="header">
+      <div class="wordmark">
+        <svg class="mark" viewBox="0 0 100 100" style="color: var(--ink)"><use href="#logomark"/></svg>
+        <span>果冻研究所</span>
+      </div>
+      <div class="label-block">
+        Section 03<br/>
+        Color · Naming<br/>
+        Manifesto
+      </div>
+    </div>
+
+    <div class="body">
+      <div class="names">
+        <div class="row r1">
+          电光<span class="it">Cyan</span>
+          <svg class="inline" viewBox="0 0 100 100" style="color: var(--cyan)"><use href="#m-cloud"/></svg>
+        </div>
+        <div class="row r2">
+          果冻粉
+        </div>
+        <div class="row r3">
+          <svg class="inline" viewBox="0 0 100 100" style="color: var(--lime)"><use href="#m-flower"/></svg>
+          草坪绿
+        </div>
+        <div class="row r4">
+          落日<span class="it">orange</span>
+        </div>
+        <div class="row r5">
+          葡萄紫
+          <svg class="inline" viewBox="0 0 100 100" style="color: var(--purple)"><use href="#m-star"/></svg>
+        </div>
+      </div>
+
+      <div class="right-col">
+        <div class="quote">
+          颜色不是装饰，<br/>
+          颜色是<span class="em">情绪</span>的形状。<br/>
+          每一年，我们都在<br/>
+          重新发明心情的<span class="em">名字</span>。
+        </div>
+
+        <div class="meta-grid">
+          <div>
+            <div class="k">类型 · TYPE</div>
+            <div class="v">情绪驱动</div>
+          </div>
+          <div>
+            <div class="k">数量 · COUNT</div>
+            <div class="v">5 个主色</div>
+          </div>
+          <div>
+            <div class="k">饱和度 · CHROMA</div>
+            <div class="v">高 · 0.20+</div>
+          </div>
+          <div>
+            <div class="k">建议场景</div>
+            <div class="v">品牌、海报、UI</div>
+          </div>
+        </div>
+
+        <div class="signature">
+          <span class="by">编辑 · CURATED BY</span>
+          Jelly Lab, 2026
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ====== SLIDE 04 · 品牌矩阵 ====== -->
+  <section data-label="04 品牌" class="s-brand">
+    <div class="header">
+      <h2 class="heading">同一个名字，<br/>五种<span class="it">mood</span>。</h2>
+      <div class="meta">
+        Section 04<br/>
+        Brand · Application<br/>
+        Mood Matrix
+      </div>
+    </div>
+
+    <div class="chip-grid">
+      <!-- Row 1 -->
+      <div class="chip" style="background: var(--pink);">果冻</div>
+      <div class="chip en" style="background: var(--cyan); color: var(--ink);">JELLY</div>
+      <div class="chip italic" style="background: var(--lime); color: var(--ink);">jelly</div>
+      <div class="chip" style="background: var(--orange);">果冻</div>
+
+      <!-- Row 2 -->
+      <div class="chip en" style="background: var(--purple);">JELLY</div>
+      <div class="chip wide" style="background: var(--paper); color: var(--ink);">果冻 · jelly</div>
+      <div class="chip italic" style="background: var(--pink);">jelly</div>
+
+      <!-- Row 3 -->
+      <div class="chip italic" style="background: var(--cyan); color: var(--ink);">jelly</div>
+      <div class="chip" style="background: var(--purple);">果冻</div>
+      <div class="chip en" style="background: var(--orange); color: var(--ink);">JELLY</div>
+      <div class="chip" style="background: var(--lime); color: var(--ink);">果冻</div>
+    </div>
+
+    <div class="footer-row">
+      <span>果冻研究所 / Jelly Lab · 2026</span>
+      <span>Section 04 · Brand Application</span>
+    </div>
+  </section>
+
+  <!-- ====== SLIDE 05 · 角色合影 ====== -->
+  <section data-label="05 角色" class="s-cast">
+    <div class="header">
+      <div>
+        <div class="eyebrow">Section 05 · The Cast</div>
+        <h2 class="heading">五位<span class="it">color</span>主角，<br/>各有各的脾气。</h2>
+      </div>
+      <div class="meta">
+        Jelly Lab<br/>
+        Mascot Family<br/>
+        2026 / V.04
+      </div>
+    </div>
+
+    <div class="lineup">
+      <div class="card">
+        <div class="stage">
+          <span class="num">01</span>
+          <svg viewBox="0 0 100 100" style="color: var(--cyan)"><use href="#m-cloud"/></svg>
+        </div>
+        <div class="cn">青云</div>
+        <div class="en">Cloudy</div>
+        <div class="hex">#4DBFFF</div>
+      </div>
+      <div class="card">
+        <div class="stage">
+          <span class="num">02</span>
+          <svg viewBox="0 0 100 100" style="color: var(--pink)"><use href="#m-heart"/></svg>
+        </div>
+        <div class="cn">小心心</div>
+        <div class="en">Heartie</div>
+        <div class="hex">#FF3DC0</div>
+      </div>
+      <div class="card">
+        <div class="stage">
+          <span class="num">03</span>
+          <svg viewBox="0 0 100 100" style="color: var(--lime)"><use href="#m-flower"/></svg>
+        </div>
+        <div class="cn">花生</div>
+        <div class="en">Bloomy</div>
+        <div class="hex">#7AE040</div>
+      </div>
+      <div class="card">
+        <div class="stage">
+          <span class="num">04</span>
+          <svg viewBox="0 0 100 100" style="color: var(--orange)"><use href="#m-drop"/></svg>
+        </div>
+        <div class="cn">橘滴</div>
+        <div class="en">Droppy</div>
+        <div class="hex">#FF8B3D</div>
+      </div>
+      <div class="card">
+        <div class="stage">
+          <span class="num">05</span>
+          <svg viewBox="0 0 100 100" style="color: var(--purple)"><use href="#m-star"/></svg>
+        </div>
+        <div class="cn">紫闪</div>
+        <div class="en">Starly</div>
+        <div class="hex">#A87FFF</div>
+      </div>
+    </div>
+
+    <div class="footer-row">
+      <span>果冻研究所 / Jelly Lab · 2026</span>
+      <span>Section 05 · Mascot Family</span>
+    </div>
+  </section>
+
+  <!-- ====== SLIDE 06 · 结语 ====== -->
+  <section data-label="06 结语" class="s-end">
+    <div class="aura-wrap"><div class="aura pink-soft"></div></div>
+
+    <div class="end-content">
+      <div class="top-row">
+        <div class="wordmark">
+          <svg class="mark" viewBox="0 0 100 100" style="color: var(--ink)"><use href="#logomark"/></svg>
+          <span>果冻研究所</span>
+        </div>
+        <div style="font-family: var(--sans-en); font-size: var(--type-tiny); letter-spacing: 0.22em; text-transform: uppercase; font-weight: 500; color: rgba(17,17,19,0.7); text-align: right; line-height: 1.7;">
+          End · Vol. 04<br/>MMXXVI
+        </div>
+      </div>
+
+      <div class="center">
+        <div class="eyebrow">THANK YOU · 谢谢观看</div>
+        <h1>下一年，<br/>什么<span class="it">color</span>？</h1>
+        <div class="sub">把心情，调成一种颜色。</div>
+      </div>
+
+      <div class="bottom-row">
+        <div class="contact">
+          <div>
+            <div class="k">Web</div>
+            <div class="v en">jellylab.studio</div>
+          </div>
+          <div>
+            <div class="k">合作 / Hello</div>
+            <div class="v en">hi@jellylab.studio</div>
+          </div>
+          <div>
+            <div class="k">出品</div>
+            <div class="v">果冻研究所</div>
+          </div>
+        </div>
+        <div style="display: flex; gap: 14px; align-items: center;">
+          <svg viewBox="0 0 100 100" style="width:56px;height:56px;color: var(--ink)"><use href="#m-cloud"/></svg>
+          <svg viewBox="0 0 100 100" style="width:56px;height:56px;color: var(--lime)"><use href="#m-flower"/></svg>
+          <svg viewBox="0 0 100 100" style="width:56px;height:56px;color: var(--orange)"><use href="#m-drop"/></svg>
+          <svg viewBox="0 0 100 100" style="width:56px;height:56px;color: var(--purple)"><use href="#m-star"/></svg>
+        </div>
+      </div>
+    </div>
+  </section>
+
+</deck-stage>
+
+<script src="deck-stage.js"></script>
+</body>
+</html>

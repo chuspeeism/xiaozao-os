@@ -1,0 +1,615 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8"/>
+<title>黑科技技能分享 — Shader-Space Rendering</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter+Tight:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&family=Instrument+Serif:ital@0;1&display=swap"/>
+<link rel="stylesheet" href="styles.css"/>
+</head>
+<body>
+
+<deck-stage width="1920" height="1080">
+
+<!-- =================================================================== -->
+<!-- 01 COVER: poster-style, halftone eye + big title ghost word         -->
+<!-- =================================================================== -->
+<section data-label="Cover">
+  <div class="chrome">
+    <div class="tl">
+      <div class="mark"><i></i><i></i><i></i><i></i></div>
+      <span>ANOMALY LAB / VOL.07</span>
+    </div>
+    <div class="tr"><span>2026 · SHARE SESSION</span></div>
+    <div class="bl"><span>File —— 00/12</span></div>
+    <div class="br"><span>◦ COLD START</span></div>
+  </div>
+
+  <!-- giant ghost word, moved to far right margin so it stays away from text -->
+  <div class="ghostword" style="color:rgba(242,241,238,0.04);left:auto;right:80px;top:160px;bottom:auto;font-size:140px;">LAB</div>
+
+  <!-- the halftone poster, anchored left -->
+  <div class="poster" style="left:120px;top:120px;width:560px;height:840px;">
+    <div class="canvas-host" id="cover-halftone"></div>
+    <div class="poster-tag" style="color: rgb(255, 255, 255); font-weight: 900;"><span class="dot"></span>EVIDENCE · 001</div>
+    <div style="position:absolute;left:18px;bottom:18px;width:72px;height:72px;background:#0a0a0a;display:grid;place-items:center;color:var(--paper);">
+      <div class="mark" style="color:var(--paper);width:34px;height:34px;"><i></i><i></i><i></i><i></i></div>
+    </div>
+    <div style="position:absolute;right:22px;bottom:22px;font-family:var(--mono);font-size:24px;letter-spacing:0.14em;text-transform:uppercase; border-width: 0px; color: rgb(255, 255, 255); font-weight: 900;">
+      SUBJECT · EYE
+    </div>
+  </div>
+
+  <!-- right column: stacked title -->
+  <div style="position:absolute;right:100px;top:220px;width:1020px;">
+    <div class="eyebrow" style="margin-bottom:36px;">黑科技 技能分享 · INTERNAL SESSION</div>
+    <div class="display" style="color:#f2f1ee;">
+      Signals<br/>
+      <span class="serif" style="color:rgba(242,241,238,0.72);">beyond</span><br/>
+      the pixel<span style="color:rgba(242,241,238,0.4);">.</span>
+    </div>
+    <div style="display:flex;gap:60px;margin-top:72px;">
+      <div class="caption-block">
+        <div class="k">Topic</div>
+        <div class="v">Shader-space rendering</div>
+      </div>
+      <div class="caption-block">
+        <div class="k">Runtime</div>
+        <div class="v">~32 min + Q&A</div>
+      </div>
+      <div class="caption-block">
+        <div class="k">Presenter</div>
+        <div class="v">anomaly.lab / 07</div>
+      </div>
+    </div>
+
+    <div style="position:absolute;left:0;bottom:-80px;width:100%;display:flex;justify-content:space-between;align-items:flex-end;">
+      <div class="tiny">REF — EVERMIST/VISUAL-LANG · 2026-Q2</div>
+      <div class="tiny">▍▍  PRESS → TO BEGIN</div>
+    </div>
+  </div>
+</section>
+
+<!-- =================================================================== -->
+<!-- 02 HYPOTHESIS                                                        -->
+<!-- =================================================================== -->
+<section data-label="Hypothesis">
+  <div class="chrome">
+    <div class="tl"><div class="mark"><i></i><i></i><i></i><i></i></div><span>01 · HYPOTHESIS</span></div>
+    <div class="tr"><span>FILE 02/12</span></div>
+    <div class="bl"><span>ANOMALY/LAB</span></div>
+    <div class="br"><span>◦ READING</span></div>
+  </div>
+
+  <div class="pad">
+    <div class="eyebrow" style="margin-top:80px;">01 · Hypothesis</div>
+
+    <div style="margin-top:80px;max-width:1400px;">
+      <div style="font-family:var(--serif);font-style:italic;font-size:120px;line-height:1.02;letter-spacing:-0.02em;color:rgba(242,241,238,0.92);">
+        &ldquo;The image is not what we render.<br/>
+        It&rsquo;s what survives the noise.&rdquo;
+      </div>
+      <div class="body" style="margin-top:60px;max-width:1100px;">
+        本次分享探讨一种非主流渲染路径：不追求更高分辨率，<br/>
+        而是通过 <strong style="color:#fff;">shader 层面的扰动、抖动与半调网点</strong>
+        ，让视觉信号穿透噪声而存在。
+      </div>
+    </div>
+
+    <!-- bottom meta bar -->
+    <div style="position:absolute;left:100px;right:100px;bottom:80px;display:flex;justify-content:space-between;border-top:1px solid rgba(242,241,238,0.14);padding-top:28px;">
+      <div class="tiny">PREMISE — PERCEPTUAL SIGNAL ≠ PIXEL COUNT</div>
+      <div class="tiny">◦ 1 / 5 &nbsp;·&nbsp;&nbsp;continue →</div>
+    </div>
+  </div>
+</section>
+
+<!-- =================================================================== -->
+<!-- 03 SIGNAL & NOISE — big split screen, dither on one side            -->
+<!-- =================================================================== -->
+<section data-label="Signal & Noise">
+  <div class="chrome">
+    <div class="tl"><div class="mark"><i></i><i></i><i></i><i></i></div><span>02 · THESIS</span></div>
+    <div class="tr"><span>FILE 03/12</span></div>
+    <div class="bl"><span>EVIDENCE · 002</span></div>
+    <div class="br"><span>◦ LIVE SHADER</span></div>
+  </div>
+
+  <div style="position:absolute;left:0;top:0;width:50%;height:100%;background:#0a0a0a;">
+    <div class="canvas-host" id="bg-noise" style="position:absolute;inset:0;opacity:0.9;"></div>
+    <div style="position:absolute;left:80px;bottom:72px;color:var(--paper);">
+      <div class="tiny" style="color: rgb(255, 255, 255);">FIG · 02A</div>
+      <div class="subtitle" style="margin-top:14px; color: rgb(255, 255, 255);">Noise field<br/>(4-octave, value)</div>
+    </div>
+  </div>
+
+  <div style="position:absolute;left:50%;top:0;width:50%;height:100%;background:var(--paper);color:var(--ink);">
+    <div style="position:absolute;left:80px;top:100px;right:80px;">
+      <div class="eyebrow" style="color:rgba(10,10,10,0.55);">02 · Signal &amp; Noise</div>
+      <div class="title" style="color:var(--ink);margin-top:36px;">
+        Rendering is<br/>a compression<br/>of belief.
+      </div>
+      <div class="body" style="color:rgba(10,10,10,0.72);margin-top:48px;max-width:640px;">
+        GPU 每秒丢弃数十亿像素——被量化、被截断、被抖动。<br/>
+        留下的，才是被看见的东西。
+      </div>
+    </div>
+    <div style="position:absolute;left:80px;bottom:72px;right:80px;display:flex;justify-content:space-between;align-items:flex-end;">
+      <div class="caption-block"><div class="k" style="color:rgba(10,10,10,0.5);">RATIO</div><div class="v" style="color:var(--ink);">1 : 8,388,608</div></div>
+      <div class="caption-block"><div class="k" style="color:rgba(10,10,10,0.5);">KERNEL</div><div class="v" style="color:var(--ink);">bayer-8</div></div>
+      <div class="caption-block"><div class="k" style="color:rgba(10,10,10,0.5);">ERR</div><div class="v" style="color:var(--ink);">±0.031</div></div>
+    </div>
+  </div>
+</section>
+
+<!-- =================================================================== -->
+<!-- 04 PIPELINE                                                          -->
+<!-- =================================================================== -->
+<section data-label="Pipeline">
+  <div class="chrome">
+    <div class="tl"><div class="mark"><i></i><i></i><i></i><i></i></div><span>03 · PIPELINE</span></div>
+    <div class="tr"><span>FILE 04/12</span></div>
+    <div class="bl"><span>SCHEMA v0.4</span></div>
+    <div class="br"><span>◦ DIAGRAM</span></div>
+  </div>
+
+  <div class="pad">
+    <div style="display:flex;justify-content:space-between;align-items:flex-end;margin-top:60px;">
+      <div>
+        <div class="eyebrow">03 · The pipeline</div>
+        <div class="title" style="margin-top:24px;">Four stages. One surface.</div>
+      </div>
+      <div class="tiny">SCHEMA · anomaly.lab / render</div>
+    </div>
+
+    <!-- pipeline diagram -->
+    <div style="margin-top:120px;display:grid;grid-template-columns:repeat(4,1fr);gap:24px;position:relative;">
+      <!-- connector line -->
+      <div style="position:absolute;top:28px;left:8%;right:8%;height:1px;background:rgba(242,241,238,0.2);"></div>
+
+      <div style="position:relative;">
+        <div style="display:flex;align-items:center;gap:14px;">
+          <div style="width:14px;height:14px;border:1px solid #f2f1ee;background:#f2f1ee;"></div>
+          <div class="small">STAGE 01</div>
+        </div>
+        <div style="margin-top:40px;font-size:48px;font-weight:500;letter-spacing:-0.02em;">Sample</div>
+        <div class="body" style="margin-top:20px;font-size:26px;max-width:320px;">
+          scene → fragment buffer.<br/>continuous → discrete.
+        </div>
+      </div>
+
+      <div style="position:relative;">
+        <div style="display:flex;align-items:center;gap:14px;">
+          <div style="width:14px;height:14px;border:1px solid #f2f1ee;"></div>
+          <div class="small">STAGE 02</div>
+        </div>
+        <div style="margin-top:40px;font-size:48px;font-weight:500;letter-spacing:-0.02em;">Distort</div>
+        <div class="body" style="margin-top:20px;font-size:26px;max-width:320px;">
+          domain warping via<br/>noise field (fBm, n=4).
+        </div>
+      </div>
+
+      <div style="position:relative;">
+        <div style="display:flex;align-items:center;gap:14px;">
+          <div style="width:14px;height:14px;border:1px solid #f2f1ee;"></div>
+          <div class="small">STAGE 03</div>
+        </div>
+        <div style="margin-top:40px;font-size:48px;font-weight:500;letter-spacing:-0.02em;">Dither</div>
+        <div class="body" style="margin-top:20px;font-size:26px;max-width:320px;">
+          ordered threshold against<br/>Bayer 8×8 matrix.
+        </div>
+      </div>
+
+      <div style="position:relative;">
+        <div style="display:flex;align-items:center;gap:14px;">
+          <div style="width:14px;height:14px;border:1px solid #f2f1ee;"></div>
+          <div class="small">STAGE 04</div>
+        </div>
+        <div style="margin-top:40px;font-size:48px;font-weight:500;letter-spacing:-0.02em;">Bloom</div>
+        <div class="body" style="margin-top:20px;font-size:26px;max-width:320px;">
+          halftone rings; perceptual<br/>reconstruction on retina.
+        </div>
+      </div>
+    </div>
+
+    <div style="position:absolute;left:100px;right:100px;bottom:80px;display:flex;justify-content:space-between;border-top:1px solid rgba(242,241,238,0.14);padding-top:28px;">
+      <div class="tiny">TOTAL BUDGET — 1.8 MS / FRAME @ 4K</div>
+      <div class="tiny">shader/frag.v4 ·········· anomaly.lab</div>
+    </div>
+  </div>
+</section>
+
+<!-- =================================================================== -->
+<!-- 05 HALFTONE FIELDS (like first poster in ref)                       -->
+<!-- =================================================================== -->
+<section data-label="Halftone">
+  <div class="chrome">
+    <div class="tl"><div class="mark"><i></i><i></i><i></i><i></i></div><span>04 · TECHNIQUE</span></div>
+    <div class="tr"><span>FILE 05/12</span></div>
+    <div class="bl"><span>EVIDENCE · 003</span></div>
+    <div class="br"><span>◦ HALFTONE</span></div>
+  </div>
+
+  <!-- huge poster on left -->
+  <div class="poster" style="left:100px;top:130px;width:600px;height:820px;">
+    <div class="canvas-host" id="s05-halftone"></div>
+    <div class="poster-tag" style="color: rgb(0, 0, 0); font-weight: 900; border-width: 1px; border-style: solid;"><span class="dot"></span>FIG · 003 / HALFTONE</div>
+    <div style="position:absolute;left:18px;bottom:18px;width:72px;height:72px;background:#0a0a0a;display:grid;place-items:center;color:var(--paper);">
+      <div class="mark" style="color:var(--paper);width:34px;height:34px;"><i></i><i></i><i></i><i></i></div>
+    </div>
+  </div>
+
+  <!-- right column, like the core-values slide from the reference -->
+  <div style="position:absolute;left:780px;top:130px;right:100px;bottom:100px;display:flex;flex-direction:column;">
+    <div class="eyebrow">04 · Technique</div>
+    <div class="title" style="margin-top:32px;">Halftone fields.</div>
+    <div class="body" style="margin-top:28px;max-width:880px;color:rgba(242,241,238,0.72);">
+      把亮度映射成「点的直径」，让眼睛自己完成插值。<br/>
+      既是最老的印刷工艺，也是最便宜的 anti-alias。
+    </div>
+
+    <div class="ref-list" style="margin-top:56px;max-width:880px;">
+      <div class="item">
+        <div class="n"><span style="color:rgba(242,241,238,0.55);">1.</span>&nbsp;&nbsp;Luminance → radius</div>
+        <div class="d">单通道映射，每个 cell 一个点；对比度由 cell 尺寸决定。</div>
+      </div>
+      <div class="item">
+        <div class="k"><span style="color:rgba(242,241,238,0.55);">2.</span>&nbsp;&nbsp;Cell rotation = identity</div>
+        <div class="d">15° / 45° / 75° 三色角度；单色时走 45°，视觉最稳。</div>
+      </div>
+      <div class="item">
+        <div class="k"><span style="color:rgba(242,241,238,0.55);">3.</span>&nbsp;&nbsp;Moiré as feature</div>
+        <div class="d">不消除摩尔纹；让它成为材质语言的一部分。</div>
+      </div>
+      <div class="item">
+        <div class="k"><span style="color:rgba(242,241,238,0.55);">4.</span>&nbsp;&nbsp;Cost: O(1) per pixel</div>
+        <div class="d">纯 fragment，无 pass，无 buffer。移动端 60fps 起步。</div>
+      </div>
+    </div>
+
+    <div style="margin-top:auto;padding-top:40px;display:flex;gap:80px;">
+      <div class="caption-block"><div class="k">CELL</div><div class="v">10 px</div></div>
+      <div class="caption-block"><div class="k">ANGLE</div><div class="v">45°</div></div>
+      <div class="caption-block"><div class="k">CHANNEL</div><div class="v">luma only</div></div>
+    </div>
+  </div>
+</section>
+
+<!-- =================================================================== -->
+<!-- 06 ORDERED DITHER                                                    -->
+<!-- =================================================================== -->
+<section data-label="Dither">
+  <div class="chrome">
+    <div class="tl"><div class="mark"><i></i><i></i><i></i><i></i></div><span>05 · TECHNIQUE</span></div>
+    <div class="tr"><span>FILE 06/12</span></div>
+    <div class="bl"><span>BAYER-8 / ORDERED</span></div>
+    <div class="br"><span>◦ LIVE</span></div>
+  </div>
+
+  <div class="pad">
+    <div style="display:flex;justify-content:space-between;align-items:flex-end;margin-top:60px;">
+      <div>
+        <div class="eyebrow">05 · Ordered dither</div>
+        <div class="title" style="margin-top:24px;">A threshold<br/>with memory.</div>
+      </div>
+      <div style="text-align:right;">
+        <div class="tiny">Matrix · 8×8</div>
+        <div class="body" style="margin-top:8px;font-size:26px;">64 unique thresholds,<br/>tiled across the frame.</div>
+      </div>
+    </div>
+
+    <div style="margin-top:80px;display:grid;grid-template-columns:1fr 1.1fr;gap:80px;align-items:center;">
+      <!-- live canvas -->
+      <div style="background:#0a0a0a;border:1px solid rgba(242,241,238,0.18);aspect-ratio:4/3;position:relative;">
+        <div class="canvas-host" id="s06-dither" style="position:absolute;inset:0;"></div>
+        <div style="position:absolute;left:14px;top:14px;" class="tiny">LIVE · dither.frag</div>
+        <div style="position:absolute;right:14px;bottom:14px;" class="tiny">60 FPS · 1 KB</div>
+      </div>
+
+      <!-- the matrix, visualized -->
+      <div>
+        <div class="small" style="margin-bottom:24px;">THE MATRIX</div>
+        <div id="bayer-grid" style="display:grid;grid-template-columns:repeat(8,1fr);gap:2px;width:420px;aspect-ratio:1;"></div>
+        <div class="body" style="margin-top:40px;font-size:22px;max-width:520px;color:rgba(242,241,238,0.7);">
+          Bayer 矩阵给予每个像素一个稳定的偏置阈值——<br/>
+          相同亮度，位置决定「黑还是白」。
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- =================================================================== -->
+<!-- 07 DOMAIN WARPING — full-bleed dark noise                          -->
+<!-- =================================================================== -->
+<section data-label="Warp">
+  <div class="chrome" style="color:rgba(242,241,238,0.7);">
+    <div class="tl"><div class="mark"><i></i><i></i><i></i><i></i></div><span>06 · TECHNIQUE</span></div>
+    <div class="tr"><span>FILE 07/12</span></div>
+    <div class="bl"><span>fBm · n=4</span></div>
+    <div class="br"><span>◦ WARP</span></div>
+  </div>
+
+  <div class="canvas-host" id="s07-warp" style="position:absolute;inset:0;opacity:0.9;"></div>
+
+  <!-- dark overlay for readability -->
+  <div style="position:absolute;inset:0;background:linear-gradient(180deg, rgba(0,0,0,0.55) 0%, rgba(0,0,0,0.2) 40%, rgba(0,0,0,0.8) 100%); opacity: 1;"></div>
+
+  <div style="position:absolute;left:100px;top:140px;right:100px;z-index:3;">
+    <div class="eyebrow">06 · Domain warping</div>
+    <div class="display" style="margin-top:28px;font-size:180px;line-height:0.92;">
+      Bend the<br/><span class="serif">coordinate</span>,<br/>not the image.
+    </div>
+  </div>
+
+  <div style="position:absolute;left:100px;bottom:120px;right:100px;z-index:3;display:flex;justify-content:space-between;align-items:flex-end;">
+    <div class="body" style="max-width:700px;font-size:26px;">
+      对 UV 坐标自身做 fBm 扰动——<br/>材质保持不变，只是「地图」被揉皱。<br/>
+      低成本获得有机、不可预测的形态。
+    </div>
+    <div style="display:flex;gap:72px;">
+      <div class="caption-block"><div class="k">OCTAVES</div><div class="v">4</div></div>
+      <div class="caption-block"><div class="k">LACUNARITY</div><div class="v">2.0</div></div>
+      <div class="caption-block"><div class="k">GAIN</div><div class="v">0.5</div></div>
+    </div>
+  </div>
+</section>
+
+<!-- =================================================================== -->
+<!-- 08 PERCEPTUAL COMPRESSION — big number                              -->
+<!-- =================================================================== -->
+<section data-label="Compression">
+  <div class="chrome">
+    <div class="tl"><div class="mark"><i></i><i></i><i></i><i></i></div><span>07 · RESULT</span></div>
+    <div class="tr"><span>FILE 08/12</span></div>
+    <div class="bl"><span>BENCHMARK · v0.4</span></div>
+    <div class="br"><span>◦ SUMMARY</span></div>
+  </div>
+
+  <div class="pad">
+    <div class="eyebrow" style="margin-top:80px;">07 · Perceptual compression</div>
+
+    <div style="margin-top:40px;display:grid;grid-template-columns:1.2fr 1fr;gap:100px;align-items:flex-end;">
+      <div>
+        <div class="display display--xl" style="font-size:380px;line-height:0.88;">
+          <span style="color:#f2f1ee;">97</span><span class="serif" style="color:rgba(242,241,238,0.55);font-size:220px;vertical-align:top;">%</span>
+        </div>
+        <div class="subtitle" style="margin-top:20px;max-width:820px;color:rgba(242,241,238,0.7);">
+          fewer unique color values — <br/>without measurable loss in perceived quality (SSIM &Delta; &lt; 0.01).
+        </div>
+      </div>
+
+      <div>
+        <div class="small" style="margin-bottom:20px;">BENCHMARK · @ 4K · M2 PRO</div>
+        <table class="spec">
+          <thead><tr><th>Technique</th><th>ms / frame</th><th>bytes / px</th></tr></thead>
+          <tbody>
+            <tr><td>naïve RGB</td><td class="num">3.40</td><td class="num">3.000</td></tr>
+            <tr><td>halftone</td><td class="num">0.82</td><td class="num">0.125</td></tr>
+            <tr><td>ordered dither</td><td class="num">0.46</td><td class="num">0.125</td></tr>
+            <tr><td>warp + dither</td><td class="num">1.18</td><td class="num">0.125</td></tr>
+            <tr><td style="color:#f2f1ee;">combined (ours)</td><td class="num" style="color:#f2f1ee;">1.80</td><td class="num" style="color:#f2f1ee;">0.125</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <div style="position:absolute;left:100px;right:100px;bottom:80px;display:flex;justify-content:space-between;border-top:1px solid rgba(242,241,238,0.14);padding-top:28px;">
+      <div class="tiny">SAMPLE N=12 · WITHIN-SUBJECT</div>
+      <div class="tiny">perception &gt; pixel</div>
+    </div>
+  </div>
+</section>
+
+<!-- =================================================================== -->
+<!-- 09 FAILURE MODES                                                     -->
+<!-- =================================================================== -->
+<section data-label="Failures">
+  <div class="chrome">
+    <div class="tl"><div class="mark"><i></i><i></i><i></i><i></i></div><span>08 · FAILURE MODES</span></div>
+    <div class="tr"><span>FILE 09/12</span></div>
+    <div class="bl"><span>WHERE IT BREAKS</span></div>
+    <div class="br"><span>◦ NOTES</span></div>
+  </div>
+
+  <div class="pad">
+    <div class="eyebrow" style="margin-top:60px;">08 · Where it breaks</div>
+    <div class="title" style="margin-top:32px;">Not every signal<br/>survives the noise.</div>
+
+    <div style="margin-top:100px;display:grid;grid-template-columns:repeat(3,1fr);gap:56px;">
+      <div style="border-top:1px solid rgba(242,241,238,0.16);padding-top:28px;">
+        <div class="small">CASE / 01</div>
+        <div class="subtitle" style="margin-top:20px;font-size:38px;">Fine type<br/>&lt; 14px.</div>
+        <div class="body" style="margin-top:28px;font-size:24px;color:rgba(242,241,238,0.65);">
+          阈值抖动会吞掉笔画——中文尤甚。<br/>解决：局部关闭 dither，走 MSDF。
+        </div>
+      </div>
+      <div style="border-top:1px solid rgba(242,241,238,0.16);padding-top:28px;">
+        <div class="small">CASE / 02</div>
+        <div class="subtitle" style="margin-top:20px;font-size:38px;">Slow<br/>motion.</div>
+        <div class="body" style="margin-top:28px;font-size:24px;color:rgba(242,241,238,0.65);">
+          静态抖动在 &lt; 12 fps 下出现「爬虫感」。<br/>解决：以帧号做时间扰动。
+        </div>
+      </div>
+      <div style="border-top:1px solid rgba(242,241,238,0.16);padding-top:28px;">
+        <div class="small">CASE / 03</div>
+        <div class="subtitle" style="margin-top:20px;font-size:38px;">HDR<br/>surfaces.</div>
+        <div class="body" style="margin-top:28px;font-size:24px;color:rgba(242,241,238,0.65);">
+          高光被量化成大黑点，显得脏。<br/>解决：亮度 &gt; 0.92 时切回 raw。
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- =================================================================== -->
+<!-- 10 DOT BURST — abstract, like the third poster in ref              -->
+<!-- =================================================================== -->
+<section data-label="Observation">
+  <div class="chrome">
+    <div class="tl"><div class="mark"><i></i><i></i><i></i><i></i></div><span>09 · OBSERVATION</span></div>
+    <div class="tr"><span>FILE 10/12</span></div>
+    <div class="bl"><span>FIELD SKETCH</span></div>
+    <div class="br"><span>◦ QUIET</span></div>
+  </div>
+
+  <div class="canvas-host" id="s10-dots" style="position:absolute;left:50%;top:50%;transform:translate(-50%,-58%);width:820px;height:820px;"></div>
+
+  <div style="position:absolute;left:0;right:0;bottom:180px;text-align:center;z-index:3;">
+    <div class="title" style="font-size:96px; text-align: left; padding: 0px 0px 0px 50px;">Identity beyond<br/>the visible.</div>
+    <div class="body" style="max-width:680px;font-size:26px;color:rgba(242,241,238,0.6); text-align: center; width: 120000px; margin: 40px 0px 0px 5px;">
+      当图像被压缩到仅剩「点」与「空」，<br/>
+      剩下的究竟是内容，还是观察者？
+    </div>
+  </div>
+
+  <div style="position:absolute;left:0;right:0;bottom:90px;text-align:center;">
+    <div class="tiny">ANOMALY · LAB</div>
+  </div>
+</section>
+
+<!-- =================================================================== -->
+<!-- 11 APPLICATIONS / QUICK GRID                                         -->
+<!-- =================================================================== -->
+<section data-label="Applications">
+  <div class="chrome">
+    <div class="tl"><div class="mark"><i></i><i></i><i></i><i></i></div><span>10 · APPLICATIONS</span></div>
+    <div class="tr"><span>FILE 11/12</span></div>
+    <div class="bl"><span>WHERE TO SHIP</span></div>
+    <div class="br"><span>◦ PLAN</span></div>
+  </div>
+
+  <div class="pad">
+    <div class="eyebrow" style="margin-top:60px;">10 · Ship it where it matters</div>
+    <div class="title" style="margin-top:32px;">Four surfaces, all ours.</div>
+
+    <div style="margin: 88px 0px 60px;display:grid;grid-template-columns:repeat(2,1fr);gap:20px;flex:1;">
+      <div style="background:rgba(242,241,238,0.04);border:1px solid rgba(242,241,238,0.14);padding:44px;display:flex;flex-direction:column;justify-content:space-between;">
+        <div>
+          <div class="small">01</div>
+          <div class="subtitle" style="margin-top:22px;font-size:44px;">Loading states</div>
+        </div>
+        <div class="body" style="font-size:24px;color:rgba(242,241,238,0.65);max-width:520px;">
+          dither &rarr; halftone 过场；把等待变成表达。
+        </div>
+      </div>
+      <div style="background:rgba(242,241,238,0.04);border:1px solid rgba(242,241,238,0.14);padding:44px;display:flex;flex-direction:column;justify-content:space-between;">
+        <div>
+          <div class="small">02</div>
+          <div class="subtitle" style="margin-top:22px;font-size:44px;">Empty states</div>
+        </div>
+        <div class="body" style="font-size:24px;color:rgba(242,241,238,0.65);max-width:520px;">
+          静态 noise field 填补「什么都没有」的焦虑。
+        </div>
+      </div>
+      <div style="background:rgba(242,241,238,0.04);border:1px solid rgba(242,241,238,0.14);padding:44px;display:flex;flex-direction:column;justify-content:space-between;">
+        <div>
+          <div class="small">03</div>
+          <div class="subtitle" style="margin-top:22px;font-size:44px;">Brand moments</div>
+        </div>
+        <div class="body" style="font-size:24px;color:rgba(242,241,238,0.65);max-width:520px;">
+          Key visual &amp; 发布会 opening；shader 比 MG 更轻、可交互。
+        </div>
+      </div>
+      <div style="background:rgba(242,241,238,0.04);border:1px solid rgba(242,241,238,0.14);padding:44px;display:flex;flex-direction:column;justify-content:space-between;">
+        <div>
+          <div class="small">04</div>
+          <div class="subtitle" style="margin-top:22px;font-size:44px;">Data veils</div>
+        </div>
+        <div class="body" style="font-size:24px;color:rgba(242,241,238,0.65);max-width:520px;">
+          用抖动作隐私遮罩——可读，不可识别。
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- =================================================================== -->
+<!-- 12 CLOSING                                                           -->
+<!-- =================================================================== -->
+<section data-label="Closing">
+  <div class="chrome">
+    <div class="tl"><div class="mark"><i></i><i></i><i></i><i></i></div><span>END · SIGN-OFF</span></div>
+    <div class="tr"><span>FILE 12/12</span></div>
+    <div class="bl"><span>ANOMALY / LAB · 07</span></div>
+    <div class="br"><span>◦ THANK YOU</span></div>
+  </div>
+
+  <!-- scanline bg -->
+  <div class="canvas-host" id="s12-scan" style="position:absolute;inset:0;opacity:0.7;"></div>
+
+  <div style="position:absolute;left:100px;right:100px;top:0;bottom:0;display:flex;flex-direction:column;justify-content:center;align-items:center;z-index:3;text-align:center;">
+    <div class="eyebrow" style="margin-bottom:64px;">— FIN —</div>
+    <div class="display" style="font-size:180px;line-height:0.9;">
+      Keep the<br/><span class="serif">signal</span>.<br/>
+      Lose the<br/>pixel<span style="color:rgba(242,241,238,0.4);">.</span>
+    </div>
+    <div class="body" style="margin-top:80px;max-width:760px;font-size:26px;color:rgba(242,241,238,0.7);">
+      所有 shader 源码、benchmark 数据 &amp; 案例包，<br/>
+      将同步至 <span class="small" style="color:#f2f1ee;">/anomaly-lab/render-v04</span>。
+    </div>
+  </div>
+
+  <div style="position:absolute;left:100px;right:100px;bottom:80px;display:flex;justify-content:space-between;align-items:flex-end;z-index:3;">
+    <div class="tiny">ANOMALY.LAB · VOL.07 · 2026</div>
+    <div class="tiny">QUESTIONS? → floor is yours.</div>
+  </div>
+</section>
+
+</deck-stage>
+
+<script src="deck-stage.js"></script>
+<script src="shaders.js"></script>
+<script>
+  // Build the Bayer visualization
+  (function(){
+    const grid = document.getElementById('bayer-grid');
+    if (!grid) return;
+    const B = [
+      0,48,12,60, 3,51,15,63,
+      32,16,44,28,35,19,47,31,
+      8,56, 4,52,11,59, 7,55,
+      40,24,36,20,43,27,39,23,
+      2,50,14,62, 1,49,13,61,
+      34,18,46,30,33,17,45,29,
+      10,58, 6,54, 9,57, 5,53,
+      42,26,38,22,41,25,37,21
+    ];
+    B.forEach(v => {
+      const c = document.createElement('div');
+      const g = Math.floor((v/64)*240);
+      c.style.background = `rgb(${g},${g},${g})`;
+      c.style.display = 'grid';
+      c.style.placeItems = 'center';
+      c.style.fontFamily = 'var(--mono)';
+      c.style.fontSize = '11px';
+      c.style.color = v < 32 ? 'rgba(255,255,255,0.85)' : 'rgba(0,0,0,0.75)';
+      c.textContent = v;
+      grid.appendChild(c);
+    });
+  })();
+
+  // Mount shader canvases into their hosts
+  function mount(hostId, factory, opts, canvasStyle){
+    const host = document.getElementById(hostId);
+    if (!host) return;
+    const { canvas } = factory(opts);
+    canvas.style.width = '100%';
+    canvas.style.height = '100%';
+    canvas.style.display = 'block';
+    canvas.style.objectFit = 'cover';
+    if (canvasStyle) canvas.style.cssText += ';' + canvasStyle;
+    host.appendChild(canvas);
+  }
+
+  // Use larger canvases for posters to keep detail
+  mount('cover-halftone', Shaders.halftonePortrait, { w: 700, h: 1000, cell: 9 });
+  mount('s05-halftone',  Shaders.halftonePortrait, { w: 750, h: 1020, cell: 8 }, 'opacity: 0.5');
+  mount('bg-noise',      Shaders.noiseField,       { w: 1000, h: 1080 }, 'opacity: 0.25');
+  mount('s06-dither',    Shaders.orderedDither,    { w: 900, h: 680 });
+  mount('s07-warp',      Shaders.noiseField,       { w: 1920, h: 1080 });
+  mount('s10-dots',      Shaders.dotField,         { w: 820, h: 820, rings: 10, perRing: 42 }, 'margin: 0px 0px 0px 500px');
+  mount('s12-scan',      Shaders.scanlines,        { w: 1920, h: 1080 });
+</script>
+
+</body>
+</html>

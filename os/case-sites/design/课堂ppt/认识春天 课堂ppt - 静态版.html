@@ -1,0 +1,939 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<title>认识春天 · 小学课堂 PPT</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=ZCOOL+KuaiLe&family=ZCOOL+QingKe+HuangYou&family=Long+Cang&family=Fredoka:wght@600;700&display=swap" rel="stylesheet">
+<script src="deck-stage.js"></script>
+<style>
+  :root{
+    --cream:#F5E9D3;
+    --cream-2:#EFDFC0;
+    --ink:#2B1A10;
+    --ink-soft:#3A2418;
+    --orange:#F26B2E;
+    --orange-deep:#D9531A;
+    --green:#1F7A3A;
+    --green-deep:#175C2B;
+    --green-leaf:#3FA05A;
+    --red:#D93B1F;
+    --yellow:#F5C24B;
+    --blue:#2E86C4;
+    --blue-soft:#9FC8E6;
+    --pink:#F2A3B3;
+    --purple:#7A4AA8;
+  }
+  html,body{margin:0;background:#000;font-family:"ZCOOL KuaiLe","ZCOOL QingKe HuangYou","PingFang SC","Helvetica Neue",sans-serif;}
+  section{background:var(--cream); color:var(--ink); position:relative; overflow:hidden;}
+  .title-zh{font-family:"ZCOOL KuaiLe","ZCOOL QingKe HuangYou",sans-serif;}
+  .display{font-family:"ZCOOL QingKe HuangYou","ZCOOL KuaiLe",sans-serif;}
+  .en{font-family:"Fredoka",sans-serif; font-weight:700;}
+  .mono{font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace;}
+
+  /* —— chrome running along the top of content slides —— */
+  .chrome{
+    position:absolute; left:72px; right:72px; top:56px;
+    display:flex; justify-content:space-between; align-items:center;
+    font-family:"Fredoka",sans-serif; font-size:24px; letter-spacing:.04em;
+    color:var(--ink); opacity:.78;
+  }
+  .chrome .dots{display:flex; gap:10px;}
+  .chrome .dots i{width:14px; height:14px; border-radius:50%; background:var(--ink); display:block; opacity:.25;}
+  .chrome .dots i.on{opacity:1; background:var(--orange);}
+
+  /* —— slide frame paddings —— */
+  .frame{position:absolute; inset:0; padding:140px 100px 100px 100px; box-sizing:border-box; display:flex; flex-direction:column;}
+
+  /* —— micro anims (disabled for static/PDF version) —— */
+  *, *::before, *::after { animation: none !important; transition: none !important; }
+  @keyframes bob { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-14px)} }
+  @keyframes bob-sm { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-6px)} }
+  @keyframes sway { 0%,100%{transform:rotate(-3deg)} 50%{transform:rotate(3deg)} }
+  @keyframes sway-soft { 0%,100%{transform:rotate(-1.5deg)} 50%{transform:rotate(1.5deg)} }
+  @keyframes spin { from{transform:rotate(0)} to{transform:rotate(360deg)} }
+  @keyframes blink { 0%,92%,100%{transform:scaleY(1)} 95%{transform:scaleY(.08)} }
+  @keyframes pop-in { 0%{transform:scale(.6); opacity:0} 60%{transform:scale(1.08); opacity:1} 100%{transform:scale(1)} }
+  @keyframes fall { 0%{transform:translateY(-40px); opacity:0} 15%{opacity:1} 100%{transform:translateY(900px); opacity:0} }
+  @keyframes drift { 0%{transform:translateX(0)} 50%{transform:translateX(30px)} 100%{transform:translateX(0)} }
+  @keyframes grow { 0%{transform:scale(0) translateY(20px); opacity:0} 100%{transform:scale(1) translateY(0); opacity:1} }
+  @keyframes flap { 0%,100%{transform:scaleY(1)} 50%{transform:scaleY(.4)} }
+  @keyframes hop { 0%,100%{transform:translateY(0)} 40%{transform:translateY(-28px)} 60%{transform:translateY(-28px)} }
+  @keyframes wiggle { 0%,100%{transform:rotate(0)} 25%{transform:rotate(4deg)} 75%{transform:rotate(-4deg)} }
+  @keyframes pulse { 0%,100%{transform:scale(1)} 50%{transform:scale(1.08)} }
+  @keyframes dash {from{stroke-dashoffset:var(--len,400)} to{stroke-dashoffset:0}}
+  @keyframes slidein { from{transform:translateX(-30px); opacity:0} to{transform:translateX(0); opacity:1} }
+
+  [data-deck-active] .anim-bob{animation:bob 3s ease-in-out infinite}
+  [data-deck-active] .anim-bob-sm{animation:bob-sm 2.4s ease-in-out infinite}
+  [data-deck-active] .anim-sway{animation:sway 3.6s ease-in-out infinite; transform-origin:center bottom;}
+  [data-deck-active] .anim-sway-soft{animation:sway-soft 4s ease-in-out infinite; transform-origin:center bottom;}
+  [data-deck-active] .anim-spin{animation:spin 18s linear infinite; transform-origin:center;}
+  [data-deck-active] .anim-pop{animation:pop-in .7s cubic-bezier(.2,1.4,.3,1) both}
+  [data-deck-active] .anim-grow{animation:grow .8s cubic-bezier(.2,1.2,.3,1) both; transform-origin:center bottom}
+  [data-deck-active] .anim-flap{animation:flap .4s ease-in-out infinite; transform-origin:center}
+  [data-deck-active] .anim-hop{animation:hop 1.6s cubic-bezier(.4,0,.4,1) infinite}
+  [data-deck-active] .anim-wiggle{animation:wiggle 2.4s ease-in-out infinite; transform-origin:center bottom}
+  [data-deck-active] .anim-pulse{animation:pulse 1.8s ease-in-out infinite; transform-origin:center}
+  [data-deck-active] .anim-slidein{animation:slidein .6s ease-out both}
+  [data-deck-active] .anim-drift{animation:drift 6s ease-in-out infinite}
+
+  .d-2{animation-delay:.15s !important}
+  .d-3{animation-delay:.3s !important}
+  .d-4{animation-delay:.45s !important}
+  .d-5{animation-delay:.6s !important}
+  .d-6{animation-delay:.75s !important}
+  .d-7{animation-delay:.9s !important}
+
+  /* —— shared ink outline style for SVG fills —— */
+  .ink-outline{stroke:var(--ink-soft); stroke-width:6; stroke-linejoin:round; stroke-linecap:round; fill:none;}
+
+  /* —— slide 1 cover —— */
+  .cover{background:var(--orange); color:var(--cream);}
+  .cover .frame{padding:110px 100px 100px 100px;}
+  .cover-top{display:flex; justify-content:space-between; align-items:flex-start; color:var(--cream); font-family:"Fredoka",sans-serif; font-size:24px; gap:40px;}
+  .cover-top span{white-space:nowrap;}
+  .cover-title{font-family:"ZCOOL QingKe HuangYou",sans-serif; font-size:280px; line-height:.95; color:var(--cream); letter-spacing:4px; margin:0; white-space:nowrap;}
+  .cover-sub{display:flex; justify-content:space-between; align-items:flex-end; margin-top:auto;}
+  .cover-sub .en-label{font-family:"Fredoka",sans-serif; font-size:44px; color:var(--cream); letter-spacing:.02em; white-space:nowrap;}
+  .cover-sub .meta{font-family:"Fredoka",sans-serif; font-size:24px; color:var(--cream); opacity:.8; text-align:right; line-height:1.5; white-space:nowrap;}
+
+  /* —— agenda list —— */
+  .agenda-list{display:grid; grid-template-columns:1fr 1fr; gap:28px 80px; margin-top:40px;}
+  .agenda-item{display:flex; align-items:center; gap:28px; border-bottom:3px solid var(--ink); padding:20px 0; font-family:"ZCOOL KuaiLe",sans-serif; font-size:48px; color:var(--ink);}
+  .agenda-item .num{font-family:"Fredoka",sans-serif; font-size:42px; color:var(--orange-deep); min-width:70px;}
+  .agenda-item .cn{flex:1;}
+  .agenda-item .en{font-family:"Fredoka",sans-serif; font-size:24px; color:var(--ink); opacity:.55; letter-spacing:.05em;}
+
+  /* —— single word poster cards —— */
+  .posters{display:grid; grid-template-columns:1fr 1fr 1fr; gap:28px; flex:1; min-height:0;}
+  .poster{border-radius:14px; position:relative; overflow:hidden; display:flex; flex-direction:column; padding:44px 40px 36px 40px; box-sizing:border-box; min-height:0;}
+  .poster-word{font-family:"ZCOOL QingKe HuangYou",sans-serif; font-size:172px; line-height:.95; margin:0;}
+  .poster-art{flex:1; display:flex; align-items:center; justify-content:center; min-height:0; position:relative;}
+  .poster-art svg{max-width:100%; max-height:100%; width:auto; height:auto; display:block; overflow:visible;}
+  .poster-foot{display:flex; justify-content:space-between; align-items:flex-end; font-family:"ZCOOL KuaiLe",sans-serif; font-size:28px; line-height:1.25;}
+  .poster-foot .badge{width:72px; height:72px; border-radius:50%; background:var(--cream); color:var(--orange-deep); display:flex; align-items:center; justify-content:center; font-family:"Fredoka",sans-serif; font-size:24px; line-height:1; text-align:center;}
+
+  /* —— section poster slide —— */
+  .section-poster{display:grid; grid-template-columns:1fr 1.6fr; gap:0;}
+  .section-poster .left{padding:160px 80px 100px 100px; display:flex; flex-direction:column; justify-content:space-between;}
+  .section-poster .left h2{font-family:"ZCOOL QingKe HuangYou",sans-serif; font-size:92px; line-height:1; margin:0 0 30px 0; color:var(--cream);}
+  .section-poster .left p{font-family:"ZCOOL KuaiLe",sans-serif; font-size:30px; line-height:1.55; color:var(--cream); opacity:.9; max-width:400px; margin:0;}
+  .section-poster .big-art{display:flex; align-items:center; justify-content:center; position:relative;}
+
+  /* —— side label for section poster —— */
+  .side-label{position:absolute; top:56px; left:100px; color:var(--cream); font-family:"Fredoka",sans-serif; font-size:22px; letter-spacing:.12em; text-transform:uppercase; opacity:.75;}
+  .side-label-right{left:auto; right:100px;}
+  .page-num{position:absolute; bottom:56px; right:100px; font-family:"Fredoka",sans-serif; font-size:24px; color:currentColor; opacity:.6;}
+  .footer-note{position:absolute; bottom:56px; left:100px; font-family:"Fredoka",sans-serif; font-size:24px; opacity:.55; line-height:1.4;}
+
+  /* —— table / list in observation slide —— */
+  .obs-grid{display:grid; grid-template-columns:repeat(4,1fr); gap:28px; margin-top:50px;}
+  .obs-card{background:#fff; border:4px solid var(--ink); border-radius:18px; padding:28px 26px; display:flex; flex-direction:column; gap:14px; min-height:360px;}
+  .obs-card .head{display:flex; align-items:center; justify-content:space-between; font-family:"Fredoka",sans-serif; font-size:24px; color:var(--ink); opacity:.55;}
+  .obs-card h4{font-family:"ZCOOL KuaiLe",sans-serif; font-size:38px; margin:0; color:var(--ink);}
+  .obs-card p{font-family:"ZCOOL KuaiLe",sans-serif; font-size:24px; line-height:1.4; margin:0; color:var(--ink); opacity:.8;}
+  .obs-card .illo{flex:1; display:flex; align-items:flex-end; justify-content:center;}
+
+  /* —— quiz / activity —— */
+  .activity{display:grid; grid-template-columns:1fr 1fr; gap:60px; flex:1;}
+  .step-list{display:flex; flex-direction:column; gap:28px; margin-top:30px;}
+  .step{display:flex; gap:24px; align-items:flex-start;}
+  .step .n{width:72px; height:72px; border-radius:50%; background:var(--orange); color:var(--cream); display:flex; align-items:center; justify-content:center; font-family:"Fredoka",sans-serif; font-size:36px; flex-shrink:0;}
+  .step .t h5{font-family:"ZCOOL KuaiLe",sans-serif; font-size:42px; margin:0; color:var(--ink);}
+  .step .t p{font-family:"ZCOOL KuaiLe",sans-serif; font-size:26px; margin:6px 0 0 0; color:var(--ink); opacity:.7; line-height:1.5;}
+
+  /* —— bubble callouts —— */
+  .bubble{position:absolute; background:#fff; border:4px solid var(--ink); border-radius:32px; padding:16px 28px; font-family:"ZCOOL KuaiLe",sans-serif; font-size:28px; color:var(--ink); box-shadow:6px 6px 0 var(--ink);}
+
+  /* —— end slide —— */
+  .end-wrap{display:flex; align-items:center; justify-content:center; flex-direction:column; height:100%;}
+  .end-big{font-family:"ZCOOL QingKe HuangYou",sans-serif; font-size:240px; color:var(--cream); line-height:1; margin:0;}
+
+  /* —— cover rain/petal overlay —— */
+  .petal{position:absolute; pointer-events:none;}
+
+  /* title slide number */
+  .big-num{font-family:"Fredoka",sans-serif; font-size:120px; color:var(--orange-deep); line-height:1;}
+</style>
+</head>
+<body>
+
+<deck-stage width="1920" height="1080">
+
+<!-- ============================================================= -->
+<!-- 01 · COVER 认识春天 -->
+<!-- ============================================================= -->
+<section class="cover" data-label="认识春天 · 封面">
+  <!-- animated petals drifting across cover -->
+  <svg class="petal" style="left:8%; top:12%; animation:drift 7s ease-in-out infinite;" width="70" height="70" viewBox="0 0 70 70"><path d="M35 6c10 12 24 12 24 24s-14 12-24 24c-10-12-24-12-24-24S25 18 35 6z" fill="#F2A3B3" stroke="#2B1A10" stroke-width="4"/></svg>
+  <svg class="petal" style="right:14%; top:20%; animation:sway 5s ease-in-out infinite; transform-origin:center;" width="60" height="60" viewBox="0 0 60 60"><circle cx="30" cy="30" r="22" fill="#F5C24B" stroke="#2B1A10" stroke-width="4"/><circle cx="30" cy="30" r="8" fill="#2B1A10"/></svg>
+  <svg class="petal" style="left:46%; bottom:18%; animation:bob 4s ease-in-out infinite;" width="80" height="80" viewBox="0 0 80 80"><path d="M40 8c12 14 28 14 28 28S52 50 40 72 12 50 12 36 28 22 40 8z" fill="#F5E9D3" stroke="#2B1A10" stroke-width="4"/></svg>
+  <svg class="petal" style="right:8%; bottom:28%; animation:spin 20s linear infinite; transform-origin:center;" width="90" height="90" viewBox="0 0 90 90">
+    <g transform="translate(45 45)">
+      <ellipse cx="0" cy="-24" rx="14" ry="22" fill="#F5E9D3" stroke="#2B1A10" stroke-width="4"/>
+      <ellipse cx="0" cy="-24" rx="14" ry="22" fill="#F5E9D3" stroke="#2B1A10" stroke-width="4" transform="rotate(72)"/>
+      <ellipse cx="0" cy="-24" rx="14" ry="22" fill="#F5E9D3" stroke="#2B1A10" stroke-width="4" transform="rotate(144)"/>
+      <ellipse cx="0" cy="-24" rx="14" ry="22" fill="#F5E9D3" stroke="#2B1A10" stroke-width="4" transform="rotate(216)"/>
+      <ellipse cx="0" cy="-24" rx="14" ry="22" fill="#F5E9D3" stroke="#2B1A10" stroke-width="4" transform="rotate(288)"/>
+      <circle cx="0" cy="0" r="10" fill="#F5C24B" stroke="#2B1A10" stroke-width="4"/>
+    </g>
+  </svg>
+
+  <div class="frame" style="padding:80px 100px 80px 100px;">
+    <div class="cover-top">
+      <span>小学自然课</span>
+      <span>SPRING · 01</span>
+      <span>第三单元</span>
+      <span>04</span>
+    </div>
+    <div style="flex:1; display:flex; flex-direction:column; justify-content:center; align-items:center; gap:10px; margin-top:10px;">
+      <h1 class="cover-title anim-pop">认识春天</h1>
+      <div style="display:flex; align-items:center; gap:36px; margin-top:50px;">
+        <svg width="90" height="90" viewBox="0 0 90 90" class="anim-sway" style="transform-origin:center bottom;">
+          <path d="M45 82 L45 44" stroke="#2B1A10" stroke-width="6" stroke-linecap="round" fill="none"/>
+          <path d="M45 54 C30 48 22 36 22 26 C34 26 42 32 45 44" fill="#3FA05A" stroke="#2B1A10" stroke-width="5" stroke-linejoin="round"/>
+          <path d="M45 62 C60 56 68 44 68 34 C56 34 48 40 45 52" fill="#1F7A3A" stroke="#2B1A10" stroke-width="5" stroke-linejoin="round"/>
+        </svg>
+        <div class="en" style="font-size:54px; color:var(--cream); letter-spacing:.04em;">HELLO, SPRING!</div>
+        <svg width="90" height="90" viewBox="0 0 90 90" class="anim-spin" style="animation-duration:22s;">
+          <g transform="translate(45 45)">
+            <circle r="16" fill="#F5C24B" stroke="#2B1A10" stroke-width="5"/>
+            <g stroke="#F5E9D3" stroke-width="6" stroke-linecap="round">
+              <line x1="0" y1="-24" x2="0" y2="-36"/>
+              <line x1="0" y1="24" x2="0" y2="36"/>
+              <line x1="-24" y1="0" x2="-36" y2="0"/>
+              <line x1="24" y1="0" x2="36" y2="0"/>
+              <line x1="-17" y1="-17" x2="-26" y2="-26"/>
+              <line x1="17" y1="17" x2="26" y2="26"/>
+              <line x1="-17" y1="17" x2="-26" y2="26"/>
+              <line x1="17" y1="-17" x2="26" y2="-26"/>
+            </g>
+          </g>
+        </svg>
+      </div>
+    </div>
+    <div class="cover-sub">
+      <div class="en-label">三年级 · 第三单元</div>
+      <div class="meta">
+        授课 · 李老师<br>
+        时长 · 40 分钟
+      </div>
+    </div>
+  </div>
+</section>
+
+
+<!-- ============================================================= -->
+<!-- 02 · 今天学什么 · AGENDA -->
+<!-- ============================================================= -->
+<section data-label="今天学什么">
+  <div class="chrome">
+    <span>认识春天</span>
+    <span>今天学什么</span>
+    <span>课堂目录</span>
+    <span>02</span>
+  </div>
+  <div class="frame">
+    <h2 class="title-zh" style="font-size:110px; margin:0; line-height:1;">今天学什么</h2>
+    <div class="en" style="font-size:32px; color:var(--orange-deep); margin-top:14px; letter-spacing:.08em;">TODAY'S LESSON · 5 PARTS</div>
+
+    <div class="agenda-list">
+      <div class="agenda-item anim-slidein">
+        <span class="num">01</span>
+        <span class="cn">春天来了</span>
+        <span class="en">SPRING IS HERE</span>
+      </div>
+      <div class="agenda-item anim-slidein d-2">
+        <span class="num">02</span>
+        <span class="cn">三个关键词</span>
+        <span class="en">THREE WORDS</span>
+      </div>
+      <div class="agenda-item anim-slidein d-3">
+        <span class="num">03</span>
+        <span class="cn">春天的朋友</span>
+        <span class="en">ANIMALS IN SPRING</span>
+      </div>
+      <div class="agenda-item anim-slidein d-4">
+        <span class="num">04</span>
+        <span class="cn">观察小任务</span>
+        <span class="en">OBSERVATION</span>
+      </div>
+      <div class="agenda-item anim-slidein d-5">
+        <span class="num">05</span>
+        <span class="cn">画一画春天</span>
+        <span class="en">LET'S DRAW</span>
+      </div>
+      <div class="agenda-item anim-slidein d-6" style="border-bottom:3px solid var(--ink);">
+        <span class="num">06</span>
+        <span class="cn">课后小作业</span>
+        <span class="en">HOMEWORK</span>
+      </div>
+    </div>
+
+    <!-- bottom decoration: a small sprout -->
+    <svg style="position:absolute; right:120px; bottom:120px;" width="160" height="200" viewBox="0 0 160 200" class="anim-sway-soft">
+      <path d="M80 200 L80 110" stroke="#2B1A10" stroke-width="8" stroke-linecap="round" fill="none"/>
+      <path d="M80 130 C50 120 38 100 38 82 C58 82 74 92 80 110" fill="#3FA05A" stroke="#2B1A10" stroke-width="6" stroke-linejoin="round"/>
+      <path d="M80 146 C110 136 126 114 126 96 C106 96 88 108 82 124" fill="#1F7A3A" stroke="#2B1A10" stroke-width="6" stroke-linejoin="round"/>
+      <circle cx="80" cy="74" r="22" fill="#F5C24B" stroke="#2B1A10" stroke-width="5"/>
+      <circle cx="80" cy="74" r="10" fill="#2B1A10"/>
+    </svg>
+
+    <div class="page-num">02</div>
+  </div>
+</section>
+
+
+<!-- ============================================================= -->
+<!-- 03 · 春天来了 — story opener with scene -->
+<!-- ============================================================= -->
+<section data-label="春天来了" style="background:#BFE0F2;">
+  <div class="chrome"><span>认识春天</span><span>第一部分</span><span>春天来了</span><span>03</span></div>
+
+  <!-- sun -->
+  <svg style="position:absolute; left:80px; top:120px;" width="180" height="180" viewBox="0 0 180 180" class="anim-spin" aria-hidden>
+    <g transform="translate(90 90)">
+      <g stroke="#2B1A10" stroke-width="5" stroke-linecap="round">
+        <line x1="0" y1="-62" x2="0" y2="-80" stroke="#F5C24B" stroke-width="10"/>
+        <line x1="0" y1="62" x2="0" y2="80" stroke="#F5C24B" stroke-width="10"/>
+        <line x1="-62" y1="0" x2="-80" y2="0" stroke="#F5C24B" stroke-width="10"/>
+        <line x1="62" y1="0" x2="80" y2="0" stroke="#F5C24B" stroke-width="10"/>
+        <line x1="-44" y1="-44" x2="-58" y2="-58" stroke="#F5C24B" stroke-width="10"/>
+        <line x1="44" y1="44" x2="58" y2="58" stroke="#F5C24B" stroke-width="10"/>
+        <line x1="-44" y1="44" x2="-58" y2="58" stroke="#F5C24B" stroke-width="10"/>
+        <line x1="44" y1="-44" x2="58" y2="-58" stroke="#F5C24B" stroke-width="10"/>
+      </g>
+      <circle r="50" fill="#F5C24B" stroke="#2B1A10" stroke-width="6"/>
+      <circle cx="-14" cy="-6" r="5" fill="#2B1A10"/>
+      <circle cx="14" cy="-6" r="5" fill="#2B1A10"/>
+      <path d="M-14 12 Q0 22 14 12" stroke="#2B1A10" stroke-width="5" fill="none" stroke-linecap="round"/>
+    </g>
+  </svg>
+
+  <!-- clouds -->
+  <svg style="position:absolute; right:120px; top:160px;" width="360" height="150" viewBox="0 0 360 150" class="anim-drift">
+    <path d="M40 100 C10 100 10 60 50 60 C55 30 110 30 120 60 C150 40 200 60 190 100 Z" fill="#F5E9D3" stroke="#2B1A10" stroke-width="6" stroke-linejoin="round"/>
+  </svg>
+  <svg style="position:absolute; right:320px; top:260px;" width="280" height="120" viewBox="0 0 280 120" class="anim-drift" style2="animation-duration:8s;">
+    <path d="M30 90 C0 90 5 50 45 55 C55 25 105 30 115 60 C150 45 180 75 165 90 Z" fill="#F5E9D3" stroke="#2B1A10" stroke-width="6" stroke-linejoin="round"/>
+  </svg>
+
+  <!-- hills -->
+  <svg style="position:absolute; left:0; bottom:0;" width="1920" height="520" viewBox="0 0 1920 520" preserveAspectRatio="none" aria-hidden>
+    <path d="M0 520 L0 280 C240 180 500 280 760 240 C1020 200 1260 300 1500 260 C1700 230 1840 280 1920 260 L1920 520 Z" fill="#3FA05A" stroke="#2B1A10" stroke-width="6"/>
+    <path d="M0 520 L0 380 C260 320 520 400 780 380 C1040 360 1280 420 1540 400 C1720 388 1840 410 1920 400 L1920 520 Z" fill="#1F7A3A" stroke="#2B1A10" stroke-width="6"/>
+  </svg>
+
+  <!-- big tree -->
+  <svg style="position:absolute; left:48%; bottom:150px; transform:translateX(-50%);" width="560" height="640" viewBox="0 0 560 640" class="anim-sway-soft">
+    <path d="M280 640 L280 360" stroke="#2B1A10" stroke-width="22" stroke-linecap="round"/>
+    <path d="M280 430 L200 480" stroke="#2B1A10" stroke-width="14" stroke-linecap="round"/>
+    <path d="M280 400 L360 450" stroke="#2B1A10" stroke-width="14" stroke-linecap="round"/>
+    <circle cx="280" cy="220" r="200" fill="#3FA05A" stroke="#2B1A10" stroke-width="8"/>
+    <circle cx="180" cy="260" r="130" fill="#1F7A3A" stroke="#2B1A10" stroke-width="8"/>
+    <circle cx="380" cy="280" r="140" fill="#1F7A3A" stroke="#2B1A10" stroke-width="8"/>
+    <!-- flowers on tree -->
+    <circle cx="220" cy="170" r="16" fill="#F2A3B3" stroke="#2B1A10" stroke-width="4"/>
+    <circle cx="340" cy="200" r="16" fill="#F5E9D3" stroke="#2B1A10" stroke-width="4"/>
+    <circle cx="280" cy="120" r="16" fill="#F5C24B" stroke="#2B1A10" stroke-width="4"/>
+    <circle cx="400" cy="160" r="14" fill="#F2A3B3" stroke="#2B1A10" stroke-width="4"/>
+    <circle cx="140" cy="210" r="14" fill="#F5C24B" stroke="#2B1A10" stroke-width="4"/>
+  </svg>
+
+  <!-- butterfly -->
+  <svg style="position:absolute; left:25%; top:48%;" width="120" height="100" viewBox="0 0 120 100" class="anim-bob">
+    <g>
+      <path d="M60 50 C40 20 20 30 20 50 C20 70 40 78 60 50 Z" fill="#F26B2E" stroke="#2B1A10" stroke-width="5" class="anim-flap" style="transform-origin:60px 50px"/>
+      <path d="M60 50 C80 20 100 30 100 50 C100 70 80 78 60 50 Z" fill="#F26B2E" stroke="#2B1A10" stroke-width="5" class="anim-flap" style="transform-origin:60px 50px"/>
+      <ellipse cx="60" cy="50" rx="6" ry="18" fill="#2B1A10"/>
+      <path d="M58 34 L52 24" stroke="#2B1A10" stroke-width="3" stroke-linecap="round" fill="none"/>
+      <path d="M62 34 L68 24" stroke="#2B1A10" stroke-width="3" stroke-linecap="round" fill="none"/>
+    </g>
+  </svg>
+
+  <!-- title card overlay -->
+  <div style="position:absolute; left:100px; top:300px; max-width:520px;">
+    <div class="en" style="font-size:28px; color:var(--ink); letter-spacing:.12em; opacity:.7;">PART 01</div>
+    <h2 class="title-zh" style="font-size:180px; line-height:.9; margin:10px 0 20px 0; color:var(--ink);">春天<br>来了</h2>
+    <p class="title-zh" style="font-size:34px; line-height:1.5; color:var(--ink); margin:0; max-width:460px;">冰雪融化，小草钻出泥土，<br>温柔的风把花香送到窗前。</p>
+  </div>
+
+  <div class="page-num" style="color:var(--ink);">03</div>
+</section>
+
+
+<!-- ============================================================= -->
+<!-- 04 · 三个关键词 section poster -->
+<!-- ============================================================= -->
+<section data-label="三个关键词" style="background:var(--green);">
+  <div class="chrome" style="color:var(--cream);"><span style="color:var(--cream);">认识春天</span><span style="color:var(--cream);">第二部分</span><span style="color:var(--cream);">三个关键词</span><span style="color:var(--cream);">04</span></div>
+
+  <div class="section-poster" style="height:100%;">
+    <div class="left">
+      <div>
+        <div class="en" style="font-size:28px; color:var(--cream); opacity:.7; letter-spacing:.12em;">PART 02</div>
+        <h2 style="margin-top:12px;">三个<br>关键词</h2>
+        <p>用三个词，记住春天的样子。<br>先读一读，再看一看，最后跟着老师说出来。</p>
+      </div>
+      <div style="display:flex; align-items:center; gap:16px; color:var(--cream); opacity:.8; font-family:'Fredoka'; font-size:26px;">
+        <span>→</span><span>翻到下一页</span>
+      </div>
+    </div>
+    <div class="big-art">
+      <!-- giant word stack -->
+      <div style="text-align:center;">
+        <div class="display" style="font-size:220px; color:var(--cream); line-height:.95;" class2="anim-pop">发芽</div>
+        <div class="display" style="font-size:220px; color:var(--yellow); line-height:.95;">开花</div>
+        <div class="display" style="font-size:220px; color:var(--pink); line-height:.95;">下雨</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="page-num" style="color:var(--cream);">04</div>
+</section>
+
+
+<!-- ============================================================= -->
+<!-- 05 · POSTER TRIO — 发芽 · 开花 · 下雨 -->
+<!-- ============================================================= -->
+<section data-label="关键词海报" style="background:var(--cream-2);">
+  <div class="chrome"><span>认识春天</span><span>三个关键词</span><span>海报式记忆法</span><span>05</span></div>
+  <div class="frame" style="padding:140px 80px 90px 80px;">
+    <div style="display:flex; justify-content:space-between; align-items:flex-end; margin-bottom:24px; gap:40px;">
+      <h2 class="title-zh" style="font-size:76px; margin:0; white-space:nowrap;">用一个字，记住春天</h2>
+      <div class="en" style="font-size:24px; color:var(--ink); opacity:.6; letter-spacing:.08em; text-align:right; line-height:1.3; white-space:nowrap;">LAYOUTS USING<br>SINGLE WORDS</div>
+    </div>
+
+    <div class="posters">
+
+      <!-- 发 · sprout poster -->
+      <div class="poster" style="background:var(--orange);">
+        <div class="poster-word" style="color:var(--cream);">发芽</div>
+        <div class="poster-art">
+          <svg width="320" height="340" viewBox="0 0 320 340" aria-hidden>
+            <!-- soil mound -->
+            <path d="M20 300 Q160 240 300 300 L300 340 L20 340 Z" fill="#6B3A1A" stroke="#2B1A10" stroke-width="6" stroke-linejoin="round"/>
+            <!-- seed split -->
+            <ellipse cx="160" cy="280" rx="36" ry="22" fill="#F5E9D3" stroke="#2B1A10" stroke-width="5"/>
+            <!-- stem -->
+            <g class="anim-grow" style="transform-origin:160px 280px;">
+              <path d="M160 280 L160 150" stroke="#2B1A10" stroke-width="10" fill="none" stroke-linecap="round"/>
+              <path d="M160 210 C120 200 100 170 100 150 C130 150 154 170 160 196" fill="#3FA05A" stroke="#2B1A10" stroke-width="6" stroke-linejoin="round"/>
+              <path d="M160 180 C200 170 220 140 220 120 C190 120 164 140 160 164" fill="#1F7A3A" stroke="#2B1A10" stroke-width="6" stroke-linejoin="round"/>
+              <!-- sprout bud -->
+              <path d="M160 150 C142 130 142 108 160 90 C178 108 178 130 160 150 Z" fill="#F5C24B" stroke="#2B1A10" stroke-width="6" stroke-linejoin="round"/>
+            </g>
+            <!-- ground lines -->
+            <g stroke="#2B1A10" stroke-width="4" stroke-linecap="round" fill="none">
+              <path d="M40 320 L72 320"/>
+              <path d="M100 326 L136 326"/>
+              <path d="M180 324 L220 324"/>
+              <path d="M240 318 L278 318"/>
+            </g>
+          </svg>
+        </div>
+        <div class="poster-foot" style="color:var(--cream);">
+          <div>fā yá<br>小种子钻出来了</div>
+          <div class="badge">SP<br>01</div>
+        </div>
+      </div>
+
+      <!-- 花 · bloom poster -->
+      <div class="poster" style="background:var(--green);">
+        <div class="poster-word" style="color:var(--cream);">开花</div>
+        <div class="poster-art">
+          <svg width="340" height="340" viewBox="0 0 340 340" aria-hidden>
+            <g transform="translate(170 170)" class="anim-spin" style="animation-duration:24s;">
+              <g stroke="#2B1A10" stroke-width="6" stroke-linejoin="round">
+                <ellipse cx="0" cy="-80" rx="44" ry="68" fill="#F5E9D3"/>
+                <ellipse cx="0" cy="-80" rx="44" ry="68" fill="#F5E9D3" transform="rotate(60)"/>
+                <ellipse cx="0" cy="-80" rx="44" ry="68" fill="#F5E9D3" transform="rotate(120)"/>
+                <ellipse cx="0" cy="-80" rx="44" ry="68" fill="#F5E9D3" transform="rotate(180)"/>
+                <ellipse cx="0" cy="-80" rx="44" ry="68" fill="#F5E9D3" transform="rotate(240)"/>
+                <ellipse cx="0" cy="-80" rx="44" ry="68" fill="#F5E9D3" transform="rotate(300)"/>
+              </g>
+              <circle r="40" fill="#F5C24B" stroke="#2B1A10" stroke-width="6"/>
+              <g stroke="#2B1A10" stroke-width="4" fill="none">
+                <path d="M-14 -10 Q0 -18 14 -10"/>
+                <path d="M-14 10 Q0 18 14 10"/>
+              </g>
+              <circle cx="-14" cy="0" r="4" fill="#2B1A10"/>
+              <circle cx="14" cy="0" r="4" fill="#2B1A10"/>
+            </g>
+            <!-- little leaves bottom -->
+            <path d="M40 320 Q70 290 100 320" fill="#1F7A3A" stroke="#2B1A10" stroke-width="5" stroke-linejoin="round"/>
+            <path d="M240 322 Q275 294 310 322" fill="#1F7A3A" stroke="#2B1A10" stroke-width="5" stroke-linejoin="round"/>
+          </svg>
+        </div>
+        <div class="poster-foot" style="color:var(--cream);">
+          <div>kāi huā<br>花朵朝着太阳</div>
+          <div class="badge" style="color:var(--green-deep);">SP<br>02</div>
+        </div>
+      </div>
+
+      <!-- 雨 · rain poster -->
+      <div class="poster" style="background:var(--blue); overflow:hidden;">
+        <div class="poster-word" style="color:var(--cream);">下雨</div>
+        <div class="poster-art">
+          <svg width="320" height="340" viewBox="0 0 320 340" aria-hidden>
+            <!-- cloud -->
+            <path d="M60 160 C25 160 25 110 70 110 C80 80 140 80 150 115 C185 95 235 115 225 160 Z" fill="#F5E9D3" stroke="#2B1A10" stroke-width="6" stroke-linejoin="round"/>
+            <!-- raindrops with anim -->
+            <g>
+              <g style="animation:fall 2s linear infinite; animation-delay:0s;">
+                <path d="M90 170 C84 184 84 196 90 196 C96 196 96 184 90 170 Z" fill="#9FC8E6" stroke="#2B1A10" stroke-width="4"/>
+              </g>
+              <g style="animation:fall 2.2s linear infinite; animation-delay:.4s;">
+                <path d="M130 170 C124 184 124 196 130 196 C136 196 136 184 130 170 Z" fill="#9FC8E6" stroke="#2B1A10" stroke-width="4"/>
+              </g>
+              <g style="animation:fall 1.8s linear infinite; animation-delay:.8s;">
+                <path d="M170 170 C164 184 164 196 170 196 C176 196 176 184 170 170 Z" fill="#9FC8E6" stroke="#2B1A10" stroke-width="4"/>
+              </g>
+              <g style="animation:fall 2.4s linear infinite; animation-delay:1.2s;">
+                <path d="M210 170 C204 184 204 196 210 196 C216 196 216 184 210 170 Z" fill="#9FC8E6" stroke="#2B1A10" stroke-width="4"/>
+              </g>
+            </g>
+            <!-- umbrella at bottom -->
+            <g transform="translate(160 280)" class="anim-bob-sm">
+              <path d="M-90 0 Q0 -90 90 0 Z" fill="#D93B1F" stroke="#2B1A10" stroke-width="6" stroke-linejoin="round"/>
+              <path d="M-90 0 Q-45 -10 0 0 Q45 -10 90 0" stroke="#2B1A10" stroke-width="5" fill="none" stroke-linecap="round"/>
+              <path d="M0 -90 L0 40" stroke="#2B1A10" stroke-width="6" stroke-linecap="round"/>
+              <path d="M0 40 Q10 50 20 40" stroke="#2B1A10" stroke-width="6" fill="none" stroke-linecap="round"/>
+            </g>
+          </svg>
+        </div>
+        <div class="poster-foot" style="color:var(--cream);">
+          <div>xià yǔ<br>春雨细细密密</div>
+          <div class="badge" style="color:var(--blue);">SP<br>03</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="footer-note" style="white-space:nowrap;">单字卡 · 小学低年级版 · SINGLE-WORD CARDS</div>
+    <div class="page-num">05</div>
+  </div>
+</section>
+
+
+<!-- ============================================================= -->
+<!-- 06 · 春天的朋友 section poster -->
+<!-- ============================================================= -->
+<section data-label="春天的朋友" style="background:var(--red);">
+  <div class="chrome" style="color:var(--cream);"><span style="color:var(--cream);">认识春天</span><span style="color:var(--cream);">第三部分</span><span style="color:var(--cream);">春天的朋友</span><span style="color:var(--cream);">06</span></div>
+  <div class="section-poster" style="height:100%;">
+    <div class="left">
+      <div>
+        <div class="en" style="font-size:28px; color:var(--cream); opacity:.7; letter-spacing:.12em;">PART 03</div>
+        <h2 style="margin-top:12px;">春天的<br>朋友</h2>
+        <p>谁在春天回家？<br>谁在春天醒来？<br>谁在春天出门玩耍？</p>
+      </div>
+      <div style="color:var(--cream); opacity:.8; font-family:'Fredoka'; font-size:26px;">→ 四位春天的朋友登场</div>
+    </div>
+    <div class="big-art">
+      <!-- big bird -->
+      <svg width="620" height="620" viewBox="0 0 620 620" class="anim-bob">
+        <!-- body -->
+        <ellipse cx="310" cy="360" rx="220" ry="150" fill="#F5C24B" stroke="#2B1A10" stroke-width="8"/>
+        <!-- belly -->
+        <ellipse cx="310" cy="380" rx="140" ry="100" fill="#F5E9D3" stroke="#2B1A10" stroke-width="6"/>
+        <!-- head -->
+        <circle cx="460" cy="240" r="130" fill="#F5C24B" stroke="#2B1A10" stroke-width="8"/>
+        <!-- beak -->
+        <path d="M590 240 L550 220 L550 260 Z" fill="#F26B2E" stroke="#2B1A10" stroke-width="6" stroke-linejoin="round"/>
+        <!-- eye -->
+        <circle cx="480" cy="220" r="20" fill="#F5E9D3" stroke="#2B1A10" stroke-width="6"/>
+        <circle cx="484" cy="224" r="10" fill="#2B1A10" class="anim-pulse"/>
+        <!-- wing -->
+        <path d="M260 320 Q180 240 120 280 Q140 360 220 380 Z" fill="#F26B2E" stroke="#2B1A10" stroke-width="6" stroke-linejoin="round" class="anim-flap" style="transform-origin:200px 330px"/>
+        <!-- feet -->
+        <path d="M260 510 L250 560 M240 560 L260 560 M260 560 L280 560" stroke="#2B1A10" stroke-width="8" stroke-linecap="round" fill="none"/>
+        <path d="M360 510 L350 560 M340 560 L360 560 M360 560 L380 560" stroke="#2B1A10" stroke-width="8" stroke-linecap="round" fill="none"/>
+        <!-- music notes -->
+        <g class="anim-bob-sm" style="transform-origin:center;">
+          <circle cx="600" cy="160" r="14" fill="#F5E9D3" stroke="#2B1A10" stroke-width="5"/>
+          <path d="M614 160 L614 110" stroke="#2B1A10" stroke-width="6" stroke-linecap="round"/>
+        </g>
+        <g class="anim-bob-sm" style="transform-origin:center; animation-delay:.3s">
+          <circle cx="560" cy="100" r="10" fill="#F5E9D3" stroke="#2B1A10" stroke-width="5"/>
+          <path d="M570 100 L570 60" stroke="#2B1A10" stroke-width="6" stroke-linecap="round"/>
+        </g>
+      </svg>
+    </div>
+  </div>
+  <div class="page-num" style="color:var(--cream);">06</div>
+</section>
+
+
+<!-- ============================================================= -->
+<!-- 07 · 春天的朋友 — four cards -->
+<!-- ============================================================= -->
+<section data-label="四位朋友" style="background:var(--cream);">
+  <div class="chrome"><span>认识春天</span><span>春天的朋友</span><span>图鉴</span><span>07</span></div>
+  <div class="frame" style="padding:140px 100px 100px 100px;">
+    <div style="display:flex; justify-content:space-between; align-items:flex-end;">
+      <div>
+        <h2 class="title-zh" style="font-size:90px; margin:0; line-height:1;">四位春天的朋友</h2>
+        <p class="title-zh" style="font-size:28px; color:var(--ink); opacity:.7; margin:10px 0 0 0;">他们各自回到了春天里的位置。试试指出每一个。</p>
+      </div>
+      <div class="en" style="font-size:24px; opacity:.6; letter-spacing:.08em;">ILLUSTRATION LIBRARY · 04/04</div>
+    </div>
+
+    <div class="obs-grid">
+      <!-- swallow -->
+      <div class="obs-card">
+        <div class="head"><span>01 · 鸟</span><span>bird</span></div>
+        <div class="illo">
+          <svg width="220" height="180" viewBox="0 0 220 180" class="anim-bob">
+            <path d="M40 120 Q110 60 200 80 Q180 120 140 130 L110 160 L100 130 Q70 140 40 120 Z" fill="#2B1A10" stroke="#2B1A10" stroke-width="5" stroke-linejoin="round"/>
+            <path d="M110 100 Q130 90 150 95" stroke="#F5E9D3" stroke-width="4" fill="none" stroke-linecap="round"/>
+            <circle cx="180" cy="92" r="5" fill="#F5E9D3"/>
+            <path d="M205 85 L220 80 L215 92 Z" fill="#F26B2E" stroke="#2B1A10" stroke-width="3" stroke-linejoin="round"/>
+          </svg>
+        </div>
+        <h4>小燕子</h4>
+        <p>从南方飞回，在屋檐下筑窝。</p>
+      </div>
+
+      <!-- bee -->
+      <div class="obs-card">
+        <div class="head"><span>02 · 昆虫</span><span>bee</span></div>
+        <div class="illo">
+          <svg width="200" height="180" viewBox="0 0 200 180" class="anim-wiggle">
+            <ellipse cx="100" cy="110" rx="70" ry="50" fill="#F5C24B" stroke="#2B1A10" stroke-width="6"/>
+            <rect x="60" y="82" width="12" height="56" fill="#2B1A10"/>
+            <rect x="90" y="74" width="12" height="72" fill="#2B1A10"/>
+            <rect x="120" y="82" width="12" height="56" fill="#2B1A10"/>
+            <ellipse cx="80" cy="70" rx="34" ry="22" fill="#F5E9D3" stroke="#2B1A10" stroke-width="5" class="anim-flap" style="transform-origin:80px 72px;"/>
+            <ellipse cx="130" cy="70" rx="34" ry="22" fill="#F5E9D3" stroke="#2B1A10" stroke-width="5" class="anim-flap" style="transform-origin:130px 72px;"/>
+            <circle cx="170" cy="100" r="8" fill="#2B1A10"/>
+            <path d="M172 96 L186 82 M170 108 L190 112" stroke="#2B1A10" stroke-width="4" stroke-linecap="round" fill="none"/>
+          </svg>
+        </div>
+        <h4>小蜜蜂</h4>
+        <p>嗡嗡嗡，在花丛里采蜜。</p>
+      </div>
+
+      <!-- frog -->
+      <div class="obs-card">
+        <div class="head"><span>03 · 两栖</span><span>frog</span></div>
+        <div class="illo">
+          <svg width="220" height="180" viewBox="0 0 220 180" class="anim-hop">
+            <ellipse cx="110" cy="130" rx="90" ry="40" fill="#3FA05A" stroke="#2B1A10" stroke-width="6"/>
+            <path d="M40 130 Q110 40 180 130" fill="#3FA05A" stroke="#2B1A10" stroke-width="6" stroke-linejoin="round"/>
+            <circle cx="75" cy="70" r="22" fill="#F5E9D3" stroke="#2B1A10" stroke-width="5"/>
+            <circle cx="145" cy="70" r="22" fill="#F5E9D3" stroke="#2B1A10" stroke-width="5"/>
+            <circle cx="78" cy="74" r="10" fill="#2B1A10"/>
+            <circle cx="148" cy="74" r="10" fill="#2B1A10"/>
+            <path d="M80 115 Q110 130 140 115" stroke="#2B1A10" stroke-width="5" fill="none" stroke-linecap="round"/>
+            <path d="M30 160 L10 172 M30 160 L18 152" stroke="#2B1A10" stroke-width="5" stroke-linecap="round" fill="none"/>
+            <path d="M190 160 L210 172 M190 160 L202 152" stroke="#2B1A10" stroke-width="5" stroke-linecap="round" fill="none"/>
+          </svg>
+        </div>
+        <h4>小青蛙</h4>
+        <p>从冬眠中醒来，跳进池塘里。</p>
+      </div>
+
+      <!-- rabbit -->
+      <div class="obs-card">
+        <div class="head"><span>04 · 哺乳</span><span>rabbit</span></div>
+        <div class="illo">
+          <svg width="200" height="200" viewBox="0 0 200 200" class="anim-bob-sm">
+            <ellipse cx="100" cy="160" rx="74" ry="30" fill="#F5E9D3" stroke="#2B1A10" stroke-width="6"/>
+            <circle cx="100" cy="110" r="48" fill="#F5E9D3" stroke="#2B1A10" stroke-width="6"/>
+            <ellipse cx="78" cy="40" rx="14" ry="44" fill="#F5E9D3" stroke="#2B1A10" stroke-width="6" class="anim-wiggle" style="transform-origin:78px 84px"/>
+            <ellipse cx="122" cy="40" rx="14" ry="44" fill="#F5E9D3" stroke="#2B1A10" stroke-width="6" class="anim-wiggle" style="transform-origin:122px 84px; animation-delay:.3s"/>
+            <ellipse cx="78" cy="38" rx="6" ry="26" fill="#F2A3B3"/>
+            <ellipse cx="122" cy="38" rx="6" ry="26" fill="#F2A3B3"/>
+            <circle cx="86" cy="108" r="6" fill="#2B1A10"/>
+            <circle cx="114" cy="108" r="6" fill="#2B1A10"/>
+            <circle cx="100" cy="124" r="5" fill="#F2A3B3"/>
+            <path d="M100 128 Q94 138 88 132 M100 128 Q106 138 112 132" stroke="#2B1A10" stroke-width="3" fill="none" stroke-linecap="round"/>
+          </svg>
+        </div>
+        <h4>小白兔</h4>
+        <p>在草地上寻找嫩嫩的青草。</p>
+      </div>
+    </div>
+
+    <div class="page-num">07</div>
+  </div>
+</section>
+
+
+<!-- ============================================================= -->
+<!-- 08 · 观察小任务 — a big interactive-feel slide -->
+<!-- ============================================================= -->
+<section data-label="观察小任务" style="background:var(--yellow);">
+  <div class="chrome"><span>认识春天</span><span>第四部分</span><span>观察小任务</span><span>08</span></div>
+
+  <div class="frame" style="padding:140px 100px 100px 100px;">
+    <div class="activity">
+      <div>
+        <div class="en" style="font-size:28px; color:var(--ink); opacity:.7; letter-spacing:.12em;">PART 04 · ACTIVITY</div>
+        <h2 class="title-zh" style="font-size:96px; margin:10px 0 0 0; line-height:1;">走出教室，<br>找一找春天</h2>
+        <p class="title-zh" style="font-size:28px; line-height:1.5; margin:24px 0 0 0; color:var(--ink); opacity:.75; max-width:520px;">课间十分钟，去校园里走走。用你的眼睛、耳朵和鼻子，把你发现的春天记在小本子上。</p>
+
+        <div class="step-list">
+          <div class="step anim-slidein">
+            <div class="n">1</div>
+            <div class="t">
+              <h5>看一看</h5>
+              <p>哪些植物抽出了新芽？</p>
+            </div>
+          </div>
+          <div class="step anim-slidein d-2">
+            <div class="n">2</div>
+            <div class="t">
+              <h5>听一听</h5>
+              <p>有没有小鸟在唱歌？</p>
+            </div>
+          </div>
+          <div class="step anim-slidein d-3">
+            <div class="n">3</div>
+            <div class="t">
+              <h5>闻一闻</h5>
+              <p>空气里是什么味道？</p>
+            </div>
+          </div>
+          <div class="step anim-slidein d-4">
+            <div class="n">4</div>
+            <div class="t">
+              <h5>画一画</h5>
+              <p>把最喜欢的一样画在本子上。</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- right: a notebook illustration -->
+      <div style="position:relative; display:flex; align-items:center; justify-content:center;">
+        <!-- notebook -->
+        <svg width="520" height="640" viewBox="0 0 520 640" class="anim-sway-soft" style="transform-origin:center bottom;">
+          <!-- back page -->
+          <rect x="40" y="40" width="440" height="580" rx="20" fill="#F5E9D3" stroke="#2B1A10" stroke-width="8"/>
+          <!-- front page -->
+          <rect x="60" y="60" width="420" height="560" rx="16" fill="#fff" stroke="#2B1A10" stroke-width="6"/>
+          <!-- spiral rings -->
+          <g fill="none" stroke="#2B1A10" stroke-width="6" stroke-linecap="round">
+            <path d="M110 40 L110 70"/>
+            <path d="M170 40 L170 70"/>
+            <path d="M230 40 L230 70"/>
+            <path d="M290 40 L290 70"/>
+            <path d="M350 40 L350 70"/>
+            <path d="M410 40 L410 70"/>
+          </g>
+          <!-- lines -->
+          <g stroke="#2B1A10" stroke-width="3" opacity=".4">
+            <line x1="90" y1="180" x2="450" y2="180"/>
+            <line x1="90" y1="240" x2="450" y2="240"/>
+            <line x1="90" y1="300" x2="450" y2="300"/>
+            <line x1="90" y1="360" x2="450" y2="360"/>
+            <line x1="90" y1="420" x2="450" y2="420"/>
+            <line x1="90" y1="480" x2="450" y2="480"/>
+            <line x1="90" y1="540" x2="450" y2="540"/>
+          </g>
+          <!-- title on notebook -->
+          <text x="90" y="140" font-family="ZCOOL KuaiLe" font-size="48" fill="#2B1A10">我的春天笔记</text>
+          <!-- a tiny flower sketch -->
+          <g transform="translate(340 220)">
+            <g stroke="#2B1A10" stroke-width="4" fill="#F2A3B3">
+              <circle cx="0" cy="-16" r="10"/>
+              <circle cx="14" cy="-8" r="10"/>
+              <circle cx="14" cy="10" r="10"/>
+              <circle cx="0" cy="18" r="10"/>
+              <circle cx="-14" cy="10" r="10"/>
+              <circle cx="-14" cy="-8" r="10"/>
+              <circle cx="0" cy="0" r="8" fill="#F5C24B"/>
+            </g>
+          </g>
+          <!-- pencil check marks -->
+          <g stroke="#F26B2E" stroke-width="5" fill="none" stroke-linecap="round">
+            <path d="M100 285 L112 298 L136 272"/>
+            <path d="M100 345 L112 358 L136 332"/>
+          </g>
+        </svg>
+
+        <!-- pencil -->
+        <svg style="position:absolute; right:10px; bottom:60px;" width="220" height="60" viewBox="0 0 220 60" class="anim-wiggle" style2="transform-origin:30px 30px">
+          <rect x="20" y="20" width="140" height="22" fill="#F5C24B" stroke="#2B1A10" stroke-width="5"/>
+          <rect x="20" y="20" width="30" height="22" fill="#D93B1F" stroke="#2B1A10" stroke-width="5"/>
+          <path d="M160 20 L190 30 L160 42 Z" fill="#F5E9D3" stroke="#2B1A10" stroke-width="5" stroke-linejoin="round"/>
+          <path d="M182 27 L190 30 L182 33 Z" fill="#2B1A10"/>
+        </svg>
+
+        <!-- bubble -->
+        <div class="bubble anim-bob-sm" style="top:30px; right:-10px; transform:rotate(4deg);">记录 3 样 ✏️</div>
+      </div>
+    </div>
+
+    <div class="page-num">08</div>
+  </div>
+</section>
+
+
+<!-- ============================================================= -->
+<!-- 09 · 画一画春天 -->
+<!-- ============================================================= -->
+<section data-label="画一画春天" style="background:var(--cream);">
+  <div class="chrome"><span>认识春天</span><span>第五部分</span><span>画一画春天</span><span>09</span></div>
+
+  <div class="frame" style="padding:140px 100px 100px 100px;">
+    <div style="display:flex; justify-content:space-between; align-items:flex-end;">
+      <div>
+        <div class="en" style="font-size:28px; color:var(--ink); opacity:.7; letter-spacing:.12em;">PART 05 · DRAW</div>
+        <h2 class="title-zh" style="font-size:96px; margin:10px 0 0 0;">画一画你眼中的春天</h2>
+        <p class="title-zh" style="font-size:30px; line-height:1.5; margin:16px 0 0 0; color:var(--ink); opacity:.75; max-width:700px;">用今天学过的三个词和四位朋友作为主角。颜色由你自己挑选。</p>
+      </div>
+    </div>
+
+    <!-- color palette -->
+    <div style="display:flex; gap:24px; margin-top:50px; align-items:center;">
+      <div class="en" style="font-size:24px; opacity:.55; letter-spacing:.1em;">PALETTE</div>
+      <div style="width:72px; height:72px; border-radius:50%; background:var(--orange); border:4px solid var(--ink);" class="anim-bob-sm"></div>
+      <div style="width:72px; height:72px; border-radius:50%; background:var(--green); border:4px solid var(--ink);" class="anim-bob-sm d-2"></div>
+      <div style="width:72px; height:72px; border-radius:50%; background:var(--red); border:4px solid var(--ink);" class="anim-bob-sm d-3"></div>
+      <div style="width:72px; height:72px; border-radius:50%; background:var(--yellow); border:4px solid var(--ink);" class="anim-bob-sm d-4"></div>
+      <div style="width:72px; height:72px; border-radius:50%; background:var(--blue); border:4px solid var(--ink);" class="anim-bob-sm d-5"></div>
+      <div style="width:72px; height:72px; border-radius:50%; background:var(--pink); border:4px solid var(--ink);" class="anim-bob-sm d-6"></div>
+      <div style="width:72px; height:72px; border-radius:50%; background:var(--cream); border:4px solid var(--ink);" class="anim-bob-sm d-7"></div>
+    </div>
+
+    <!-- three example picture frames -->
+    <div style="display:grid; grid-template-columns:1fr 1fr 1fr; gap:40px; margin-top:50px; flex:1;">
+      <div style="background:#fff; border:6px solid var(--ink); border-radius:20px; overflow:hidden; position:relative;">
+        <div style="height:64px; background:var(--orange); display:flex; align-items:center; padding:0 24px; color:var(--cream); font-family:'ZCOOL KuaiLe'; font-size:30px; border-bottom:6px solid var(--ink);">我的春天 · 01</div>
+        <svg viewBox="0 0 400 360" width="100%" height="calc(100% - 64px)" preserveAspectRatio="xMidYMid slice">
+          <rect width="400" height="360" fill="#BFE0F2"/>
+          <circle cx="340" cy="70" r="40" fill="#F5C24B" stroke="#2B1A10" stroke-width="5" class="anim-pulse"/>
+          <path d="M0 360 L0 260 Q200 220 400 260 L400 360 Z" fill="#3FA05A" stroke="#2B1A10" stroke-width="5"/>
+          <g class="anim-sway-soft" style="transform-origin:120px 340px">
+            <rect x="116" y="240" width="8" height="100" fill="#2B1A10"/>
+            <circle cx="120" cy="220" r="36" fill="#F2A3B3" stroke="#2B1A10" stroke-width="5"/>
+            <circle cx="120" cy="220" r="12" fill="#F5C24B"/>
+          </g>
+        </svg>
+      </div>
+      <div style="background:#fff; border:6px solid var(--ink); border-radius:20px; overflow:hidden; position:relative;">
+        <div style="height:64px; background:var(--green); display:flex; align-items:center; padding:0 24px; color:var(--cream); font-family:'ZCOOL KuaiLe'; font-size:30px; border-bottom:6px solid var(--ink);">我的春天 · 02</div>
+        <svg viewBox="0 0 400 360" width="100%" height="calc(100% - 64px)" preserveAspectRatio="xMidYMid slice">
+          <rect width="400" height="360" fill="#F5E9D3"/>
+          <path d="M0 360 L0 280 Q200 240 400 280 L400 360 Z" fill="#F5C24B" stroke="#2B1A10" stroke-width="5"/>
+          <g class="anim-hop" style="transform-origin:200px 300px">
+            <ellipse cx="200" cy="280" rx="60" ry="26" fill="#3FA05A" stroke="#2B1A10" stroke-width="5"/>
+            <circle cx="182" cy="252" r="14" fill="#F5E9D3" stroke="#2B1A10" stroke-width="4"/>
+            <circle cx="218" cy="252" r="14" fill="#F5E9D3" stroke="#2B1A10" stroke-width="4"/>
+            <circle cx="184" cy="254" r="6" fill="#2B1A10"/>
+            <circle cx="220" cy="254" r="6" fill="#2B1A10"/>
+          </g>
+        </svg>
+      </div>
+      <div style="background:#fff; border:6px solid var(--ink); border-radius:20px; overflow:hidden; position:relative;">
+        <div style="height:64px; background:var(--blue); display:flex; align-items:center; padding:0 24px; color:var(--cream); font-family:'ZCOOL KuaiLe'; font-size:30px; border-bottom:6px solid var(--ink);">我的春天 · 03</div>
+        <svg viewBox="0 0 400 360" width="100%" height="calc(100% - 64px)" preserveAspectRatio="xMidYMid slice">
+          <rect width="400" height="360" fill="#9FC8E6"/>
+          <path d="M60 40 Q30 40 40 70 Q20 70 30 100 L180 100 Q200 70 170 60 Q170 30 130 40 Q110 20 80 30 Z" fill="#F5E9D3" stroke="#2B1A10" stroke-width="5" stroke-linejoin="round"/>
+          <g style="animation:fall 2s linear infinite;">
+            <path d="M80 120 C74 134 74 146 80 146 C86 146 86 134 80 120 Z" fill="#F5E9D3" stroke="#2B1A10" stroke-width="3"/>
+          </g>
+          <g style="animation:fall 2.4s linear infinite; animation-delay:.4s">
+            <path d="M130 120 C124 134 124 146 130 146 C136 146 136 134 130 120 Z" fill="#F5E9D3" stroke="#2B1A10" stroke-width="3"/>
+          </g>
+          <g style="animation:fall 2.2s linear infinite; animation-delay:.8s">
+            <path d="M170 120 C164 134 164 146 170 146 C176 146 176 134 170 120 Z" fill="#F5E9D3" stroke="#2B1A10" stroke-width="3"/>
+          </g>
+          <path d="M0 360 L0 300 Q200 280 400 300 L400 360 Z" fill="#3FA05A" stroke="#2B1A10" stroke-width="5"/>
+        </svg>
+      </div>
+    </div>
+
+    <div class="page-num">09</div>
+  </div>
+</section>
+
+
+<!-- ============================================================= -->
+<!-- 10 · 课后小作业 / 结尾 -->
+<!-- ============================================================= -->
+<section data-label="课后作业" style="background:var(--green-deep); color:var(--cream);">
+  <div class="chrome" style="color:var(--cream);"><span style="color:var(--cream);">认识春天</span><span style="color:var(--cream);">第六部分</span><span style="color:var(--cream);">课后小作业</span><span style="color:var(--cream);">10</span></div>
+
+  <div class="frame" style="padding:140px 100px 100px 100px;">
+    <div style="display:grid; grid-template-columns:1fr 1fr; gap:80px; flex:1;">
+      <div>
+        <div class="en" style="font-size:28px; opacity:.7; letter-spacing:.12em;">HOMEWORK · 下课前 3 分钟</div>
+        <h2 class="title-zh" style="font-size:120px; line-height:.95; margin:10px 0 30px 0;">课后<br>小作业</h2>
+        <p class="title-zh" style="font-size:32px; line-height:1.6; opacity:.9; max-width:560px; margin:0;">选一样你最想做的，下周一带来分享。</p>
+
+        <div style="margin-top:60px; display:flex; flex-direction:column; gap:24px;">
+          <div style="display:flex; align-items:center; gap:24px; font-family:'ZCOOL KuaiLe'; font-size:40px; padding:18px 0; border-bottom:3px solid var(--cream); opacity:.92;" class="anim-slidein">
+            <span style="font-family:'Fredoka'; font-size:36px; color:var(--yellow);">A</span>
+            <span>带一片你捡到的新叶子</span>
+          </div>
+          <div style="display:flex; align-items:center; gap:24px; font-family:'ZCOOL KuaiLe'; font-size:40px; padding:18px 0; border-bottom:3px solid var(--cream); opacity:.92;" class="anim-slidein d-2">
+            <span style="font-family:'Fredoka'; font-size:36px; color:var(--yellow);">B</span>
+            <span>画一张春天的小画</span>
+          </div>
+          <div style="display:flex; align-items:center; gap:24px; font-family:'ZCOOL KuaiLe'; font-size:40px; padding:18px 0; border-bottom:3px solid var(--cream); opacity:.92;" class="anim-slidein d-3">
+            <span style="font-family:'Fredoka'; font-size:36px; color:var(--yellow);">C</span>
+            <span>学会背一首春天的小诗</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- right: end scene -->
+      <div style="position:relative; display:flex; align-items:center; justify-content:center;">
+        <!-- earth planet -->
+        <svg width="560" height="560" viewBox="0 0 560 560" class="anim-bob">
+          <circle cx="280" cy="280" r="220" fill="#F5C24B" stroke="#2B1A10" stroke-width="10"/>
+          <!-- ring of hills around planet -->
+          <g transform="translate(280 280)" class="anim-spin" style="animation-duration:40s;">
+            <path d="M-220 0 A 220 220 0 0 1 220 0" fill="#3FA05A" stroke="#2B1A10" stroke-width="8" transform="translate(0 -10)"/>
+            <path d="M-180 -120 Q-140 -160 -100 -120 Q-60 -170 -20 -120 Q20 -160 60 -120 Q100 -170 140 -120 Q180 -150 220 -120" fill="none" stroke="#2B1A10" stroke-width="6" stroke-linecap="round"/>
+          </g>
+          <!-- flowers on the planet -->
+          <g transform="translate(200 220)" class="anim-sway-soft" style="transform-origin:center bottom">
+            <circle r="30" fill="#F2A3B3" stroke="#2B1A10" stroke-width="6"/>
+            <circle r="10" fill="#2B1A10"/>
+          </g>
+          <g transform="translate(360 250)" class="anim-sway-soft" style="transform-origin:center bottom; animation-delay:.4s">
+            <circle r="26" fill="#F5E9D3" stroke="#2B1A10" stroke-width="6"/>
+            <circle r="9" fill="#F26B2E"/>
+          </g>
+          <g transform="translate(290 350)" class="anim-sway-soft" style="transform-origin:center bottom; animation-delay:.2s">
+            <circle r="22" fill="#D93B1F" stroke="#2B1A10" stroke-width="5"/>
+            <circle r="8" fill="#F5E9D3"/>
+          </g>
+          <!-- face -->
+          <circle cx="240" cy="290" r="8" fill="#2B1A10"/>
+          <circle cx="320" cy="290" r="8" fill="#2B1A10"/>
+          <path d="M236 320 Q280 350 324 320" stroke="#2B1A10" stroke-width="6" fill="none" stroke-linecap="round"/>
+          <!-- cheeks -->
+          <circle cx="220" cy="312" r="10" fill="#F2A3B3" opacity=".8"/>
+          <circle cx="340" cy="312" r="10" fill="#F2A3B3" opacity=".8"/>
+        </svg>
+
+        <!-- floating sparkles -->
+        <svg style="position:absolute; top:30px; left:10px;" width="50" height="50" viewBox="0 0 50 50" class="anim-pulse">
+          <path d="M25 5 L28 22 L45 25 L28 28 L25 45 L22 28 L5 25 L22 22 Z" fill="#F5E9D3" stroke="#2B1A10" stroke-width="3"/>
+        </svg>
+        <svg style="position:absolute; bottom:60px; right:10px;" width="40" height="40" viewBox="0 0 50 50" class="anim-pulse" style2="animation-delay:.3s">
+          <path d="M25 5 L28 22 L45 25 L28 28 L25 45 L22 28 L5 25 L22 22 Z" fill="#F2A3B3" stroke="#2B1A10" stroke-width="3"/>
+        </svg>
+      </div>
+    </div>
+
+    <div style="display:flex; justify-content:space-between; align-items:flex-end; margin-top:30px;">
+      <div class="en" style="font-size:24px; opacity:.6; letter-spacing:.1em;">— 下课 · THANK YOU —</div>
+      <div class="en" style="font-size:24px; opacity:.6;">李老师 · 三年级自然课</div>
+    </div>
+
+    <div class="page-num" style="color:var(--cream);">10</div>
+  </div>
+</section>
+
+</deck-stage>
+
+</body>
+</html>

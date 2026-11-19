@@ -1,0 +1,994 @@
+<!doctype html>
+<html lang="zh">
+<head>
+<meta charset="utf-8" />
+<title>物理课 · 三则原理演示</title>
+<script src="deck-stage.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/matter-js/0.19.0/matter.min.js"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@400;600;700&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #f1ece3;
+    --bg-2: #e8e1d4;
+    --ink: #1a1814;
+    --ink-soft: #5a554c;
+    --rule: #cbc2b2;
+    --accent: oklch(0.58 0.14 42);   /* terracotta */
+    --accent-2: oklch(0.58 0.14 220); /* slate blue */
+
+    --fs-title: 64px;
+    --fs-subtitle: 44px;
+    --fs-body: 34px;
+    --fs-small: 28px;
+    --fs-micro: 24px;
+
+    --pad-x: 100px;
+    --pad-t: 100px;
+    --pad-b: 80px;
+    --gap-title: 52px;
+    --gap-item: 28px;
+  }
+  html, body { margin: 0; padding: 0; background: #0a0908; font-family: 'Inter', 'Noto Serif SC', sans-serif; }
+  deck-stage { --deck-bg: var(--bg); }
+
+  section.slide {
+    background: var(--bg);
+    color: var(--ink);
+    font-family: 'Inter', 'Noto Serif SC', sans-serif;
+    overflow: hidden;
+  }
+
+  .chrome {
+    position: absolute;
+    inset: 0;
+    padding: var(--pad-t) var(--pad-x) var(--pad-b);
+    display: flex;
+    flex-direction: column;
+    box-sizing: border-box;
+  }
+
+  /* Top meta bar */
+  .meta {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: var(--fs-micro);
+    color: var(--ink-soft);
+    letter-spacing: 0.02em;
+    border-bottom: 1px solid var(--rule);
+    padding-bottom: 18px;
+    margin-bottom: 56px;
+  }
+  .meta .course { text-transform: uppercase; letter-spacing: 0.18em; }
+  .meta .num { font-weight: 500; color: var(--ink); }
+
+  /* Titles */
+  .eyebrow {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: var(--fs-small);
+    color: var(--accent);
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    margin-bottom: 20px;
+  }
+  h1.title {
+    font-family: 'Noto Serif SC', serif;
+    font-weight: 700;
+    font-size: var(--fs-title);
+    line-height: 1.12;
+    margin: 0 0 var(--gap-title);
+    letter-spacing: -0.005em;
+    color: var(--ink);
+  }
+  h1.title em {
+    font-style: normal;
+    color: var(--accent);
+  }
+
+  .body-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 72px;
+    flex: 1;
+    min-height: 0;
+  }
+
+  /* Left column */
+  .explain { display: flex; flex-direction: column; }
+  .lede {
+    font-family: 'Noto Serif SC', serif;
+    font-size: var(--fs-subtitle);
+    line-height: 1.3;
+    color: var(--ink);
+    margin: 0 0 44px;
+    max-width: 16ch;
+  }
+
+  .formula {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 52px;
+    letter-spacing: 0.01em;
+    color: var(--ink);
+    padding: 28px 32px;
+    border: 1px solid var(--rule);
+    background: var(--bg-2);
+    display: inline-block;
+    margin-bottom: 36px;
+    align-self: flex-start;
+  }
+  .formula .v { color: var(--accent); }
+
+  .notes {
+    display: flex;
+    flex-direction: column;
+    gap: var(--gap-item);
+    font-size: var(--fs-body);
+    line-height: 1.4;
+    color: var(--ink);
+  }
+  .notes .row {
+    display: grid;
+    grid-template-columns: 120px 1fr;
+    gap: 24px;
+    align-items: baseline;
+  }
+  .notes .key {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: var(--fs-small);
+    color: var(--ink-soft);
+    letter-spacing: 0.04em;
+  }
+  .notes .val { color: var(--ink); }
+
+  /* Right column: canvas stage */
+  .stage {
+    position: relative;
+    background: var(--bg-2);
+    border: 1px solid var(--rule);
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
+  }
+  .stage .stage-head {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 18px 24px;
+    border-bottom: 1px solid var(--rule);
+    font-family: 'JetBrains Mono', monospace;
+    font-size: var(--fs-micro);
+    color: var(--ink-soft);
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    white-space: nowrap;
+  }
+  .stage .stage-head .live {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .stage .stage-head .dot {
+    width: 9px; height: 9px; border-radius: 50%;
+    background: var(--accent);
+    animation: pulse 1.4s infinite ease-in-out;
+  }
+  @keyframes pulse {
+    0%, 100% { opacity: 1; transform: scale(1); }
+    50% { opacity: 0.4; transform: scale(0.85); }
+  }
+  .stage canvas {
+    display: block;
+    width: 100%;
+    height: 100%;
+    flex: 1;
+    cursor: grab;
+  }
+  .stage canvas:active { cursor: grabbing; }
+
+  .hint {
+    position: absolute;
+    bottom: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    font-family: 'JetBrains Mono', monospace;
+    font-size: var(--fs-micro);
+    color: var(--ink-soft);
+    letter-spacing: 0.04em;
+    pointer-events: none;
+    z-index: 1;
+  }
+  .hint .kbd {
+    display: inline-block;
+    padding: 3px 10px;
+    border: 1px solid var(--rule);
+    background: var(--bg);
+    color: var(--ink);
+    margin: 0 4px;
+    border-radius: 3px;
+    font-size: 24px;
+  }
+  .reset-btn {
+    position: absolute;
+    bottom: 20px;
+    right: 24px;
+    z-index: 2;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: var(--fs-micro);
+    color: var(--ink);
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    padding: 8px 16px;
+    border: 1px solid var(--rule);
+    background: var(--bg);
+    cursor: pointer;
+    user-select: none;
+    transition: background 0.15s;
+  }
+  .reset-btn:hover { background: var(--accent); color: var(--bg); border-color: var(--accent); }
+  .stage .readout {
+    position: absolute;
+    bottom: 64px;
+    left: 24px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: var(--fs-micro);
+    color: var(--ink-soft);
+    letter-spacing: 0.04em;
+    pointer-events: none;
+    display: flex;
+    gap: 32px;
+    z-index: 1;
+  }
+  .stage .readout b {
+    font-weight: 500;
+    color: var(--ink);
+    margin-left: 6px;
+  }
+
+  /* Cover slide */
+  .cover-chrome {
+    display: grid;
+    grid-template-rows: auto 1fr auto;
+    height: 100%;
+    padding: var(--pad-t) var(--pad-x) var(--pad-b);
+    box-sizing: border-box;
+  }
+  .cover-main {
+    display: grid;
+    grid-template-columns: 1.1fr 1fr;
+    gap: 80px;
+    align-items: center;
+  }
+  .cover-title {
+    font-family: 'Noto Serif SC', serif;
+    font-size: 112px;
+    font-weight: 700;
+    line-height: 1.02;
+    letter-spacing: -0.01em;
+    margin: 0 0 36px;
+  }
+  .cover-title em {
+    font-style: normal;
+    color: var(--accent);
+  }
+  .cover-sub {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: var(--fs-small);
+    color: var(--ink-soft);
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+  }
+  .cover-stage {
+    position: relative;
+    aspect-ratio: 1/1;
+    width: 100%;
+    background: var(--bg-2);
+    border: 1px solid var(--rule);
+  }
+  .cover-foot {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: var(--fs-micro);
+    color: var(--ink-soft);
+    letter-spacing: 0.08em;
+    border-top: 1px solid var(--rule);
+    padding-top: 22px;
+  }
+  .toc {
+    display: flex;
+    gap: 48px;
+  }
+  .toc .tocitem { color: var(--ink); }
+  .toc .tocitem .n { color: var(--accent); margin-right: 10px; }
+
+  .corner {
+    position: absolute;
+    top: 24px;
+    right: 24px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: var(--fs-micro);
+    color: var(--ink-soft);
+  }
+</style>
+</head>
+<body>
+
+<deck-stage width="1920" height="1080">
+
+  <!-- =================== SLIDE 1 · COVER / GRAVITY =================== -->
+  <section class="slide" data-label="01 重力 · 自由落体">
+    <div class="cover-chrome">
+      <div class="meta" style="margin-bottom: 0;">
+        <span class="course">PHYS · 101 &nbsp;/&nbsp; 经典力学</span>
+        <span class="num">第一讲  ·  01 / 03</span>
+      </div>
+
+      <div class="cover-main">
+        <div>
+          <div class="eyebrow">Principle 01 &nbsp;·&nbsp; Gravity</div>
+          <h1 class="cover-title">重力与<br><em>自由落体</em></h1>
+          <div class="cover-sub">F = m · g &nbsp;&nbsp;|&nbsp;&nbsp; g ≈ 9.81 m/s²</div>
+        </div>
+
+        <div class="cover-stage" id="stage-cover">
+          <div class="corner">长按 · 扣越久 · 球越大</div>
+          <div class="reset-btn" data-reset="cover">RESET</div>
+        </div>
+      </div>
+
+      <div class="cover-foot">
+        <div class="toc">
+          <div class="tocitem"><span class="n">01</span>重力 / Gravity</div>
+          <div class="tocitem"><span class="n">02</span>碰撞 / Collision</div>
+          <div class="tocitem"><span class="n">03</span>单摆 / Pendulum</div>
+        </div>
+        <div>讲师 · 物理教研组 &nbsp;·&nbsp; 2026</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- =================== SLIDE 2 · COLLISION =================== -->
+  <section class="slide" data-label="02 碰撞 · 动量守恒">
+    <div class="chrome">
+      <div class="meta">
+        <span class="course">PHYS · 101  ·  Principle 02</span>
+        <span class="num">02 / 03</span>
+      </div>
+
+      <div style="display: flex; flex-direction: column; flex: 1; min-height: 0;">
+        <div class="eyebrow">Conservation of Momentum</div>
+        <h1 class="title">碰撞中，<em>动量守恒</em></h1>
+
+        <div class="body-row">
+          <div class="explain">
+            <p class="lede">封闭系统内，<br>碰撞前后总动量不变。</p>
+
+            <div class="formula">
+              Σ<span class="v">m</span>ᵢ<span class="v">v</span>ᵢ &nbsp;=&nbsp; const.
+            </div>
+
+            <div class="notes">
+              <div class="row"><span class="key">m</span><span class="val">物体质量 · mass</span></div>
+              <div class="row"><span class="key">v</span><span class="val">瞬时速度 · velocity</span></div>
+              <div class="row"><span class="key">e</span><span class="val">恢复系数 · 0.9（近弹性）</span></div>
+            </div>
+          </div>
+
+          <div class="stage" id="stage-collision-wrap">
+            <div class="stage-head">
+              <span>DEMO · 弹性碰撞</span>
+              <span class="live"><span class="dot"></span>RUNNING</span>
+            </div>
+            <canvas id="stage-collision"></canvas>
+            <div class="hint">拖拽<span class="kbd">左侧小球</span>释放</div>
+            <div class="readout">
+              <span>Σp<b id="p-readout">0.00</b></span>
+              <span>impacts<b id="impact-count">0</b></span>
+            </div>
+            <div class="reset-btn" data-reset="collision">RESET</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- =================== SLIDE 3 · PENDULUM =================== -->
+  <section class="slide" data-label="03 单摆 · 简谐运动">
+    <div class="chrome">
+      <div class="meta">
+        <span class="course">PHYS · 101  ·  Principle 03</span>
+        <span class="num">03 / 03</span>
+      </div>
+
+      <div style="display: flex; flex-direction: column; flex: 1; min-height: 0;">
+        <div class="eyebrow">Simple Harmonic Motion</div>
+        <h1 class="title">单摆的<em>简谐运动</em></h1>
+
+        <div class="body-row">
+          <div class="explain">
+            <p class="lede">小角度摆动下，<br>周期只与摆长有关。</p>
+
+            <div class="formula">
+              T &nbsp;=&nbsp; 2π · √(<span class="v">L</span> / <span class="v">g</span>)
+            </div>
+
+            <div class="notes">
+              <div class="row"><span class="key">T</span><span class="val">周期 · period (s)</span></div>
+              <div class="row"><span class="key">L</span><span class="val">摆长 · length</span></div>
+              <div class="row"><span class="key">θ</span><span class="val">摆角 · 小于 15°</span></div>
+            </div>
+          </div>
+
+          <div class="stage">
+            <div class="stage-head">
+              <span>DEMO · 耦合摆</span>
+              <span class="live"><span class="dot"></span>RUNNING</span>
+            </div>
+            <canvas id="stage-pendulum"></canvas>
+            <div class="hint">拖拽<span class="kbd">摆锤</span>改变角度</div>
+            <div class="readout">
+              <span>θ<b id="theta-readout">0.0°</b></span>
+              <span>t<b id="time-readout">0.0s</b></span>
+            </div>
+            <div class="reset-btn" data-reset="pendulum">RESET</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+</deck-stage>
+
+<script>
+/* ============================================================
+   Matter.js demos — lazy-started per slide, fully interactive.
+   Each demo exposes { start, stop, reset } and only begins when
+   its slide becomes active via <deck-stage> slidechange event.
+   ============================================================ */
+const M = window.Matter;
+const { Engine, Render, Runner, World, Bodies, Body, Composite,
+        Constraint, Events, Mouse, MouseConstraint } = M;
+
+const INK = '#1a1814';
+const INK_SOFT = '#5a554c';
+const ACCENT = '#b56a3a';
+const ACCENT_2 = '#3d6e99';
+const BG2 = '#e8e1d4';
+
+/* ---------- helper: build a runner wrapper ---------- */
+function makeDemo(buildFn) {
+  let state = null;
+  return {
+    ensure() {
+      if (!state) state = buildFn();
+      return state;
+    },
+    start() {
+      const s = this.ensure();
+      if (s && s.runner && !s.running) {
+        Runner.run(s.runner, s.engine);
+        s.running = true;
+        if (s.onStart) s.onStart();
+      }
+    },
+    stop() {
+      if (state && state.running) {
+        Runner.stop(state.runner);
+        state.running = false;
+      }
+    },
+    reset() {
+      if (state && state.reset) state.reset();
+    }
+  };
+}
+
+/* ============================================================
+   DEMO 1 · COVER — long-press to grow & drop a ball
+   ============================================================ */
+const coverDemo = makeDemo(() => {
+  const el = document.getElementById('stage-cover');
+  if (!el) return null;
+  const W = el.clientWidth, H = el.clientHeight;
+
+  const engine = Engine.create();
+  engine.gravity.y = 1;
+
+  const canvas = document.createElement('canvas');
+  canvas.style.position = 'absolute';
+  canvas.style.inset = '0';
+  canvas.style.width = '100%';
+  canvas.style.height = '100%';
+  canvas.style.cursor = 'crosshair';
+  el.insertBefore(canvas, el.firstChild);
+
+  const render = Render.create({
+    canvas, engine,
+    options: { width: W, height: H, wireframes: false, background: BG2, pixelRatio: window.devicePixelRatio || 1 }
+  });
+  Render.run(render);
+  const runner = Runner.create();
+
+  const floor = Bodies.rectangle(W/2, H - 20, W*1.4, 40, {
+    isStatic: true, angle: -0.08,
+    render: { fillStyle: INK }
+  });
+  const leftWall = Bodies.rectangle(-20, H/2, 40, H*2, { isStatic: true, render: { fillStyle: INK } });
+  const rightWall = Bodies.rectangle(W+20, H/2, 40, H*2, { isStatic: true, render: { fillStyle: INK } });
+  World.add(engine.world, [floor, leftWall, rightWall]);
+
+  const dynamicBodies = [];
+
+  // Long-press: size grows with hold duration. Preview ring drawn in afterRender.
+  let pressing = null; // { x, y, startedAt }
+  const MIN_R = 10;
+  const MAX_R = 90;
+  const GROW_MS = 1400; // time to reach MAX_R
+
+  function currentRadius() {
+    if (!pressing) return 0;
+    const t = (performance.now() - pressing.startedAt) / GROW_MS;
+    return MIN_R + Math.min(1, t) * (MAX_R - MIN_R);
+  }
+
+  function toLocal(e) {
+    const rect = canvas.getBoundingClientRect();
+    return {
+      x: (e.clientX - rect.left) * (W / rect.width),
+      y: (e.clientY - rect.top)  * (H / rect.height)
+    };
+  }
+
+  canvas.addEventListener('mousedown', (e) => {
+    const { x, y } = toLocal(e);
+    pressing = { x, y, startedAt: performance.now() };
+  });
+  function release(e) {
+    if (!pressing) return;
+    const r = currentRadius();
+    const { x, y } = pressing;
+    pressing = null;
+    const useAccent = r > 50 ? true : Math.random() < 0.35;
+    const body = Bodies.circle(x, y, r, {
+      restitution: 0.55,
+      friction: 0.03,
+      density: 0.001,
+      render: { fillStyle: useAccent ? ACCENT : INK, strokeStyle: '#0a0908', lineWidth: 1 }
+    });
+    World.add(engine.world, body);
+    dynamicBodies.push(body);
+  }
+  canvas.addEventListener('mouseup', release);
+  canvas.addEventListener('mouseleave', () => { pressing = null; });
+
+  // preview the growing ball
+  Events.on(render, 'afterRender', () => {
+    if (!pressing) return;
+    const ctx = render.context;
+    const r = currentRadius();
+    ctx.save();
+    ctx.globalAlpha = 0.35;
+    ctx.fillStyle = ACCENT;
+    ctx.beginPath();
+    ctx.arc(pressing.x, pressing.y, r, 0, Math.PI*2);
+    ctx.fill();
+    ctx.globalAlpha = 1;
+    ctx.strokeStyle = ACCENT;
+    ctx.lineWidth = 2;
+    ctx.setLineDash([6, 6]);
+    ctx.beginPath();
+    ctx.arc(pressing.x, pressing.y, r, 0, Math.PI*2);
+    ctx.stroke();
+    ctx.restore();
+  });
+
+  // seed a handful of small balls so the cover isn't empty
+  let seeded = false;
+  function seed() {
+    if (seeded) return;
+    seeded = true;
+    let n = 0;
+    const id = setInterval(() => {
+      if (n++ > 8) { clearInterval(id); return; }
+      const r = 12 + Math.random()*14;
+      const b = Bodies.circle(60 + Math.random()*(W-120), -30, r, {
+        restitution: 0.5, friction: 0.02,
+        render: { fillStyle: Math.random() < 0.3 ? ACCENT : INK }
+      });
+      World.add(engine.world, b);
+      dynamicBodies.push(b);
+    }, 260);
+  }
+
+  function reset() {
+    pressing = null;
+    for (const b of dynamicBodies) World.remove(engine.world, b);
+    dynamicBodies.length = 0;
+    seeded = false;
+    setTimeout(seed, 150);
+  }
+
+  return { engine, runner, running: false, onStart: seed, reset };
+});
+
+/* ============================================================
+   DEMO 2 · COLLISION — static cradle; drag only the leftmost ball
+   Uses a DOM overlay div positioned on top of the ball for a
+   rock-solid hit target regardless of canvas scaling.
+   ============================================================ */
+const collisionDemo = makeDemo(() => {
+  const wrap = document.getElementById('stage-collision-wrap');
+  const canvas = document.getElementById('stage-collision');
+  if (!wrap || !canvas) return null;
+  const head = wrap.querySelector('.stage-head').offsetHeight;
+  const W = wrap.clientWidth, H = wrap.clientHeight - head;
+
+  const engine = Engine.create();
+  engine.gravity.y = 1;
+  const render = Render.create({
+    canvas, engine,
+    options: { width: W, height: H, wireframes: false, background: BG2, pixelRatio: window.devicePixelRatio || 1 }
+  });
+  Render.run(render);
+  const runner = Runner.create();
+
+  const ground = Bodies.rectangle(W/2, H-20, W, 40, { isStatic: true, render: { fillStyle: INK } });
+  const leftW = Bodies.rectangle(-20, H/2, 40, H*2, { isStatic: true, render: { fillStyle: INK } });
+  const rightW = Bodies.rectangle(W+20, H/2, 40, H*2, { isStatic: true, render: { fillStyle: INK } });
+  const ceil = Bodies.rectangle(W/2, 40, W, 4, { isStatic: true, render: { fillStyle: INK } });
+  World.add(engine.world, [ground, leftW, rightW, ceil]);
+
+  const anchorY = 70;
+  const ballY = H - 180;
+  const r = 32;
+  const count = 5;
+  const spacing = r * 2 + 2;
+  const startX = W/2 - (count-1)*spacing/2;
+
+  const balls = [];
+  const initialPos = [];
+  for (let i = 0; i < count; i++) {
+    const x = startX + i*spacing;
+    const ball = Bodies.circle(x, ballY, r, {
+      restitution: 0.98, friction: 0, frictionAir: 0.0005, density: 0.02,
+      render: { fillStyle: i === 0 ? ACCENT : INK, strokeStyle: '#0a0908', lineWidth: 1 }
+    });
+    const rope = Constraint.create({
+      pointA: { x, y: anchorY }, bodyB: ball,
+      length: ballY - anchorY, stiffness: 1,
+      render: { strokeStyle: INK_SOFT, lineWidth: 1.5 }
+    });
+    World.add(engine.world, [ball, rope]);
+    balls.push(ball);
+    initialPos.push({ x, y: ballY });
+  }
+
+  // DOM overlay layer — positioned in CANVAS pixel space (same dimensions
+  // as W×H), anchored to the canvas element via CSS.
+  const overlay = document.createElement('div');
+  overlay.style.cssText = `
+    position: absolute; left: 0; top: ${head}px;
+    width: 100%; height: calc(100% - ${head}px);
+    pointer-events: none;
+  `;
+  wrap.appendChild(overlay);
+
+  // A handle div that tracks balls[0]'s position each frame.
+  const handle = document.createElement('div');
+  handle.style.cssText = `
+    position: absolute; width: ${r*2+16}px; height: ${r*2+16}px;
+    margin-left: -${r+8}px; margin-top: -${r+8}px;
+    border-radius: 50%; cursor: grab;
+    pointer-events: auto;
+    touch-action: none;
+  `;
+  overlay.appendChild(handle);
+
+  // Overlay lives inside the <deck-stage>'s scaled container, so its local
+  // coordinate space already matches Matter's design-px world. Don't apply
+  // the deck-stage scale again — that would double-scale the handle.
+  function syncHandle() {
+    const p = balls[0].position;
+    handle.style.left = p.x + 'px';
+    handle.style.top  = p.y + 'px';
+  }
+  Events.on(engine, 'afterUpdate', syncHandle);
+
+  // Pointer drag — direct DOM events, no canvas coord math
+  let dragging = false;
+  let dragOffset = null; // keep relative grip
+
+  // Constraint used for dragging (added/removed dynamically)
+  const pickCon = Constraint.create({
+    pointA: { x: 0, y: 0 },
+    bodyB: balls[0],
+    stiffness: 0.12,
+    damping: 0.08,
+    length: 0,
+    render: { visible: false }
+  });
+
+  function clientToCanvas(clientX, clientY) {
+    const rect = canvas.getBoundingClientRect();
+    return {
+      x: (clientX - rect.left) * (W / rect.width),
+      y: (clientY - rect.top)  * (H / rect.height)
+    };
+  }
+
+  handle.addEventListener('pointerdown', (e) => {
+    e.preventDefault();
+    handle.style.cursor = 'grabbing';
+    dragging = true;
+    const p = clientToCanvas(e.clientX, e.clientY);
+    pickCon.pointA = p;
+    if (!pickCon._inWorld) {
+      World.add(engine.world, pickCon);
+      pickCon._inWorld = true;
+    }
+  });
+  // Listen on window — pointer can leave the small handle during drag
+  function onWinMove(e) {
+    if (!dragging) return;
+    pickCon.pointA = clientToCanvas(e.clientX, e.clientY);
+  }
+  function onWinUp() {
+    if (!dragging) return;
+    dragging = false;
+    handle.style.cursor = 'grab';
+    if (pickCon._inWorld) {
+      World.remove(engine.world, pickCon);
+      pickCon._inWorld = false;
+    }
+  }
+  window.addEventListener('pointermove', onWinMove);
+  window.addEventListener('pointerup', onWinUp);
+  window.addEventListener('pointercancel', onWinUp);
+
+  let impacts = 0;
+  const pEl = document.getElementById('p-readout');
+  const cEl = document.getElementById('impact-count');
+  Events.on(engine, 'collisionStart', (ev) => {
+    for (const pair of ev.pairs) {
+      if (balls.includes(pair.bodyA) && balls.includes(pair.bodyB)) impacts++;
+    }
+    if (cEl) cEl.textContent = impacts;
+  });
+  Events.on(engine, 'afterUpdate', () => {
+    let p = 0;
+    for (const b of balls) p += b.mass * b.velocity.x;
+    if (pEl) pEl.textContent = p.toFixed(2);
+  });
+
+  function settleStatic() {
+    for (let i = 0; i < balls.length; i++) {
+      Body.setPosition(balls[i], initialPos[i]);
+      Body.setVelocity(balls[i], { x: 0, y: 0 });
+      Body.setAngularVelocity(balls[i], 0);
+    }
+  }
+
+  function reset() {
+    if (dragging) { dragging = false; }
+    if (pickCon._inWorld) { World.remove(engine.world, pickCon); pickCon._inWorld = false; }
+    impacts = 0;
+    if (cEl) cEl.textContent = '0';
+    settleStatic();
+  }
+
+  return { engine, runner, running: false, onStart: () => { settleStatic(); syncHandle(); }, reset };
+});
+
+/* ============================================================
+   DEMO 3 · PENDULUM — three coupled pendulums, drag to push
+   ============================================================ */
+const pendulumDemo = makeDemo(() => {
+  const canvas = document.getElementById('stage-pendulum');
+  if (!canvas) return null;
+  const el = canvas.parentElement;
+  const head = el.querySelector('.stage-head').offsetHeight;
+  const W = el.clientWidth, H = el.clientHeight - head;
+
+  const engine = Engine.create();
+  engine.gravity.y = 1;
+  const render = Render.create({
+    canvas, engine,
+    options: { width: W, height: H, wireframes: false, background: BG2, pixelRatio: window.devicePixelRatio || 1 }
+  });
+  Render.run(render);
+  const runner = Runner.create();
+
+  const beam = Bodies.rectangle(W/2, 50, W*0.72, 10, {
+    isStatic: true, render: { fillStyle: INK }
+  });
+  World.add(engine.world, beam);
+
+  const configs = [
+    { x: W*0.28, len: H*0.45, color: INK,      r: 28, startAngle: -0.9 },
+    { x: W*0.50, len: H*0.62, color: ACCENT,   r: 34, startAngle: -0.75 },
+    { x: W*0.72, len: H*0.52, color: ACCENT_2, r: 26, startAngle: -0.85 },
+  ];
+
+  const bobs = [];
+  const anchorY = 55;
+  configs.forEach((c) => {
+    const bx = c.x + Math.sin(c.startAngle) * c.len;
+    const by = anchorY + Math.cos(c.startAngle) * c.len;
+    const bob = Bodies.circle(bx, by, c.r, {
+      density: 0.04, frictionAir: 0.002, restitution: 0.6,
+      render: { fillStyle: c.color, strokeStyle: '#0a0908', lineWidth: 1 }
+    });
+    const rope = Constraint.create({
+      pointA: { x: c.x, y: anchorY }, bodyB: bob,
+      length: c.len, stiffness: 1, damping: 0.002,
+      render: { strokeStyle: INK_SOFT, lineWidth: 1.5 }
+    });
+    const pivot = Bodies.circle(c.x, anchorY, 5, {
+      isStatic: true, render: { fillStyle: INK }
+    });
+    World.add(engine.world, [bob, rope, pivot]);
+    bobs.push({ bob, anchorX: c.x, anchorY, len: c.len, startAngle: c.startAngle, r: c.r });
+  });
+
+  // --- DOM overlay handles, one per bob ---
+  const overlay = document.createElement('div');
+  overlay.style.cssText = `
+    position: absolute; left: 0; top: ${head}px;
+    width: 100%; height: calc(100% - ${head}px);
+    pointer-events: none;
+  `;
+  el.appendChild(overlay);
+
+  const handles = bobs.map((b) => {
+    const h = document.createElement('div');
+    const pad = 10;
+    h.style.cssText = `
+      position: absolute;
+      width: ${b.r*2+pad*2}px; height: ${b.r*2+pad*2}px;
+      margin-left: -${b.r+pad}px; margin-top: -${b.r+pad}px;
+      border-radius: 50%;
+      cursor: grab; pointer-events: auto;
+      touch-action: none;
+    `;
+    overlay.appendChild(h);
+    return h;
+  });
+
+  function syncHandles() {
+    for (let i = 0; i < bobs.length; i++) {
+      const p = bobs[i].bob.position;
+      handles[i].style.left = p.x + 'px';
+      handles[i].style.top  = p.y + 'px';
+    }
+  }
+  Events.on(engine, 'afterUpdate', syncHandles);
+
+  function clientToCanvas(clientX, clientY) {
+    const rect = canvas.getBoundingClientRect();
+    return {
+      x: (clientX - rect.left) * (W / rect.width),
+      y: (clientY - rect.top)  * (H / rect.height)
+    };
+  }
+
+  // one pick constraint per bob, added/removed on drag
+  const pickCons = bobs.map((b) => Constraint.create({
+    pointA: { x: 0, y: 0 }, bodyB: b.bob,
+    stiffness: 0.12, damping: 0.08, length: 0,
+    render: { visible: false }
+  }));
+  let activeIdx = -1;
+
+  bobs.forEach((_, i) => {
+    const h = handles[i];
+    h.addEventListener('pointerdown', (e) => {
+      e.preventDefault();
+      h.style.cursor = 'grabbing';
+      activeIdx = i;
+      pickCons[i].pointA = clientToCanvas(e.clientX, e.clientY);
+      if (!pickCons[i]._inWorld) {
+        World.add(engine.world, pickCons[i]);
+        pickCons[i]._inWorld = true;
+      }
+    });
+  });
+  function onWinMove(e) {
+    if (activeIdx < 0) return;
+    pickCons[activeIdx].pointA = clientToCanvas(e.clientX, e.clientY);
+  }
+  function onWinUp() {
+    if (activeIdx < 0) return;
+    const i = activeIdx;
+    activeIdx = -1;
+    handles[i].style.cursor = 'grab';
+    if (pickCons[i]._inWorld) {
+      World.remove(engine.world, pickCons[i]);
+      pickCons[i]._inWorld = false;
+    }
+  }
+  window.addEventListener('pointermove', onWinMove);
+  window.addEventListener('pointerup', onWinUp);
+  window.addEventListener('pointercancel', onWinUp);
+
+  const thetaEl = document.getElementById('theta-readout');
+  const timeEl = document.getElementById('time-readout');
+  let t0 = performance.now();
+  Events.on(engine, 'afterUpdate', () => {
+    const b = bobs[1];
+    const dx = b.bob.position.x - b.anchorX;
+    const dy = b.bob.position.y - b.anchorY;
+    const theta = Math.atan2(dx, dy) * 180 / Math.PI;
+    if (thetaEl) thetaEl.textContent = theta.toFixed(1) + '°';
+    if (timeEl) timeEl.textContent = ((performance.now()-t0)/1000).toFixed(1) + 's';
+  });
+
+  function reset() {
+    for (let i = 0; i < pickCons.length; i++) {
+      if (pickCons[i]._inWorld) {
+        World.remove(engine.world, pickCons[i]);
+        pickCons[i]._inWorld = false;
+      }
+    }
+    activeIdx = -1;
+    t0 = performance.now();
+    for (const b of bobs) {
+      const bx = b.anchorX + Math.sin(b.startAngle) * b.len;
+      const by = b.anchorY + Math.cos(b.startAngle) * b.len;
+      Body.setPosition(b.bob, { x: bx, y: by });
+      Body.setVelocity(b.bob, { x: 0, y: 0 });
+      Body.setAngularVelocity(b.bob, 0);
+    }
+    syncHandles();
+  }
+
+  return { engine, runner, running: false, onStart: syncHandles, reset };
+});
+
+/* ============================================================
+   Wire demos to <deck-stage> slidechange — start / stop lazily
+   ============================================================ */
+const demos = [coverDemo, collisionDemo, pendulumDemo];
+
+function wire() {
+  const stage = document.querySelector('deck-stage');
+  if (!stage) return;
+
+  stage.addEventListener('slidechange', (e) => {
+    const idx = e.detail.index;
+    demos.forEach((d, i) => {
+      if (i === idx) d.start();
+      else d.stop();
+    });
+  });
+
+  // kick off the current slide's demo — slidechange may have already fired
+  // before this listener was attached, so read the current index directly.
+  const currentIdx = (stage.currentIndex != null)
+    ? stage.currentIndex
+    : (stage.getAttribute('data-current-index') | 0) || 0;
+  if (demos[currentIdx]) demos[currentIdx].start();
+
+  // reset buttons
+  document.querySelectorAll('[data-reset]').forEach((btn) => {
+    btn.addEventListener('click', (ev) => {
+      ev.stopPropagation();
+      const key = btn.getAttribute('data-reset');
+      if (key === 'cover') coverDemo.reset();
+      if (key === 'collision') collisionDemo.reset();
+      if (key === 'pendulum') pendulumDemo.reset();
+    });
+    // prevent the keyboard-nav captured on deck-stage stealing focus clicks
+    btn.addEventListener('mousedown', (ev) => ev.stopPropagation());
+  });
+}
+
+if (document.readyState === 'complete') wire();
+else window.addEventListener('load', wire);
+</script>
+
+</body>
+</html>

@@ -1,0 +1,631 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>NEXBOT · 概念展示</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@400;600;900&family=Noto+Sans+SC:wght@300;400;500;700&family=JetBrains+Mono:wght@300;400;500&family=Instrument+Serif:ital@0;1&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#0a0a0a;
+    --ink:#f2efe7;
+    --dim:#7a7a72;
+    --line:rgba(242,239,231,.14);
+    --accent:#ff5722;
+    --paper:#ede7d9;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html,body{background:#000;color:var(--ink);font-family:'Noto Sans SC',sans-serif;-webkit-font-smoothing:antialiased}
+
+  deck-stage:not(:defined){visibility:hidden}
+  deck-stage{background:#000}
+
+  section{
+    background:var(--bg);
+    color:var(--ink);
+    font-family:'Noto Sans SC',sans-serif;
+    overflow:hidden;
+  }
+
+  /* film grain on every slide */
+  section::after{
+    content:"";position:absolute;inset:0;pointer-events:none;z-index:60;
+    background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='160' height='160'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 1  0 0 0 0 1  0 0 0 0 1  0 0 0 0.05 0'/></filter><rect width='100%' height='100%' filter='url(%23n)'/></svg>");
+    mix-blend-mode:overlay;opacity:.55;
+  }
+
+  /* ───── universal chrome (header + footer) ───── */
+  .chrome-top, .chrome-bot{
+    position:absolute;left:64px;right:64px;
+    display:flex;justify-content:space-between;align-items:center;
+    font-family:'JetBrains Mono',monospace;
+    font-size:24px;color:var(--dim);letter-spacing:.14em;text-transform:uppercase;
+    z-index:5;
+  }
+  .chrome-top{top:48px;padding-bottom:18px;border-bottom:1px solid var(--line)}
+  .chrome-bot{bottom:48px;padding-top:18px;border-top:1px solid var(--line)}
+  .brand{display:flex;align-items:center;gap:12px;color:var(--ink)}
+  .brand .dot{width:10px;height:10px;border-radius:50%;background:var(--accent);box-shadow:0 0 14px var(--accent)}
+  .pageno{color:var(--ink);font-weight:500}
+  .chrome-top nav{display:flex;gap:40px}
+  .chrome-top nav span.active{color:var(--ink)}
+
+  /* ── helpers ── */
+  .eyebrow{
+    font-family:'JetBrains Mono',monospace;font-size:24px;
+    letter-spacing:.22em;text-transform:uppercase;color:var(--dim);
+    display:inline-flex;align-items:center;gap:14px;
+  }
+  .eyebrow::before{content:"";width:32px;height:1px;background:var(--accent)}
+
+  .display{
+    font-family:'Noto Serif SC',serif;
+    font-weight:900;
+    letter-spacing:-.01em;
+    line-height:.95;
+    color:var(--ink);
+  }
+  .display .accent{color:var(--accent)}
+  .display .it{font-family:'Instrument Serif',serif;font-style:italic;font-weight:400}
+
+  /* ─────────────────────────────────────────────
+     SLIDE 1 — COVER
+  ───────────────────────────────────────────── */
+  .s-cover .content{
+    position:absolute;inset:0;
+    display:grid;
+    grid-template-columns:1fr 1fr;
+  }
+  .s-cover .left{
+    padding:170px 64px 130px;
+    display:flex;flex-direction:column;justify-content:space-between;
+    position:relative;z-index:3;
+  }
+  .s-cover h1{
+    font-family:'Noto Serif SC',serif;font-weight:900;
+    font-size:200px;line-height:.88;letter-spacing:-.02em;
+    color:var(--ink);
+  }
+  .s-cover h1 .small{
+    display:block;font-family:'Instrument Serif',serif;font-style:italic;
+    font-weight:400;font-size:96px;color:var(--accent);
+    margin-top:6px;letter-spacing:-.02em;
+  }
+  .s-cover .sub{
+    margin-top:32px;
+    font-family:'Noto Sans SC',sans-serif;font-weight:300;
+    font-size:28px;line-height:1.55;color:var(--dim);
+    max-width:30ch;text-wrap:pretty;
+  }
+  .s-cover .meta{
+    display:grid;grid-template-columns:1fr 1fr;gap:24px 56px;
+    font-family:'JetBrains Mono',monospace;font-size:24px;
+    color:var(--dim);letter-spacing:.1em;text-transform:uppercase;
+    max-width:620px;
+  }
+  .s-cover .meta b{display:block;color:var(--ink);font-weight:500;margin-bottom:6px;letter-spacing:.16em}
+
+  .s-cover .stage{
+    position:relative;background:#000;border-left:1px solid var(--line);overflow:hidden;
+  }
+  /* decorative vertical seal at the seam */
+  .s-cover .seal{
+    position:absolute;left:760px;top:410px;
+    width:220px;height:500px;
+    z-index:6;pointer-events:none;
+    animation:sealFloat 9s ease-in-out infinite;
+  }
+  @keyframes sealFloat{
+    0%,100%{transform:translateY(0) rotate(0deg)}
+    50%{transform:translateY(-10px) rotate(-1.2deg)}
+  }
+  .s-cover .seal svg{display:block;width:100%;height:100%;overflow:visible}
+  .s-cover .stage iframe{position:absolute;inset:0;width:100%;height:100%;border:0}
+  .tick{position:absolute;width:18px;height:18px;border:1px solid var(--ink);opacity:.7;z-index:4}
+  .tick.tl{top:24px;left:24px;border-right:0;border-bottom:0}
+  .tick.tr{top:24px;right:24px;border-left:0;border-bottom:0}
+  .tick.bl{bottom:24px;left:24px;border-right:0;border-top:0}
+  .tick.br{bottom:24px;right:24px;border-left:0;border-top:0}
+  .rec-badge{
+    position:absolute;left:32px;bottom:140px;z-index:4;
+    display:flex;gap:14px;align-items:center;
+    background:rgba(10,10,10,.55);backdrop-filter:blur(6px);
+    padding:12px 18px;border:1px solid var(--line);
+    font-family:'JetBrains Mono',monospace;font-size:24px;
+    letter-spacing:.18em;text-transform:uppercase;color:var(--ink);
+  }
+  .rec-badge .rec{width:9px;height:9px;border-radius:50%;background:var(--accent);animation:pulse 1.4s infinite}
+  @keyframes pulse{
+    0%,100%{opacity:1;box-shadow:0 0 0 0 rgba(255,87,34,.7)}
+    70%{opacity:.6;box-shadow:0 0 0 10px rgba(255,87,34,0)}
+  }
+  .coords{
+    position:absolute;right:32px;bottom:140px;z-index:4;text-align:right;
+    font-family:'JetBrains Mono',monospace;font-size:24px;color:var(--dim);line-height:1.7;
+  }
+  .coords b{color:var(--ink);font-weight:500}
+
+  /* ─────────────────────────────────────────────
+     SLIDE 2 — CONCEPT (three column)
+  ───────────────────────────────────────────── */
+  .s-concept .content{
+    position:absolute;inset:0;
+    padding:170px 64px 130px;
+    display:grid;grid-template-rows:auto 1fr;gap:60px;
+  }
+  .s-concept .head{display:flex;flex-direction:column;gap:28px}
+  .s-concept h2{
+    font-family:'Noto Serif SC',serif;font-weight:900;
+    font-size:120px;line-height:.95;letter-spacing:-.02em;
+    max-width:18ch;
+  }
+  .s-concept h2 .it{font-family:'Instrument Serif',serif;font-style:italic;font-weight:400;color:var(--accent)}
+  .s-concept .cols{
+    display:grid;grid-template-columns:repeat(3,1fr);gap:64px;
+    align-items:start;
+    padding-top:50px;border-top:1px solid var(--line);
+  }
+  .s-concept .col h4{
+    font-family:'JetBrains Mono',monospace;font-size:24px;
+    color:var(--accent);letter-spacing:.2em;text-transform:uppercase;
+    margin-bottom:18px;font-weight:500;
+  }
+  .s-concept .col h3{
+    font-family:'Noto Serif SC',serif;font-weight:600;
+    font-size:38px;line-height:1.2;margin-bottom:20px;letter-spacing:-.01em;
+  }
+  .s-concept .col p{
+    font-family:'Noto Sans SC',sans-serif;font-weight:300;
+    font-size:24px;line-height:1.7;color:var(--dim);
+    text-wrap:pretty;
+  }
+
+  /* ─────────────────────────────────────────────
+     SLIDE 3 — HERO STAGE (big iframe + overlay type)
+  ───────────────────────────────────────────── */
+  .s-hero .stage-full{
+    position:absolute;inset:0;background:#000;
+  }
+  .s-hero .stage-full iframe{position:absolute;inset:0;width:100%;height:100%;border:0}
+  .s-hero .overlay{
+    position:absolute;inset:0;z-index:3;
+    display:grid;grid-template-rows:auto 1fr auto;
+    padding:140px 64px 110px;
+    pointer-events:none;
+  }
+  .s-hero .top-meta{
+    display:flex;justify-content:space-between;align-items:center;
+    font-family:'JetBrains Mono',monospace;font-size:24px;
+    color:var(--ink);letter-spacing:.18em;text-transform:uppercase;
+  }
+  .s-hero .top-meta .rec{display:inline-block;width:9px;height:9px;border-radius:50%;background:var(--accent);margin-right:10px;animation:pulse 1.4s infinite;vertical-align:middle}
+  .s-hero .middle{display:flex;align-items:center;justify-content:flex-start}
+  .s-hero h2{
+    font-family:'Noto Serif SC',serif;font-weight:900;
+    font-size:240px;line-height:.85;letter-spacing:-.03em;
+    color:var(--ink);mix-blend-mode:difference;
+    max-width:9ch;
+  }
+  .s-hero h2 .it{font-family:'Instrument Serif',serif;font-style:italic;font-weight:400;color:var(--accent)}
+  .s-hero .caption{
+    align-self:end;justify-self:end;
+    max-width:36ch;text-align:right;
+    font-family:'Noto Serif SC',serif;font-style:italic;font-weight:400;
+    font-size:30px;line-height:1.55;color:var(--ink);
+  }
+  .s-hero .caption .sig{
+    display:block;margin-top:16px;
+    font-family:'JetBrains Mono',monospace;font-style:normal;
+    font-size:24px;letter-spacing:.18em;text-transform:uppercase;color:var(--dim);
+  }
+
+  /* ─────────────────────────────────────────────
+     SLIDE 4 — MODULES (iframe small + list)
+  ───────────────────────────────────────────── */
+  .s-mod .content{
+    position:absolute;inset:0;
+    padding:170px 64px 130px;
+    display:grid;grid-template-columns:1.1fr 1fr;gap:80px;align-items:stretch;
+  }
+  .s-mod .left{display:flex;flex-direction:column;gap:40px}
+  .s-mod h2{
+    font-family:'Noto Serif SC',serif;font-weight:900;
+    font-size:96px;line-height:.95;letter-spacing:-.02em;
+  }
+  .s-mod h2 .it{font-family:'Instrument Serif',serif;font-style:italic;font-weight:400;color:var(--accent)}
+  .s-mod .modules{display:flex;flex-direction:column;border-top:1px solid var(--line);margin-top:auto}
+  .s-mod .module{
+    display:grid;grid-template-columns:80px 1fr auto auto;align-items:center;
+    gap:32px;padding:24px 0;border-bottom:1px solid var(--line);
+  }
+  .s-mod .module .id{
+    font-family:'JetBrains Mono',monospace;font-size:24px;
+    color:var(--accent);letter-spacing:.16em;
+  }
+  .s-mod .module .name{
+    font-family:'Noto Serif SC',serif;font-weight:600;
+    font-size:30px;letter-spacing:-.005em;
+  }
+  .s-mod .module .desc{
+    font-family:'Noto Sans SC',sans-serif;font-weight:300;
+    font-size:24px;color:var(--dim);max-width:24ch;text-align:right;line-height:1.5;
+  }
+  .s-mod .module .status{
+    font-family:'JetBrains Mono',monospace;font-size:24px;
+    letter-spacing:.18em;text-transform:uppercase;color:var(--accent);
+    display:flex;align-items:center;gap:10px;min-width:140px;justify-content:flex-end;
+  }
+  .s-mod .module .status::before{content:"";width:8px;height:8px;border-radius:50%;background:var(--accent);box-shadow:0 0 10px var(--accent)}
+  .s-mod .module .status.idle{color:var(--dim)}
+  .s-mod .module .status.idle::before{background:var(--dim);box-shadow:none}
+
+  .s-mod .stage-r{
+    position:relative;background:#000;border:1px solid var(--line);overflow:hidden;
+  }
+  .s-mod .stage-r iframe{position:absolute;inset:0;width:100%;height:100%;border:0}
+  .s-mod .stage-r .label{
+    position:absolute;left:24px;top:24px;z-index:3;
+    font-family:'JetBrains Mono',monospace;font-size:24px;
+    color:var(--ink);letter-spacing:.18em;text-transform:uppercase;
+    background:rgba(10,10,10,.55);backdrop-filter:blur(6px);
+    padding:10px 16px;border:1px solid var(--line);
+  }
+  .s-mod .stage-r .hint{
+    position:absolute;right:24px;bottom:24px;z-index:3;text-align:right;
+    font-family:'Noto Serif SC',serif;font-style:italic;font-size:26px;color:var(--ink);line-height:1.5;
+  }
+
+  /* ─────────────────────────────────────────────
+     SLIDE 5 — SPECS (big numbers)
+  ───────────────────────────────────────────── */
+  .s-spec .content{
+    position:absolute;inset:0;
+    padding:170px 64px 130px;
+    display:grid;grid-template-rows:auto 1fr;gap:60px;
+  }
+  .s-spec h2{
+    font-family:'Noto Serif SC',serif;font-weight:900;
+    font-size:120px;line-height:.95;letter-spacing:-.02em;
+  }
+  .s-spec h2 .it{font-family:'Instrument Serif',serif;font-style:italic;font-weight:400;color:var(--accent)}
+  .s-spec .grid{
+    display:grid;grid-template-columns:repeat(4,1fr);gap:0;
+    border-top:1px solid var(--line);
+  }
+  .s-spec .cell{
+    padding:50px 32px 0 0;border-right:1px solid var(--line);
+    display:flex;flex-direction:column;gap:20px;
+  }
+  .s-spec .cell:last-child{border-right:0}
+  .s-spec .cell .k{
+    font-family:'JetBrains Mono',monospace;font-size:24px;
+    letter-spacing:.2em;text-transform:uppercase;color:var(--dim);
+  }
+  .s-spec .cell .v{
+    font-family:'Noto Serif SC',serif;font-weight:900;
+    font-size:130px;line-height:.9;letter-spacing:-.04em;
+    color:var(--ink);
+  }
+  .s-spec .cell .v .u{
+    font-family:'JetBrains Mono',monospace;font-weight:400;
+    font-size:28px;letter-spacing:.1em;color:var(--accent);
+    margin-left:8px;vertical-align:top;
+  }
+  .s-spec .cell .note{
+    font-family:'Noto Sans SC',sans-serif;font-weight:300;
+    font-size:24px;color:var(--dim);line-height:1.6;text-wrap:pretty;
+    margin-top:auto;padding-top:24px;
+  }
+
+  /* ─────────────────────────────────────────────
+     SLIDE 6 — OUTRO
+  ───────────────────────────────────────────── */
+  .s-end{background:var(--paper);color:#1a1a1a}
+  .s-end::after{opacity:.35}
+  .s-end .chrome-top,.s-end .chrome-bot{color:#7a7468}
+  .s-end .chrome-top{border-bottom-color:rgba(0,0,0,.15)}
+  .s-end .chrome-bot{border-top-color:rgba(0,0,0,.15)}
+  .s-end .brand{color:#1a1a1a}
+  .s-end .pageno{color:#1a1a1a}
+  .s-end .content{
+    position:absolute;inset:0;
+    padding:200px 64px 130px;
+    display:grid;grid-template-columns:1.3fr 1fr;gap:80px;align-items:end;
+  }
+  .s-end blockquote{
+    font-family:'Noto Serif SC',serif;font-weight:600;
+    font-size:96px;line-height:1.05;letter-spacing:-.02em;
+    color:#1a1a1a;text-wrap:balance;
+  }
+  .s-end blockquote::before{
+    content:"「";color:var(--accent);font-weight:900;
+  }
+  .s-end blockquote::after{
+    content:"」";color:var(--accent);font-weight:900;
+  }
+  .s-end .sig-col{display:flex;flex-direction:column;gap:32px;padding-bottom:14px}
+  .s-end .sig-col .eyebrow{color:#7a7468}
+  .s-end .sig-col .eyebrow::before{background:var(--accent)}
+  .s-end .sig-col p{
+    font-family:'Noto Sans SC',sans-serif;font-weight:300;
+    font-size:26px;line-height:1.7;color:#3a3a36;max-width:30ch;text-wrap:pretty;
+  }
+  .s-end .sig-col .by{
+    font-family:'JetBrains Mono',monospace;font-size:24px;
+    letter-spacing:.18em;text-transform:uppercase;color:#1a1a1a;
+    display:grid;gap:10px;
+  }
+  .s-end .sig-col .by b{color:#7a7468;font-weight:400}
+
+</style>
+</head>
+<body>
+
+<deck-stage width="1920" height="1080">
+
+  <!-- ═════════════ SLIDE 1 · COVER ═════════════ -->
+  <section class="s-cover" data-label="封面">
+    <div class="chrome-top">
+      <div class="brand"><span class="dot"></span>NEXBOT · ATELIER</div>
+      <nav><span class="active">概念</span><span>实验室</span><span>索引</span><span>联系</span></nav>
+      <div>第 07 号 / 共 12</div>
+    </div>
+
+    <div class="content">
+      <div class="left">
+        <div>
+          <div class="eyebrow" style="margin-bottom:34px">机器角色研究 · 第七辑</div>
+          <h1>
+            合成的<br>
+            <span class="small" style="font-family: -apple-system">在场</span>
+          </h1>
+          <p class="sub">一项关于柔软几何、安静运动，<br>以及某种近乎活着的低鸣的研究。</p>
+        </div>
+        <div class="meta">
+          <div><b>编号</b>NX-07 / Bot</div>
+          <div><b>类型</b>角色概念</div>
+          <div><b>引擎</b>Spline · WebGL</div>
+          <div><b>发布</b>v0.7 — Beta</div>
+        </div>
+      </div>
+
+      <div class="stage">
+        <span class="tick tl"></span><span class="tick tr"></span>
+        <span class="tick bl"></span><span class="tick br"></span>
+        <iframe src="https://my.spline.design/nexbotrobotcharacterconcept-InaUtHzcHBpSNf4h2hEp7Kge/" title="Nexbot 3D"></iframe>
+        <div class="rec-badge"><span class="rec"></span><span>实时 · 第 03 号机位</span></div>
+        <div class="coords"><b>+ 048.21° N</b><br>− 122.39° W<br>T &nbsp; 23 : 48 : 11</div>
+      </div>
+
+      <!-- decorative vertical seal -->
+      <div class="seal" aria-hidden="true">
+        <svg viewBox="0 0 220 500" xmlns="http://www.w3.org/2000/svg">
+          <defs>
+            <path id="seal-arc-top" d="M 110,250 m -86,0 a 86,86 0 1,1 172,0"/>
+            <path id="seal-arc-bot" d="M 110,250 m -86,0 a 86,86 0 1,0 172,0"/>
+          </defs>
+          <!-- pill outline -->
+          <rect x="2" y="2" width="216" height="496" rx="108" fill="none" stroke="#ff5722" stroke-width="1.2" opacity="0.85"/>
+          <rect x="10" y="10" width="200" height="480" rx="100" fill="none" stroke="#ff5722" stroke-width="0.5" opacity="0.35"/>
+          <!-- accent crosses -->
+          <g stroke="#ff5722" stroke-width="1.2" opacity="0.9">
+            <g transform="translate(110,42)"><line x1="-7" y1="0" x2="7" y2="0"/><line x1="0" y1="-7" x2="0" y2="7"/></g>
+            <g transform="translate(110,458)"><line x1="-7" y1="0" x2="7" y2="0"/><line x1="0" y1="-7" x2="0" y2="7"/></g>
+          </g>
+          <!-- vertical text left -->
+          <text transform="translate(54,420) rotate(-90)" font-family="JetBrains Mono, monospace" font-size="13" letter-spacing="5" fill="#9a958a">ÉDITION · OPUS · MMXLIX</text>
+          <!-- vertical text right -->
+          <text transform="translate(166,80) rotate(90)" font-family="JetBrains Mono, monospace" font-size="13" letter-spacing="5" fill="#9a958a">ATELIER · NEX · STUDIO</text>
+          <!-- arc text top — circular ornament around glyph -->
+          <text font-family="JetBrains Mono, monospace" font-size="10" letter-spacing="4" fill="#ff5722" opacity="0.75">
+            <textPath href="#seal-arc-top" startOffset="50%" text-anchor="middle">— CONCEPT N°07 —</textPath>
+          </text>
+          <text font-family="JetBrains Mono, monospace" font-size="10" letter-spacing="4" fill="#ff5722" opacity="0.75">
+            <textPath href="#seal-arc-bot" startOffset="50%" text-anchor="middle">— NX · 07 · BOT —</textPath>
+          </text>
+          <!-- central italic Roman numeral -->
+          <text x="110" y="282" text-anchor="middle" font-family="Instrument Serif, serif" font-style="italic" font-size="130" fill="#ff5722">Ⅶ</text>
+        </svg>
+      </div>
+    </div>
+
+    <div class="chrome-bot">
+      <div>NEXBOT.CONCEPT.07</div>
+      <div class="pageno">01 / 06</div>
+    </div>
+  </section>
+
+  <!-- ═════════════ SLIDE 2 · CONCEPT ═════════════ -->
+  <section class="s-concept" data-label="概念">
+    <div class="chrome-top">
+      <div class="brand"><span class="dot"></span>NEXBOT · ATELIER</div>
+      <nav><span>概念</span><span class="active">理念</span><span>索引</span><span>联系</span></nav>
+      <div>章节 · 一</div>
+    </div>
+
+    <div class="content">
+      <div class="head">
+        <div class="eyebrow">章节 一 · 关于这台机器</div>
+        <h2>我们想造一个<br><span class="it">安静</span>的同伴</h2>
+      </div>
+
+      <div class="cols">
+        <div class="col">
+          <h4>— 01 形态</h4>
+          <h3>柔和的几何</h3>
+          <p>不再棱角分明。圆润的曲面、过渡的高光，让它在房间里像一只熟睡的猫，而不是一台冷冰冰的机器。</p>
+        </div>
+        <div class="col">
+          <h4>— 02 行为</h4>
+          <h3>克制的回应</h3>
+          <p>它不会主动打扰你。它会等你看它，再缓慢地、像被风吹动一样，转过身来。</p>
+        </div>
+        <div class="col">
+          <h4>— 03 声音</h4>
+          <h3>低于呼吸</h3>
+          <p>没有提示音，没有铃声。只有一种几乎听不见的电流声，像老式收音机在深夜里温柔地工作。</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="chrome-bot">
+      <div>章节 · 一</div>
+      <div class="pageno">02 / 06</div>
+    </div>
+  </section>
+
+  <!-- ═════════════ SLIDE 3 · HERO ═════════════ -->
+  <section class="s-hero" data-label="主视觉">
+    <div class="stage-full">
+      <iframe src="https://my.spline.design/nexbotrobotcharacterconcept-InaUtHzcHBpSNf4h2hEp7Kge/" title="Nexbot 3D"></iframe>
+    </div>
+    <div class="overlay">
+      <div class="top-meta">
+        <div><span class="rec"></span>实时捕捉 · NX-07</div>
+        <div>拖拽 · 旋转 · 凝视</div>
+      </div>
+      <div class="middle">
+        <h2>NEX<span class="it">bot</span></h2>
+      </div>
+      <div class="caption">
+        "它不需要解释自己。<br>当你看着它时，<br>它会用最微小的方式，<br>承认你的存在。"
+        <span class="sig">— 设计手记 · 2049 春</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- ═════════════ SLIDE 4 · MODULES ═════════════ -->
+  <section class="s-mod" data-label="模块">
+    <div class="chrome-top">
+      <div class="brand"><span class="dot"></span>NEXBOT · ATELIER</div>
+      <nav><span>概念</span><span class="active">模块</span><span>索引</span><span>联系</span></nav>
+      <div>章节 · 二</div>
+    </div>
+
+    <div class="content">
+      <div class="left">
+        <div>
+          <div class="eyebrow" style="margin-bottom:30px">章节 二 · 它由什么组成</div>
+          <h2>四个<br><span class="it">器官</span>，<br>一个灵魂。</h2>
+        </div>
+
+        <div class="modules">
+          <div class="module">
+            <span class="id">— 01</span>
+            <span class="name">光学核心</span>
+            <span class="desc">双层散光镜片，<br>看见也被看见。</span>
+            <span class="status">在线</span>
+          </div>
+          <div class="module">
+            <span class="id">— 02</span>
+            <span class="name">手势经络</span>
+            <span class="desc">分布式触觉网格，<br>读取靠近与触碰。</span>
+            <span class="status">在线</span>
+          </div>
+          <div class="module">
+            <span class="id">— 03</span>
+            <span class="name">环境感官</span>
+            <span class="desc">感知光线、温度、<br>房间里有几个人。</span>
+            <span class="status idle">待机</span>
+          </div>
+          <div class="module">
+            <span class="id">— 04</span>
+            <span class="name">声纹环</span>
+            <span class="desc">不发声的扬声器，<br>只产生振动。</span>
+            <span class="status idle">待机</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="stage-r">
+        <iframe src="https://my.spline.design/nexbotrobotcharacterconcept-InaUtHzcHBpSNf4h2hEp7Kge/" title="Nexbot 3D"></iframe>
+        <div class="label">分解视图 · 拖拽以查看</div>
+        <div class="hint">向左转一点，<br>就能看见它的耳朵。</div>
+      </div>
+    </div>
+
+    <div class="chrome-bot">
+      <div>章节 · 二</div>
+      <div class="pageno">04 / 06</div>
+    </div>
+  </section>
+
+  <!-- ═════════════ SLIDE 5 · SPECS ═════════════ -->
+  <section class="s-spec" data-label="规格">
+    <div class="chrome-top">
+      <div class="brand"><span class="dot"></span>NEXBOT · ATELIER</div>
+      <nav><span>概念</span><span>模块</span><span class="active">规格</span><span>联系</span></nav>
+      <div>章节 · 三</div>
+    </div>
+
+    <div class="content">
+      <div>
+        <div class="eyebrow" style="margin-bottom:28px">章节 三 · 关于身体</div>
+        <h2>一台占据<br>恰好<span class="it">一立方米</span>的伙伴。</h2>
+      </div>
+
+      <div class="grid">
+        <div class="cell">
+          <div class="k">— 身高</div>
+          <div class="v">168<span class="u">cm</span></div>
+          <div class="note">与一位成年女性平视，<br>不需要俯身或抬头。</div>
+        </div>
+        <div class="cell">
+          <div class="k">— 体重</div>
+          <div class="v">42<span class="u">kg</span></div>
+          <div class="note">一人可以推动，<br>但不会被风吹走。</div>
+        </div>
+        <div class="cell">
+          <div class="k">— 续航</div>
+          <div class="v">36<span class="u">h</span></div>
+          <div class="note">一次充电，<br>陪你度过一个长周末。</div>
+        </div>
+        <div class="cell">
+          <div class="k">— 帧率</div>
+          <div class="v">60<span class="u">fps</span></div>
+          <div class="note">所有微表情<br>都在你眨眼之间发生。</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="chrome-bot">
+      <div>章节 · 三</div>
+      <div class="pageno">05 / 06</div>
+    </div>
+  </section>
+
+  <!-- ═════════════ SLIDE 6 · OUTRO ═════════════ -->
+  <section class="s-end" data-label="尾页">
+    <div class="chrome-top">
+      <div class="brand"><span style="width:10px;height:10px;border-radius:50%;background:var(--accent);display:inline-block;box-shadow:0 0 14px var(--accent)"></span>NEXBOT · ATELIER</div>
+      <nav><span>概念</span><span>模块</span><span>规格</span><span class="active">结语</span></nav>
+      <div>结语</div>
+    </div>
+
+    <div class="content">
+      <blockquote>未来不一定<br>更聪明，<br>但它可以更<br>温柔一点。</blockquote>
+
+      <div class="sig-col">
+        <div class="eyebrow">— 致 看到这里的你</div>
+        <p>这是一份开放研究。如果你也想让机器变得更可亲一些，欢迎写信给我们。</p>
+        <div class="by">
+          <span><b>署名</b>&nbsp; Atelier Nex</span>
+          <span><b>地点</b>&nbsp; 上海 / 京都</span>
+          <span><b>邮箱</b>&nbsp; hello@nexbot.studio</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="chrome-bot">
+      <div>NEXBOT · 2049</div>
+      <div class="pageno" style="color:#1a1a1a">06 / 06</div>
+    </div>
+  </section>
+
+</deck-stage>
+
+<script src="deck-stage.js"></script>
+</body>
+</html>

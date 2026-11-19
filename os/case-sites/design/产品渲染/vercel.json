@@ -1,0 +1,6 @@
+{
+  "rewrites": [
+    { "source": "/data", "destination": "/data-visualization.html" },
+    { "source": "/tp-7", "destination": "/TP-7.html" }
+  ]
+}

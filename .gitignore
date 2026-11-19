@@ -1,0 +1,20 @@
+# 系统文件
+.DS_Store
+
+# Wrangler 本地状态与缓存（含本地 Durable Object 数据库、访问统计、地理位置缓存）
+.wrangler/
+**/.wrangler/
+.dev.vars
+.env*
+
+# 部署用的拷贝目录（与源码重复）
+dist/
+
+# 案例的参考素材（页面没有引用，且含第三方图片）
+os/case-sites/**/uploads/
+
+node_modules/
+
+# 数据后台（不开源）
+presence-worker/
+数据看板.html
